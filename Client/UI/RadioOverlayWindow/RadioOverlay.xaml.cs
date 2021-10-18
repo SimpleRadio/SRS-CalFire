@@ -188,7 +188,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Overlay
         }
 
         private long _lastFocus;
-        private RadioCapabilities _radioCapabilitiesWindow;
 
         private void FocusDCS()
         {
@@ -248,27 +247,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Overlay
             }
         }
 
-        private void Button_About(object sender, RoutedEventArgs e)
-        {
-            //Show Radio Capabilities
-            if ((_radioCapabilitiesWindow == null) || !_radioCapabilitiesWindow.IsVisible ||
-                (_radioCapabilitiesWindow.WindowState == WindowState.Minimized))
-            {
-                _radioCapabilitiesWindow?.Close();
-
-                _radioCapabilitiesWindow = new RadioCapabilities();
-                _radioCapabilitiesWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-                _radioCapabilitiesWindow.Owner = this;
-                _radioCapabilitiesWindow.ShowDialog();
-            }
-            else
-            {
-                _radioCapabilitiesWindow?.Close();
-                _radioCapabilitiesWindow = null;
-            }
-
-        }
-
+      
 
         private void Button_Close(object sender, RoutedEventArgs e)
         {

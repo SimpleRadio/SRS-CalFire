@@ -34,7 +34,6 @@ namespace Ciribob.SRS.Client.Network
         public static string ServerVersion = "Unknown";
         private readonly string _guid;
         private ConnectCallback _callback;
-        private ExternalAWACSModeConnectCallback _externalAWACSModeCallback;
         private UpdateUICallback _updateUICallback;
         private readonly DCSRadioSyncHandler.NewAircraft _newAircraft;
         private IPEndPoint _serverEndpoint;
@@ -85,42 +84,6 @@ namespace Ciribob.SRS.Client.Network
             tcpThread.Start();
         }
 
-        public void ConnectExternalAWACSMode(string password, ExternalAWACSModeConnectCallback callback)
-        {
-            if (_clientStateSingleton.ExternalAWACSModelSelected)
-            {
-                return;
-            }
-
-            _externalAWACSModeCallback = callback;
-
-            var sideInfo = _clientStateSingleton.PlayerCoaltionLocationMetadata;
-            sideInfo.name = _clientStateSingleton.LastSeenName;
-            SendToServer(new NetworkMessage
-            {
-                Client = new SRClient
-                {
-                    Coalition = sideInfo.side,
-                    Name = sideInfo.name,
-                    LatLngPosition = sideInfo.LngLngPosition,
-                    ClientGuid = _guid
-                },
-                ExternalAWACSModePassword = password,
-                MsgType = NetworkMessage.MessageType.EXTERNAL_AWACS_MODE_PASSWORD
-            });
-        }
-
-        public void DisconnectExternalAWACSMode()
-        {
-            if (!_clientStateSingleton.ExternalAWACSModelSelected || _radioDCSSync == null)
-            {
-                return;
-            }
-
-            _radioDCSSync.StopExternalAWACSModeLoop();
-
-            CallExternalAWACSModeOnMain(false, 0);
-        }
 
         private void Connect()
         {
@@ -181,13 +144,7 @@ namespace Ciribob.SRS.Client.Network
 
         private void ClientRadioUpdated()
         {
-            //disconnect AWACS
-            if (_clientStateSingleton.ExternalAWACSModelSelected && _clientStateSingleton.IsGameConnected)
-            {
-                Logger.Debug("Disconnect AWACS Mode as Game Detected");
-                DisconnectExternalAWACSMode();
-            }
-
+           
             Logger.Debug("Sending Radio Update to Server");
             var sideInfo = _clientStateSingleton.PlayerCoaltionLocationMetadata;
 
@@ -263,17 +220,7 @@ namespace Ciribob.SRS.Client.Network
             }
         }
 
-        private void CallExternalAWACSModeOnMain(bool result, int coalition)
-        {
-            try
-            {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new ThreadStart(delegate { _externalAWACSModeCallback(result, coalition); }));
-            }
-            catch (Exception ex)
-            {
-            }
-        }
+   
 
         private void CallUpdateUIOnMain()
         {
@@ -464,20 +411,7 @@ namespace Ciribob.SRS.Client.Network
                                         Disconnect();
                                         break;
                                     case NetworkMessage.MessageType.EXTERNAL_AWACS_MODE_PASSWORD:
-                                        if (serverMessage.Client.Coalition == 0)
-                                        {
-                                            Logger.Info("External AWACS mode authentication failed");
-
-                                            CallExternalAWACSModeOnMain(false, 0);
-                                        }
-                                        else if (_radioDCSSync != null && _radioDCSSync.IsListening)
-                                        {
-                                            Logger.Info("External AWACS mode authentication succeeded, coalition {0}", serverMessage.Client.Coalition == 1 ? "red" : "blue");
-
-                                            CallExternalAWACSModeOnMain(true, serverMessage.Client.Coalition);
-
-                                            _radioDCSSync.StartExternalAWACSModeLoop();
-                                        }
+                                       
                                         break;
                                     default:
                                         Logger.Error("Recevied unknown " + line);
@@ -570,7 +504,6 @@ namespace Ciribob.SRS.Client.Network
             _lastSent = DateTime.Now.Ticks;
             _idleTimeout?.Stop();
 
-            DisconnectExternalAWACSMode();
 
             try
             {

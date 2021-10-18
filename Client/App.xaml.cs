@@ -30,7 +30,7 @@ namespace DCS_SR_Client
 
         public App()
         {
-            SentrySdk.Init("https://1b22a96cbcc34ee4b9db85c7fa3fe4e3@o414743.ingest.sentry.io/5304752");
+            SentrySdk.Init("https://278831323bbb4efb94e17bc21b5f881d@o414743.ingest.sentry.io/6011780");
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 
             var location = AppDomain.CurrentDomain.BaseDirectory;
@@ -61,7 +61,7 @@ namespace DCS_SR_Client
 
             ListArgs();
 
-#if !DEBUG
+
             if (IsClientRunning())
             {
                 //check environment flag
@@ -97,10 +97,8 @@ namespace DCS_SR_Client
                     return;
                 }
             }
-#endif
 
-            RequireAdmin();
-
+       
             InitNotificationIcon();
 
         }
@@ -115,89 +113,6 @@ namespace DCS_SR_Client
             }
         }
 
-        private void RequireAdmin()
-        {
-            if (!GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.RequireAdmin))
-            {
-                return;
-            }
-            
-            WindowsPrincipal principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
-            bool hasAdministrativeRight = principal.IsInRole(WindowsBuiltInRole.Administrator);
-
-            if (!hasAdministrativeRight && GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.RequireAdmin))
-            {
-                Task.Factory.StartNew(() =>
-                {
-                    var location = AppDomain.CurrentDomain.BaseDirectory;
-
-                    ProcessStartInfo startInfo = new ProcessStartInfo
-                    {
-                        UseShellExecute = true,
-                        WorkingDirectory = "\"" + location + "\"",
-                        FileName = "SR-ClientRadio.exe",
-                        Verb = "runas",
-                        Arguments = GetArgsString() + " -allowMultiple"
-                    };
-                    try
-                    {
-                        Process p = Process.Start(startInfo);
-
-                        //shutdown this process as another has started
-                        Dispatcher?.BeginInvoke(new Action(() =>
-                        {
-                            if (_notifyIcon != null)
-                                _notifyIcon.Visible = false;
-
-                            Environment.Exit(0);
-                        }));
-                    }
-                    catch (System.ComponentModel.Win32Exception ex)
-                    {
-                        MessageBox.Show(
-                                "SRS Requires admin rights to be able to read keyboard input in the background. \n\nIf you do not use any keyboard binds for SRS and want to stop this message - Disable Require Admin Rights in SRS Settings\n\nSRS will continue without admin rights but keyboard binds will not work!",
-                                "UAC Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-
-                    }
-                });
-            }
-            else
-            {
-                
-            }
-           
-        }
-
-        private string GetArgsString()
-        {
-            StringBuilder builder = new StringBuilder();
-            var args = Environment.GetCommandLineArgs();
-            foreach (var s in args)
-            {
-                if (builder.Length > 0)
-                {
-                    builder.Append(" ");
-                }
-
-                if (s.Contains("-cfg="))
-                {
-                    var str = s.Replace("-cfg=", "-cfg=\"");
-
-                    builder.Append(str);
-                    builder.Append("\"");
-                }
-                else if (s.Contains("SR-ClientRadio.exe"))
-                {
-                    ///ignore
-                }
-                else
-                {
-                    builder.Append(s);
-                }
-            }
-
-            return builder.ToString();
-        }
 
         private bool IsClientRunning()
         {

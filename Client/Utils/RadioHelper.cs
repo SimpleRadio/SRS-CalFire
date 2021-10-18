@@ -138,59 +138,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Utils
             return null;
         }
 
-        public static void ToggleEncryption(int radioId)
-        {
-            var radio = GetRadio(radioId);
 
-            if (radio != null)
-            {
-                if (radio.modulation != RadioInformation.Modulation.DISABLED) // disabled
-                {
-                    //update stuff
-                    if (radio.encMode == RadioInformation.EncryptionMode.ENCRYPTION_JUST_OVERLAY)
-                    {
-                        if (radio.enc)
-                        {
-                            radio.enc = false;
-                        }
-                        else
-                        {
-                            radio.enc = true;
-                        }
-
-                        //make radio data stale to force resysnc
-                        ClientStateSingleton.Instance.LastSent = 0;
-                    }
-                }
-            }
-        }
-
-        public static void SetEncryptionKey(int radioId, int encKey)
-        {
-            var currentRadio = RadioHelper.GetRadio(radioId);
-
-            if (currentRadio != null &&
-                currentRadio.modulation != RadioInformation.Modulation.DISABLED) // disabled
-            {
-                if (currentRadio.modulation != RadioInformation.Modulation.DISABLED) // disabled
-                {
-                    //update stuff
-                    if ((currentRadio.encMode ==
-                         RadioInformation.EncryptionMode.ENCRYPTION_COCKPIT_TOGGLE_OVERLAY_CODE) ||
-                        (currentRadio.encMode == RadioInformation.EncryptionMode.ENCRYPTION_JUST_OVERLAY))
-                    {
-                        if (encKey > 252)
-                            encKey = 252;
-                        else if (encKey < 1)
-                            encKey = 1;
-
-                        currentRadio.encKey = (byte) encKey;
-                        //make radio data stale to force resysnc
-                        ClientStateSingleton.Instance.LastSent = 0;
-                    }
-                }
-            }
-        }
 
         public static void SelectNextRadio()
         {
@@ -270,26 +218,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Utils
             }
         }
 
-        public static void IncreaseEncryptionKey(int radioId)
-        {
-            var currentRadio = RadioHelper.GetRadio(radioId);
-
-            if (currentRadio != null)
-            {
-                SetEncryptionKey(radioId, currentRadio.encKey + 1);
-            }
-        }
-
-        public static void DecreaseEncryptionKey(int radioId)
-        {
-            var currentRadio = RadioHelper.GetRadio(radioId);
-
-            if (currentRadio != null)
-            {
-                SetEncryptionKey(radioId, currentRadio.encKey - 1);
-            }
-        }
-
+     
         public static void SelectRadioChannel(PresetChannel selectedPresetChannel, int radioId)
         {
             if (UpdateRadioFrequency((double) selectedPresetChannel.Value, radioId, false, false))

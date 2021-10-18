@@ -229,45 +229,7 @@
                 </StackPanel>
             </StackPanel>
         </TabItem>
-        <TabItem Name="EncryptionTab">
-            <TabItem.Header>
-                <TextBlock Margin="3,0,3,0"
-                           FontSize="10"
-                           Foreground="#E7E7E7"
-                           Padding="0"
-                           Text="Enc" />
-            </TabItem.Header>
-
-            <WrapPanel HorizontalAlignment="Center"
-                       Background="#444"
-                       Orientation="Vertical">
-                <TextBlock HorizontalAlignment="Center"
-                           FontSize="10"
-                           Foreground="#E7E7E7"
-                           Text="Encryption Key"
-                           TextAlignment="Center" />
-                <WrapPanel Orientation="Horizontal">
-                    <xctk:IntegerUpDown Name="EncryptionKeySpinner"
-                                        Width="50"
-                                        Height="20"
-                                        Margin="5"
-                                        Maximum="252"
-                                        Minimum="1"
-                                        ValueChanged="EncryptionKeySpinner_OnValueChanged"
-                                        Value="1" />
-                    <Button Name="EncryptionButton"
-                            Width="50"
-                            Height="20"
-                            Margin="5"
-                            Click="Encryption_ButtonClick"
-                            Content="Enable"
-                            Style="{x:Null}" />
-                </WrapPanel>
-
-            </WrapPanel>
-
-        </TabItem>
-
+        
         <TabItem Name="ChannelTab">
             <TabItem.Header>
                 <TextBlock Margin="3,0,3,0"

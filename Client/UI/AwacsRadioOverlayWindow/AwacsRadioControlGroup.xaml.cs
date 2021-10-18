@@ -291,7 +291,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
 
         internal void RepaintRadioStatus()
         {
-            SetupEncryption();
+          
             HandleRetransmitStatus();
 
             var dcsPlayerRadioInfo = _clientStateSingleton.PlayerRadioInfo;
@@ -506,71 +506,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
             }
         }
 
-        private void SetupEncryption()
-        {
-            var dcsPlayerRadioInfo = _clientStateSingleton.PlayerRadioInfo;
-
-            if (((dcsPlayerRadioInfo != null) && dcsPlayerRadioInfo.IsCurrent())
-                && RadioId <= dcsPlayerRadioInfo.radios.Length - 1)
-            {
-                var currentRadio = dcsPlayerRadioInfo.radios[RadioId];
-
-                EncryptionKeySpinner.Value = currentRadio.encKey;
-
-                //update stuff
-                if ((currentRadio.encMode == RadioInformation.EncryptionMode.NO_ENCRYPTION)
-                    || (currentRadio.encMode == RadioInformation.EncryptionMode.ENCRYPTION_FULL)
-                    || (currentRadio.modulation == RadioInformation.Modulation.INTERCOM))
-                {
-                    //Disable everything
-                    EncryptionKeySpinner.IsEnabled = false;
-                    EncryptionButton.IsEnabled = false;
-                    EncryptionButton.Visibility = Visibility.Hidden;
-                    EncryptionButton.Content = "Enable";
-
-                    EncryptionTab.Visibility = Visibility.Collapsed;
-                }
-                else if (currentRadio.encMode ==
-                         RadioInformation.EncryptionMode.ENCRYPTION_COCKPIT_TOGGLE_OVERLAY_CODE)
-                {
-                    //allow spinner
-                    EncryptionKeySpinner.IsEnabled = true;
-
-                    //disallow encryption toggle
-                    EncryptionButton.IsEnabled = false;
-                    EncryptionButton.Content = "Enable";
-                    EncryptionButton.Visibility = Visibility.Visible;
-                    EncryptionTab.Visibility = Visibility.Visible;
-                }
-                else if (currentRadio.encMode ==
-                         RadioInformation.EncryptionMode.ENCRYPTION_JUST_OVERLAY)
-                {
-                    EncryptionKeySpinner.IsEnabled = true;
-                    EncryptionButton.IsEnabled = true;
-                    EncryptionButton.Visibility = Visibility.Visible;
-
-                    if (currentRadio.enc)
-                    {
-                        EncryptionButton.Content = "Disable";
-                    }
-                    else
-                    {
-                        EncryptionButton.Content = "Enable";
-                    }
-                    EncryptionTab.Visibility = Visibility.Visible;
-                }
-            }
-            else
-            {
-                //Disable everything
-                EncryptionKeySpinner.IsEnabled = false;
-                EncryptionButton.IsEnabled = false;
-                EncryptionButton.Visibility = Visibility.Hidden;
-                EncryptionButton.Content = "Enable";
-                EncryptionTab.Visibility = Visibility.Collapsed;
-            }
-        }
-
 
         internal void RepaintRadioReceive()
         {
@@ -631,35 +566,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
         }
 
 
-        private void Encryption_ButtonClick(object sender, RoutedEventArgs e)
-        {
-            var currentRadio = RadioHelper.GetRadio(RadioId);
-
-            if (currentRadio != null &&
-                currentRadio.modulation != RadioInformation.Modulation.DISABLED) // disabled
-            {
-                //update stuff
-                if (currentRadio.encMode == RadioInformation.EncryptionMode.ENCRYPTION_JUST_OVERLAY)
-                {
-                    RadioHelper.ToggleEncryption(RadioId);
-
-                    if (currentRadio.enc)
-                    {
-                        EncryptionButton.Content = "Enable";
-                    }
-                    else
-                    {
-                        EncryptionButton.Content = "Disable";
-                    }
-                }
-            }
-        }
-
-        private void EncryptionKeySpinner_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            if (EncryptionKeySpinner?.Value != null)
-                RadioHelper.SetEncryptionKey(RadioId, (byte) EncryptionKeySpinner.Value);
-        }
 
         private void ToggleSimultaneousTransmissionButton_Click(object sender, RoutedEventArgs e)
         {

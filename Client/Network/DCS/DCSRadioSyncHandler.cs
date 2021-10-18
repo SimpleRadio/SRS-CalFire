@@ -136,8 +136,6 @@ namespace Ciribob.SRS.Client.Network.DCS
             // determine if its changed by comparing old to new
             var update = UpdateRadio(message);
 
-            //send to DCS UI
-            SendRadioUpdateToDCS();
 
             Logger.Debug("Update sent to DCS");
 
@@ -153,69 +151,6 @@ namespace Ciribob.SRS.Client.Network.DCS
             }
         }
 
-        //send updated radio info back to DCS for ingame GUI
-        private void SendRadioUpdateToDCS()
-        {
-            if (_dcsRadioUpdateSender == null)
-            {
-                _dcsRadioUpdateSender = new UdpClient();
-            }
-
-            try
-            {
-                var connectedClientsSingleton = ConnectedClientsSingleton.Instance;
-                int[] tunedClients = new int[11];
-
-                if (_clientStateSingleton.IsConnected
-                    && _clientStateSingleton.PlayerRadioInfo !=null
-                    && _clientStateSingleton.PlayerRadioInfo.IsCurrent())
-                {
-
-                    for (int i = 0; i < tunedClients.Length; i++)
-                    {
-                        var clientRadio = _clientStateSingleton.PlayerRadioInfo.radios[i];
-                        
-                        if (clientRadio.modulation != RadioInformation.Modulation.DISABLED)
-                        {
-                            tunedClients[i] = connectedClientsSingleton.ClientsOnFreq(clientRadio.freq, clientRadio.modulation);
-                        }
-                    }
-                }
-                
-                //get currently transmitting or receiving
-                var combinedState = new CombinedRadioState()
-                {
-                    RadioInfo = _clientStateSingleton.PlayerRadioInfo,
-                    RadioSendingState = _clientStateSingleton.RadioSendingState,
-                    RadioReceivingState = _clientStateSingleton.RadioReceivingState,
-                    ClientCountConnected = _clients.Total,
-                    TunedClients = tunedClients,
-                };
-
-                var message = JsonConvert.SerializeObject(combinedState, new JsonSerializerSettings
-                {
-                 //   NullValueHandling = NullValueHandling.Ignore,
-                    ContractResolver = new JsonDCSPropertiesResolver(),
-                }) + "\n";
-
-                var byteData =
-                    Encoding.UTF8.GetBytes(message);
-
-                //Logger.Info("Sending Update over UDP 7080 DCS - 7082 Flight Panels: \n"+message);
-
-                _dcsRadioUpdateSender.Send(byteData, byteData.Length,
-                    new IPEndPoint(IPAddress.Parse("127.0.0.1"),
-                        _globalSettings.GetNetworkSetting(GlobalSettingsKeys.OutgoingDCSUDPInfo))); //send to DCS
-                _dcsRadioUpdateSender.Send(byteData, byteData.Length,
-                    new IPEndPoint(IPAddress.Parse("127.0.0.1"),
-                        _globalSettings.GetNetworkSetting(GlobalSettingsKeys
-                            .OutgoingDCSUDPOther))); // send to Flight Control Panels
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e, "Exception Sending DCS Radio Update Message");
-            }
-        }
 
         private bool UpdateRadio(PlayerRadioInfo message)
         {
@@ -299,7 +234,6 @@ namespace Ciribob.SRS.Client.Network.DCS
 
                     clientRadio.freqMode = RadioInformation.FreqMode.COCKPIT;
                     clientRadio.guardFreqMode = RadioInformation.FreqMode.COCKPIT;
-                    clientRadio.encMode = RadioInformation.EncryptionMode.NO_ENCRYPTION;
                     clientRadio.volMode = RadioInformation.VolumeMode.COCKPIT;
 
                     continue;
@@ -308,8 +242,7 @@ namespace Ciribob.SRS.Client.Network.DCS
                 var updateRadio = message.radios[i];
 
 
-                if ((updateRadio.expansion && !expansion) ||
-                    (updateRadio.modulation == RadioInformation.Modulation.DISABLED))
+                if (updateRadio.modulation == RadioInformation.Modulation.DISABLED)
                 {
                     //expansion radio, not allowed
                     clientRadio.freq = 1;
@@ -324,7 +257,6 @@ namespace Ciribob.SRS.Client.Network.DCS
 
                     clientRadio.freqMode = RadioInformation.FreqMode.COCKPIT;
                     clientRadio.guardFreqMode = RadioInformation.FreqMode.COCKPIT;
-                    clientRadio.encMode = RadioInformation.EncryptionMode.NO_ENCRYPTION;
                     clientRadio.volMode = RadioInformation.VolumeMode.COCKPIT;
                 }
                 else
@@ -352,14 +284,6 @@ namespace Ciribob.SRS.Client.Network.DCS
                     clientRadio.guardFreqMode = updateRadio.guardFreqMode;
                     clientRadio.rtMode = updateRadio.rtMode;
 
-                    if (_serverSettings.GetSettingAsBool(ServerSettingsKeys.ALLOW_RADIO_ENCRYPTION))
-                    {
-                        clientRadio.encMode = updateRadio.encMode;
-                    }
-                    else
-                    {
-                        clientRadio.encMode = RadioInformation.EncryptionMode.NO_ENCRYPTION;
-                    }
 
                     clientRadio.volMode = updateRadio.volMode;
 
@@ -418,30 +342,7 @@ namespace Ciribob.SRS.Client.Network.DCS
                         clientRadio.encKey = 0;
                     }
 
-                    //Handle Encryption
-                    if (updateRadio.encMode == RadioInformation.EncryptionMode.ENCRYPTION_JUST_OVERLAY)
-                    {
-                        if (clientRadio.encKey == 0)
-                        {
-                            clientRadio.encKey = 1;
-                        }
-                    }
-                    else if (clientRadio.encMode ==
-                             RadioInformation.EncryptionMode.ENCRYPTION_COCKPIT_TOGGLE_OVERLAY_CODE)
-                    {
-                        clientRadio.enc = updateRadio.enc;
-
-                        if (clientRadio.encKey == 0)
-                        {
-                            clientRadio.encKey = 1;
-                        }
-                    }
-                    else if (clientRadio.encMode == RadioInformation.EncryptionMode.ENCRYPTION_FULL)
-                    {
-                        clientRadio.enc = updateRadio.enc;
-                        clientRadio.encKey = updateRadio.encKey;
-                    }
-                    else
+                 
                     {
                         clientRadio.enc = false;
                         clientRadio.encKey = 0;

@@ -620,7 +620,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
                                             RadioHelper.ToggleGuard(dcsPlayerRadioInfo.selected);
                                             break;
                                         case InputBinding.ToggleEncryption:
-                                            RadioHelper.ToggleEncryption(dcsPlayerRadioInfo.selected);
+                                           
                                             break;
                                         case InputBinding.NextRadio:
                                             RadioHelper.SelectNextRadio();
@@ -629,10 +629,10 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
                                             RadioHelper.SelectPreviousRadio();
                                             break;
                                         case InputBinding.EncryptionKeyIncrease:
-                                            RadioHelper.IncreaseEncryptionKey(dcsPlayerRadioInfo.selected);
+                                      
                                             break;
                                         case InputBinding.EncryptionKeyDecrease:
-                                            RadioHelper.DecreaseEncryptionKey(dcsPlayerRadioInfo.selected);
+                                           
                                             break;
                                         case InputBinding.RadioChannelUp:
                                             RadioHelper.RadioChannelUp(dcsPlayerRadioInfo.selected);

@@ -21,7 +21,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
         private readonly IWindowManager _windowManager;
         private readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private DispatcherTimer _passwordDebounceTimer = null;
 
         public MainViewModel(IWindowManager windowManager, IEventAggregator eventAggregator,
             ClientAdminViewModel clientAdminViewModel)
@@ -31,9 +30,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
             _clientAdminViewModel = clientAdminViewModel;
             _eventAggregator.Subscribe(this);
 
-            DisplayName = $"DCS-SRS Server - {UpdaterChecker.VERSION} - {ListeningPort}" ;
+            DisplayName = $"SRS Server - {UpdaterChecker.VERSION} - {ListeningPort}" ;
 
-            Logger.Info("DCS-SRS Server Running - " + UpdaterChecker.VERSION);
+            Logger.Info("SRS Server Running - " + UpdaterChecker.VERSION);
         }
 
         public bool IsServerRunning { get; private set; } = true;
@@ -92,7 +91,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
             }
         }
 
-        private DispatcherTimer _globalLobbyFrequenciesDebounceTimer;
 
 
         public string TunedCountText
@@ -125,7 +123,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
         {
             IDictionary<string, object> settings = new Dictionary<string, object>
             {
-                {"Icon", new BitmapImage(new Uri("pack://application:,,,/SR-Server;component/server-10.ico"))},
+                {"Icon", new BitmapImage(new Uri("pack://application:,,,/SRS-Server;component/server-10.ico"))},
                 {"ResizeMode", ResizeMode.CanMinimize}
             };
             _windowManager.ShowWindow(_clientAdminViewModel, null, settings);

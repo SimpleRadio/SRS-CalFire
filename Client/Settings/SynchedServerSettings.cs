@@ -59,24 +59,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
             {
                 _settings.AddOrUpdate(kvp.Key, kvp.Value, (key, oldVal) => kvp.Value);
                 
-                if (kvp.Key.Equals(ServerSettingsKeys.GLOBAL_LOBBY_FREQUENCIES.ToString()))
-                {
-                    var freqStringList = kvp.Value.Split(',');
-
-                    var newList = new List<double>();
-                    foreach (var freq in freqStringList)
-                    {
-                        if (double.TryParse(freq.Trim(), out var freqDouble))
-                        {
-                            freqDouble *= 1e+6; //convert to Hz from MHz
-                            newList.Add(freqDouble);
-                            Logger.Debug("Adding Server Global Frequency: " + freqDouble);
-                        }
-                    }
-
-                    GlobalFrequencies = newList;
-                }
-                else if(kvp.Key.Equals(ServerSettingsKeys.RETRANSMISSION_NODE_LIMIT.ToString()))
+                if(kvp.Key.Equals(ServerSettingsKeys.RETRANSMISSION_NODE_LIMIT.ToString()))
                 {
                     if (!int.TryParse(kvp.Value, out var nodeLimit))
                     {

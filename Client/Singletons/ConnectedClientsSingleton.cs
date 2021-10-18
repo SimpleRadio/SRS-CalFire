@@ -112,7 +112,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons
             }
             var currentClientPos = ClientStateSingleton.Instance.PlayerCoaltionLocationMetadata;
             var currentUnitId = ClientStateSingleton.Instance.PlayerRadioInfo.unitId;
-            var coalitionSecurity = SyncedServerSettings.Instance.GetSettingAsBool(ServerSettingsKeys.COALITION_AUDIO_SECURITY);
             var globalFrequencies = _serverSettings.GlobalFrequencies;
             var global = globalFrequencies.Contains(freq);
             int count = 0;
@@ -122,7 +121,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons
                 if (!client.Key.Equals(_guid))
                 {
                     // check that either coalition radio security is disabled OR the coalitions match
-                    if (global|| (!coalitionSecurity || (client.Value.Coalition == currentClientPos.side)))
+                    if (global|| ((client.Value.Coalition == currentClientPos.side)))
                     {
 
                         var radioInfo = client.Value.RadioInfo;

@@ -29,7 +29,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server
 
         public Bootstrapper()
         {
-            SentrySdk.Init("https://0935ffeb7f9c46e28a420775a7f598f4@o414743.ingest.sentry.io/5315043");
+            SentrySdk.Init("https://ab4791abe55a4ae384a5a802c3060bc4@o414743.ingest.sentry.io/6011651");
 
             Initialize();
             SetupLogging();
@@ -95,7 +95,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server
         {
             IDictionary<string, object> settings = new Dictionary<string, object>
             {
-                {"Icon", new BitmapImage(new Uri("pack://application:,,,/SR-Server;component/server-10.ico"))},
+                {"Icon", new BitmapImage(new Uri("pack://application:,,,/SRS-Server;component/server-10.ico"))},
                 {"ResizeMode", ResizeMode.CanMinimize}
             };
             //create an instance of serverState to actually start the server

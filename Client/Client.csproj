@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Ciribob.DCS.SimpleRadio.Standalone.Client</RootNamespace>
-    <AssemblyName>ClientRadio</AssemblyName>
+    <AssemblyName>SRS-Client</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -212,8 +212,6 @@
     <Compile Include="Input\InputBindState.cs" />
     <Compile Include="Network\DCS\DCSRadioSyncHandler.cs" />
     <Compile Include="Network\DCS\Models\CombinedRadioState.cs" />
-    <Compile Include="Network\DCS\Models\DCSLosCheckRequest.cs" />
-    <Compile Include="Network\DCS\Models\DCSLosCheckResult.cs" />
     <Compile Include="Network\UDPVoiceHandler.cs" />
     <Compile Include="Settings\SynchedServerSettings.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -221,9 +219,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Settings\Favourites\CsvFavouriteServerStore.cs" />
-    <Compile Include="Settings\Favourites\IFavouriteServerStore.cs" />
-    <Compile Include="Settings\Favourites\MockFavouriteServerStore.cs" />
     <Compile Include="Settings\RadioChannels\FilePresetChannelsStore.cs" />
     <Compile Include="Settings\RadioChannels\MockPresetChannelsStore.cs" />
     <Compile Include="Singletons\AudioOutputSingleton.cs" />
@@ -232,9 +227,6 @@
     <Compile Include="Singletons\AudioInputSingleton.cs" />
     <Compile Include="UI\ClientWindow\ClientList\ClientListWindow.xaml.cs">
       <DependentUpon>ClientListWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UI\RadioOverlayWindow\RadioCapabilities.xaml.cs">
-      <DependentUpon>RadioCapabilities.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\RadioOverlayWindow\TransponderPanel.xaml.cs">
       <DependentUpon>TransponderPanel.xaml</DependentUpon>
@@ -269,10 +261,6 @@
       <DependentUpon>AwacsOverlay.xaml</DependentUpon>
     </Compile>
     <Compile Include="Settings\Favourites\ServerAddress.cs" />
-    <Compile Include="UI\ClientWindow\Favourites\FavouriteServersView.xaml.cs">
-      <DependentUpon>FavouriteServersView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UI\ClientWindow\Favourites\FavouriteServersViewModel.cs" />
     <Compile Include="UI\RadioOverlayWindow\IntercomControlGroup.xaml.cs">
       <DependentUpon>IntercomControlGroup.xaml</DependentUpon>
     </Compile>
@@ -300,10 +288,6 @@
     <Compile Include="Utils\ValueConverters\MicAvailabilityTooltipConverter.cs" />
     <Compile Include="Utils\WPFElementHelper.cs" />
     <Page Include="UI\ClientWindow\ClientList\ClientListWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="UI\RadioOverlayWindow\RadioCapabilities.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -351,10 +335,6 @@
     <Page Include="UI\AwacsRadioOverlayWindow\AwacsOverlay.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="UI\ClientWindow\Favourites\FavouriteServersView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\RadioOverlayWindow\IntercomControlGroup.xaml">
       <Generator>MSBuild:Compile</Generator>

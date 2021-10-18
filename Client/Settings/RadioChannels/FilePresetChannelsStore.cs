@@ -42,10 +42,21 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.RadioChannels
                     {
                         try
                         {
-                            double frequency = Double.Parse(trimmed, CultureInfo.InvariantCulture);
+                            
+                            var frequencyText = "";
+                            string channelName = null;
+                            //spilt on | 
+                            if (line.Contains("|"))
+                            {
+                                var spilt = line.Split('|');
+                                frequencyText = spilt[1].Trim();
+                                channelName = spilt[0].Trim();
+                            }
+                            
+                            var frequency = Double.Parse(frequencyText, CultureInfo.InvariantCulture);
                             channels.Add(new PresetChannel()
                             {
-                                Text = trimmed,
+                                Text = channelName ?? frequencyText, //use channel name if not null
                                 Value = frequency * MHz,
                             });
                         }

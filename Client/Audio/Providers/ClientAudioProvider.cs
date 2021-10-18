@@ -158,40 +158,25 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
                 vhfVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.VHFNoiseVolume);
             }
 
-            var decrytable = audio.Decryptable || (audio.Encryption == 0);
+        
+            //adjust for LOS + Distance + Volume
+            AdjustVolumeForLoss(audio);
 
-            if (decrytable)
+            if (audio.ReceivedRadio == 0
+                || audio.Modulation == (short)RadioInformation.Modulation.MIDS)
             {
-                //adjust for LOS + Distance + Volume
-                AdjustVolumeForLoss(audio);
-
-                if (audio.ReceivedRadio == 0
-                    || audio.Modulation == (short)RadioInformation.Modulation.MIDS)
+                if (profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects))
                 {
-                    if (profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects))
-                    {
-                        AddRadioEffectIntercom(audio);
-                    }
+                    AddRadioEffectIntercom(audio);
                 }
-                else
-                {
-                    AddRadioEffect(audio);
-                }
-
-                //final adjust
-                AdjustVolume(audio);
-
             }
             else
             {
-                AddEncryptionFailureEffect(audio);
-
                 AddRadioEffect(audio);
-
-                //final adjust
-                AdjustVolume(audio);
-
             }
+
+            //final adjust
+            AdjustVolume(audio);
 
             if (newTransmission)
             {

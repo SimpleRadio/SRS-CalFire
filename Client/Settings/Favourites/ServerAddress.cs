@@ -5,12 +5,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
 {
     public class ServerAddress : INotifyPropertyChanged
     {
-        public ServerAddress(string name, string address, string eamCoalitionPassword, bool isDefault)
+        public ServerAddress(string name, string address, bool isDefault =false)
         {
             // Set private values directly so we don't trigger useless re-saving of favourites list when being loaded for the first time
             _name = name;
             _address = address;
-            _eamCoalitionPassword = eamCoalitionPassword;
             IsDefault = isDefault; // Explicitly use property setter here since IsDefault change includes additional logic
         }
 
@@ -42,23 +41,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
                 if (_address != value)
                 {
                     _address = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        private string _eamCoalitionPassword;
-        public string EAMCoalitionPassword
-        {
-            get
-            {
-                return _eamCoalitionPassword;
-            }
-            set
-            {
-                if (_eamCoalitionPassword != value)
-                {
-                    _eamCoalitionPassword = value;
                     OnPropertyChanged();
                 }
             }

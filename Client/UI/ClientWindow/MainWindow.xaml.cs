@@ -21,12 +21,10 @@ using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers;
 using Ciribob.SRS.Client.Network;
 using Ciribob.SRS.Client.Network.DCS;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Preferences;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.Favourites;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.InputProfileWindow;
 using Ciribob.DCS.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.SRS.Common;
@@ -145,7 +143,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
             InitInput();
 
             _connectCommand = new DelegateCommand(Connect, () => ServerAddress != null);
-            FavouriteServersViewModel = new FavouriteServersViewModel(new CsvFavouriteServerStore());
 
             InitDefaultAddress();
 
@@ -154,8 +151,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
             Speaker_VU.Value = -100;
             Mic_VU.Value = -100;
 
-            ExternalAWACSModeName.Text = _globalSettings.GetClientSetting(GlobalSettingsKeys.LastSeenName).RawValue;
-
             _audioManager = new AudioManager(AudioOutput.WindowsN);
             _audioManager.SpeakerBoost = VolumeConversionHelper.ConvertVolumeSliderToScale((float) SpeakerBoost.Value);
 
@@ -163,8 +158,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
             {
                 SpeakerBoostLabel.Content = VolumeConversionHelper.ConvertLinearDiffToDB(_audioManager.SpeakerBoost);
             }
-
-            InitFlowDocument();
 
             _updateTimer = new DispatcherTimer {Interval = TimeSpan.FromMilliseconds(100)};
             _updateTimer.Tick += UpdatePlayerLocationAndVUMeters;
@@ -274,30 +267,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
             }
         }
 
-        private void InitFlowDocument()
-        {
-            //make hyperlinks work
-            var hyperlinks = WPFElementHelper.GetVisuals(AboutFlowDocument).OfType<Hyperlink>();
-            foreach (var link in hyperlinks)
-                link.RequestNavigate += new System.Windows.Navigation.RequestNavigateEventHandler((sender, args) =>
-                {
-                    Process.Start(new ProcessStartInfo(args.Uri.AbsoluteUri));
-                    args.Handled = true;
-                });
-        }
+     
 
         private void InitDefaultAddress()
         {
-            // legacy setting migration
-            if (!string.IsNullOrEmpty(_globalSettings.GetClientSetting(GlobalSettingsKeys.LastServer).StringValue) &&
-                FavouriteServersViewModel.Addresses.Count == 0)
-            {
-                var oldAddress = new ServerAddress(_globalSettings.GetClientSetting(GlobalSettingsKeys.LastServer).StringValue,
-                    _globalSettings.GetClientSetting(GlobalSettingsKeys.LastServer).StringValue, null, true);
-                FavouriteServersViewModel.Addresses.Add(oldAddress);
-            }
-
-            ServerAddress = FavouriteServersViewModel.DefaultServerAddress;
+            ServerAddress = new  ServerAddress("127.0.0.1","127.0.0.1");
         }
 
         private void InitSettingsProfiles()
@@ -554,14 +528,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
 
         private void InitToolTips()
         {
-            ExternalAWACSModePassword.ToolTip = ToolTips.ExternalAWACSModePassword;
-            ExternalAWACSModeName.ToolTip = ToolTips.ExternalAWACSModeName;
-            ConnectExternalAWACSMode.ToolTip = ToolTips.ExternalAWACSMode;
+           
+
         }
 
         public InputDeviceManager InputManager { get; set; }
 
-        public FavouriteServersViewModel FavouriteServersViewModel { get; }
 
         public ServerAddress ServerAddress
         {
@@ -572,7 +544,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
                 if (value != null)
                 {
                     ServerIp.Text = value.Address;
-                    ExternalAWACSModePassword.Password = string.IsNullOrWhiteSpace(value.EAMCoalitionPassword) ? "" : value.EAMCoalitionPassword;
                 }
 
                 _connectCommand.RaiseCanExecuteChanged();
@@ -607,12 +578,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
                 Speaker_VU.Value = -100;
             }
 
-            try
-            {
-                var pos = ClientState.PlayerCoaltionLocationMetadata.LngLngPosition;
-                CurrentPosition.Text = $"Lat/Lng: {pos.lat:0.###},{pos.lng:0.###} - Alt: {pos.alt:0}";
-            }
-            catch { }
+            // try
+            // {
+            //     var pos = ClientState.PlayerCoaltionLocationMetadata.LngLngPosition;
+            //     CurrentPosition.Text = $"Lat/Lng: {pos.lat:0.###},{pos.lng:0.###} - Alt: {pos.alt:0}";
+            // }
+            // catch { }
 
             ConnectedClientsSingleton.Instance.NotifyAll();
 
@@ -953,8 +924,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
             ClientState.IsConnected = false;
             ToggleServerSettings.IsEnabled = false;
 
-            ConnectExternalAWACSMode.IsEnabled = false;
-            ConnectExternalAWACSMode.Content = "Connect External AWACS MODE (EAM)";
 
             if (!string.IsNullOrWhiteSpace(ClientState.LastSeenName) &&
                 _globalSettings.GetClientSetting(GlobalSettingsKeys.LastSeenName).StringValue != ClientState.LastSeenName)
@@ -1525,10 +1494,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
             _globalSettings.SetClientSetting(GlobalSettingsKeys.ExpandControls, (bool) ExpandInputDevices.IsChecked);
         }
 
-        private void LaunchAddressTab(object sender, RoutedEventArgs e)
-        {
-            TabControl.SelectedItem = FavouritesSeversTab;
-        }
+      
 
         private void MicAGC_OnClick(object sender, RoutedEventArgs e)
         {

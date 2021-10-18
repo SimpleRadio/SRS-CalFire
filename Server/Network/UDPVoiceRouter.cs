@@ -49,8 +49,6 @@ namespace Ciribob.SRS.Server.Network
             var freqString = _serverSettings.GetGeneralSetting(ServerSettingsKeys.TEST_FREQUENCIES).StringValue;
             UpdateTestFrequencies(freqString);
 
-            var globalFreqString = _serverSettings.GetGeneralSetting(ServerSettingsKeys.GLOBAL_LOBBY_FREQUENCIES).StringValue;
-            UpdateGlobalLobbyFrequencies(globalFreqString);
         }
 
 
@@ -73,24 +71,7 @@ namespace Ciribob.SRS.Server.Network
             _testFrequencies = newList;
         }
 
-        private void UpdateGlobalLobbyFrequencies(string freqString)
-        {
-
-            var freqStringList = freqString.Split(',');
-
-            var newList = new List<double>();
-            foreach (var freq in freqStringList)
-            {
-                if (double.TryParse(freq.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out var freqDouble))
-                {
-                    freqDouble *= 1e+6; //convert to Hz from MHz
-                    newList.Add(freqDouble);
-                    Logger.Info("Adding Global Frequency: " + freqDouble);
-                }
-            }
-
-            _globalFrequencies = newList;
-        }
+    
 
         public void Listen()
         {
@@ -300,8 +281,7 @@ namespace Ciribob.SRS.Server.Network
 
             var outgoingList = new HashSet<IPEndPoint>();
 
-            var coalitionSecurity =
-                _serverSettings.GetGeneralSetting(ServerSettingsKeys.COALITION_AUDIO_SECURITY).BoolValue;
+        
 
             var guid = fromClient.ClientGuid;
 
@@ -332,7 +312,7 @@ namespace Ciribob.SRS.Server.Network
                             outgoingList.Add(ip);
                         }
                         // check that either coalition radio security is disabled OR the coalitions match
-                        else if ((!coalitionSecurity || (client.Value.Coalition == fromClient.Coalition)))
+                        else if (((client.Value.Coalition == fromClient.Coalition)))
                         {
 
                             var radioInfo = client.Value.RadioInfo;
@@ -402,10 +382,6 @@ namespace Ciribob.SRS.Server.Network
             if (message.TestFrequencies != null)
             {
                 UpdateTestFrequencies(message.TestFrequencies);
-            }
-            else
-            {
-                UpdateGlobalLobbyFrequencies(message.GlobalLobbyFrequencies);
             }
         }
 

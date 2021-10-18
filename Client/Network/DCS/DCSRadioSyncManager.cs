@@ -34,8 +34,7 @@ namespace Ciribob.SRS.Client.Network.DCS
 
         private volatile bool _stopExternalAWACSMode;
 
-        private readonly ConnectedClientsSingleton _clients = ConnectedClientsSingleton.Instance;
-        private DispatcherTimer _clearRadio;
+        private readonly ConnectedClientsSingleton _clients = ConnectedClientsSingleton.Instance; 
 
         public bool IsListening { get; private set; }
 
@@ -47,27 +46,10 @@ namespace Ciribob.SRS.Client.Network.DCS
             IsListening = false;
             _dcsRadioSyncHandler = new DCSRadioSyncHandler(clientRadioUpdate, _newAircraftCallback);
 
-            _clearRadio = new DispatcherTimer(DispatcherPriority.Background, Application.Current.Dispatcher) { Interval = TimeSpan.FromSeconds(1) };
-            _clearRadio.Tick += CheckIfRadioIsStale;
            
         }
 
-        private void CheckIfRadioIsStale(object sender, EventArgs e)
-        {
-            if (!_clientStateSingleton.PlayerRadioInfo.IsCurrent())
-            {
-                //check if we've had an update
-                if (_clientStateSingleton.PlayerRadioInfo.LastUpdate > 0)
-                {
-                    _clientStateSingleton.PlayerCoaltionLocationMetadata.Reset();
-                    _clientStateSingleton.PlayerRadioInfo.Reset();
-
-                    _clientRadioUpdate();
-                    _clientSideUpdate();
-                    Logger.Info("Reset Radio state - no longer connected");
-                }
-            }
-        }
+      
 
         public void Start()
         {
@@ -101,7 +83,6 @@ namespace Ciribob.SRS.Client.Network.DCS
                         modulation = RadioInformation.Modulation.DISABLED,
                         name = "No Radio",
                         freqMode = RadioInformation.FreqMode.COCKPIT,
-                        encMode = RadioInformation.EncryptionMode.NO_ENCRYPTION,
                         volMode = RadioInformation.VolumeMode.COCKPIT
                     };
                 }
@@ -148,15 +129,12 @@ namespace Ciribob.SRS.Client.Network.DCS
             });
         }
 
-        public void StopExternalAWACSModeLoop()
-        {
-            _stopExternalAWACSMode = true;
-        }
+       
 
         private void DcsListener()
         {
             _dcsRadioSyncHandler.Start();
-            _clearRadio.Start();
+          
         }
 
         public void Stop()
@@ -164,7 +142,6 @@ namespace Ciribob.SRS.Client.Network.DCS
             _stopExternalAWACSMode = true;
             IsListening = false;
 
-            _clearRadio.Stop();
             _dcsRadioSyncHandler.Stop();
 
         }

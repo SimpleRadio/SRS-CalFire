@@ -30,31 +30,8 @@
             <RowDefinition />
             <RowDefinition />
         </Grid.RowDefinitions>
-        <Label Grid.Row="0"
-               Grid.Column="0"
-               HorizontalContentAlignment="Center"
-               VerticalContentAlignment="Center"
-               Content="Coalition Security" />
+      
 
-        <Label Name="CoalitionSecurity"
-               Grid.Row="0"
-               Grid.Column="1"
-               HorizontalContentAlignment="Center"
-               VerticalContentAlignment="Center"
-               Content="Unknown" />
-
-        <Label Grid.Row="1"
-               Grid.Column="0"
-               HorizontalContentAlignment="Center"
-               VerticalContentAlignment="Center"
-               Content="Spectator Audio" />
-
-        <Label Name="SpectatorAudio"
-               Grid.Row="1"
-               Grid.Column="1"
-               HorizontalContentAlignment="Center"
-               VerticalContentAlignment="Center"
-               Content="Unknown" />
 
         <Label Grid.Row="2"
                Grid.Column="0"
@@ -104,47 +81,6 @@
 
         <Label Name="RadioRXInterference"
                Grid.Row="5"
-               Grid.Column="1"
-               HorizontalContentAlignment="Center"
-               VerticalContentAlignment="Center"
-               Content="Unknown" />
-
-
-        <Label Grid.Row="6"
-               Grid.Column="0"
-               HorizontalContentAlignment="Center"
-               VerticalContentAlignment="Center"
-               Content="Radio Expansion" />
-
-
-        <Label Name="RadioExpansion"
-               Grid.Row="6"
-               Grid.Column="1"
-               HorizontalContentAlignment="Center"
-               VerticalContentAlignment="Center"
-               Content="Unknown" />
-
-        <Label Grid.Row="7"
-               Grid.Column="0"
-               HorizontalContentAlignment="Center"
-               VerticalContentAlignment="Center"
-               Content="External AWACS Mode" />
-
-        <Label Name="ExternalAWACSMode"
-               Grid.Row="7"
-               Grid.Column="1"
-               HorizontalContentAlignment="Center"
-               VerticalContentAlignment="Center"
-               Content="Unknown" />
-
-        <Label Grid.Row="8"
-               Grid.Column="0"
-               HorizontalContentAlignment="Center"
-               VerticalContentAlignment="Center"
-               Content="Allow Radio Encryption" />
-
-        <Label Name="AllowRadioEncryption"
-               Grid.Row="8"
                Grid.Column="1"
                HorizontalContentAlignment="Center"
                VerticalContentAlignment="Center"

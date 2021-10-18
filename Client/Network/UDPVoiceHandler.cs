@@ -820,17 +820,7 @@ namespace Ciribob.SRS.Client.Network
         private List<RadioInformation> PTTPressed(out int sendingOn)
         {
             sendingOn = -1;
-            if (_clientStateSingleton.InhibitTX.InhibitTX)
-            {
-                TimeSpan time = new TimeSpan(DateTime.Now.Ticks - _clientStateSingleton.InhibitTX.LastReceivedAt);
-
-                //inhibit for up to 5 seconds since the last message from VAICOM
-                if (time.TotalSeconds < 5)
-                {
-                    return new List<RadioInformation>();
-                }
-            }
-
+          
             var radioInfo = _clientStateSingleton.PlayerRadioInfo;
             //If its a hot intercom and thats not the currently selected radio
             //this is special logic currently for the gazelle as it has a hot mic, but no way of knowing if you're transmitting from the module itself
