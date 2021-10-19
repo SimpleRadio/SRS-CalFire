@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("DCS-SR-ExternalAudio")]
-[assembly: AssemblyDescription("External Audio input for DCS-SimpleRadio Standalone")]
+[assembly: AssemblyTitle("FS3D-SRS-ExternalAudio")]
+[assembly: AssemblyDescription("External Audio input for FS4D SimpleRadio Standalone")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Ciribob - GitHub.com/Ciribob")]
-[assembly: AssemblyProduct("DCS-SimpleRadio Standalone")]
+[assembly: AssemblyProduct("FS3D-SRS-ExternalAudio")]
 [assembly: AssemblyCopyright("Copyright ©  2016 - Ciribob")]
 [assembly: AssemblyTrademark("Ciribob - GitHub.com/Ciribob")]
 [assembly: AssemblyCulture("")]

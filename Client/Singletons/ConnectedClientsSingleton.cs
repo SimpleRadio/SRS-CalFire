@@ -3,12 +3,14 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.Network;
+using Ciribob.SRS.Common.Network.Models;
+using Ciribob.SRS.Common.PlayerState;
 using Ciribob.SRS.Common.Setting;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
 {
     public sealed class ConnectedClientsSingleton : INotifyPropertyChanged
     {
@@ -104,45 +106,40 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons
             return _clients.ContainsKey(key);
         }
 
-        public int ClientsOnFreq(double freq, RadioInformation.Modulation modulation)
+        public int ClientsOnFreq(double freq, RadioConfig.Modulation modulation)
         {
             if (!_serverSettings.GetSettingAsBool(ServerSettingsKeys.SHOW_TUNED_COUNT))
             {
+                //TODO make this client side controlled
                 return 0;
             }
             var currentClientPos = ClientStateSingleton.Instance.PlayerCoaltionLocationMetadata;
-            var currentUnitId = ClientStateSingleton.Instance.PlayerRadioInfo.unitId;
-            var globalFrequencies = _serverSettings.GlobalFrequencies;
-            var global = globalFrequencies.Contains(freq);
+            var currentUnitId = ClientStateSingleton.Instance.PlayerUnitState.UnitId;
+      
             int count = 0;
 
             foreach (var client in _clients)
             {
                 if (!client.Key.Equals(_guid))
                 {
-                    // check that either coalition radio security is disabled OR the coalitions match
-                    if (global|| ((client.Value.Coalition == currentClientPos.side)))
+                    var radioInfo = client.Value.UnitState;
+
+                    if (radioInfo != null)
                     {
+                        RadioReceivingState radioReceivingState = null;
+                        bool decryptable;
+                        var receivingRadio = radioInfo.CanHearTransmission(freq,
+                            modulation,
+                            0,
+                            currentUnitId,
+                            new List<int>(),
+                            out radioReceivingState,
+                            out decryptable);
 
-                        var radioInfo = client.Value.RadioInfo;
-
-                        if (radioInfo != null)
+                        //only send if we can hear!
+                        if (receivingRadio != null)
                         {
-                            RadioReceivingState radioReceivingState = null;
-                            bool decryptable;
-                            var receivingRadio = radioInfo.CanHearTransmission(freq,
-                                modulation,
-                                0,
-                                currentUnitId,
-                                new List<int>(),
-                                out radioReceivingState,
-                                out decryptable);
-
-                            //only send if we can hear!
-                            if (receivingRadio != null)
-                            {
-                                count++;
-                            }
+                            count++;
                         }
                     }
                 }

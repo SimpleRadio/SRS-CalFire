@@ -7,12 +7,15 @@ using System.Threading;
 using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.DCSState;
 using Ciribob.SRS.Common.Network;
-using Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Models;
+using Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Models;
+using Ciribob.SRS.Common.Network.Models;
+using Ciribob.SRS.Common.PlayerState;
+using Ciribob.SRS.Common.Setting;
 using Easy.MessageHub;
 using Newtonsoft.Json;
 using NLog;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Network
+namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
 {
     public class SRSClientSyncHandler
     {
@@ -21,7 +24,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Network
         private volatile bool _stop = false;
 
         private readonly string _guid;
-        private readonly PlayerRadioInfo gameState;
+        private readonly PlayerUnitState gameState;
         private IPEndPoint _serverEndpoint;
         private TcpClient _tcpClient;
 
@@ -30,7 +33,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Network
         private readonly int coalition;
         private LatLngPosition position;
 
-        public SRSClientSyncHandler(string guid, PlayerRadioInfo gameState, string name, int coalition, LatLngPosition position)
+        public SRSClientSyncHandler(string guid, PlayerUnitState gameState, string name, int coalition, LatLngPosition position)
         {
             _guid = guid;
             this.gameState = gameState;
@@ -101,10 +104,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Network
                     {
                         Client = new SRClient
                         {
-                            Coalition = coalition,
                             Name = this.name,
                             ClientGuid = _guid,
-                            RadioInfo = gameState,
+                            UnitState = gameState,
                             LatLngPosition = position
                         },
                         MsgType = NetworkMessage.MessageType.SYNC,
@@ -116,13 +118,12 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Network
                     {
                         Client = new SRClient
                         {
-                            Coalition = coalition,
                             Name = this.name,
                             ClientGuid = _guid,
-                            RadioInfo = gameState,
+                            UnitState = gameState,
                             LatLngPosition = position
                         },
-                        MsgType = NetworkMessage.MessageType.RADIO_UPDATE,
+                        MsgType = NetworkMessage.MessageType.FULL_UPDATE,
 
                     });
 
@@ -142,7 +143,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Network
                                 switch (serverMessage.MsgType)
                                 {
                                     case NetworkMessage.MessageType.PING:
-                                    case NetworkMessage.MessageType.RADIO_UPDATE:
+                                    case NetworkMessage.MessageType.FULL_UPDATE:
                                     case NetworkMessage.MessageType.UPDATE:
                                     case NetworkMessage.MessageType.SERVER_SETTINGS:
                                     case NetworkMessage.MessageType.CLIENT_DISCONNECT:
@@ -202,7 +203,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Network
 
                 var json = message.Encode();
 
-                if (message.MsgType == NetworkMessage.MessageType.RADIO_UPDATE)
+                if (message.MsgType == NetworkMessage.MessageType.FULL_UPDATE)
                 {
                     Logger.Debug("Sending Radio Update To Server: "+ (json));
                 }

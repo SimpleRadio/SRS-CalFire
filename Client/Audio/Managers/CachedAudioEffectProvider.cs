@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.SRS.Common;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 {
     class CachedAudioEffectProvider
     {

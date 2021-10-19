@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.PresetChannels;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.RadioChannels
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels
 {
     public class MockPresetChannelsStore : IPresetChannelsStore
     {

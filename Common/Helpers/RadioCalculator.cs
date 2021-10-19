@@ -1,5 +1,6 @@
 ﻿using System;
 using Ciribob.SRS.Common.DCSState;
+using Ciribob.SRS.Common.PlayerState;
 
 namespace Ciribob.SRS.Common
 {

@@ -11,7 +11,9 @@ using Caliburn.Micro;
 using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.Network;
 using Ciribob.SRS.Common.Setting;
-using Ciribob.DCS.SimpleRadio.Standalone.Server.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings;
+using Ciribob.SRS.Common.Network.Models;
+using Ciribob.SRS.Common.PlayerState;
 using NLog;
 using LogManager = NLog.LogManager;
 
@@ -207,8 +209,8 @@ namespace Ciribob.SRS.Server.Network
                                             // Only trigger transmitting frequency update for "proper" packets (excluding invalid frequencies and magic ping packets with modulation 4)
                                             if (mainFrequency > 0)
                                             {
-                                                RadioInformation.Modulation mainModulation = (RadioInformation.Modulation)udpVoicePacket.Modulations[0];
-                                                if (mainModulation == RadioInformation.Modulation.INTERCOM)
+                                                RadioConfig.Modulation mainModulation = (RadioConfig.Modulation)udpVoicePacket.Modulations[0];
+                                                if (mainModulation == RadioConfig.Modulation.INTERCOM)
                                                 {
                                                     client.TransmittingFrequency = "INTERCOM";
                                                 }
@@ -298,7 +300,7 @@ namespace Ciribob.SRS.Server.Network
                         {
                             foreach (var testFrequency in _globalFrequencies)
                             {
-                                if (PlayerRadioInfo.FreqCloseEnough(testFrequency, udpVoice.Frequencies[i]))
+                                if (PlayerUnitState.FreqCloseEnough(testFrequency, udpVoice.Frequencies[i]))
                                 {
                                     //ignore everything as its global frequency
                                     global = true;
@@ -312,10 +314,10 @@ namespace Ciribob.SRS.Server.Network
                             outgoingList.Add(ip);
                         }
                         // check that either coalition radio security is disabled OR the coalitions match
-                        else if (((client.Value.Coalition == fromClient.Coalition)))
+                        else
                         {
 
-                            var radioInfo = client.Value.RadioInfo;
+                            var radioInfo = client.Value.UnitState;
 
                             if (radioInfo != null)
                             {
@@ -324,7 +326,7 @@ namespace Ciribob.SRS.Server.Network
                                     RadioReceivingState radioReceivingState = null;
                                     bool decryptable;
                                     var receivingRadio = radioInfo.CanHearTransmission(udpVoice.Frequencies[i],
-                                        (RadioInformation.Modulation)udpVoice.Modulations[i],
+                                        (RadioConfig.Modulation)udpVoice.Modulations[i],
                                         udpVoice.Encryptions[i],
                                         udpVoice.UnitId,
                                         _emptyBlockedRadios,
@@ -351,7 +353,7 @@ namespace Ciribob.SRS.Server.Network
                         {
                             foreach (var testFrequency in _testFrequencies)
                             {
-                                if (PlayerRadioInfo.FreqCloseEnough(testFrequency, frequency))
+                                if (PlayerUnitState.FreqCloseEnough(testFrequency, frequency))
                                 {
                                     //send back to sending client as its a test frequency
                                     outgoingList.Add(ip);

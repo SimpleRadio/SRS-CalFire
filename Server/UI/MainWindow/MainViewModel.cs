@@ -7,12 +7,12 @@ using Caliburn.Micro;
 using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.Setting;
 using Ciribob.SRS.Server.Network;
-using Ciribob.DCS.SimpleRadio.Standalone.Server.Settings;
-using Ciribob.DCS.SimpleRadio.Standalone.Server.UI.ClientAdmin;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.ClientAdmin;
 using NLog;
 using LogManager = NLog.LogManager;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
 {
     public sealed class MainViewModel : Screen, IHandle<ServerStateMessage>
     {
@@ -191,13 +191,5 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow
             _eventAggregator.PublishOnBackgroundThread(new ServerSettingsChangedMessage());
         }
 
-        public void ShowTransmitterNameToggle()
-        {
-            var newSetting = ShowTransmitterNameText != "ON";
-            ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.SHOW_TRANSMITTER_NAME, newSetting);
-            NotifyOfPropertyChange(() => ShowTransmitterNameText);
-
-            _eventAggregator.PublishOnBackgroundThread(new ServerSettingsChangedMessage());
-        }
     }
 }

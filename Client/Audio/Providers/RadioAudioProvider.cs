@@ -1,8 +1,8 @@
-﻿using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio;
+﻿using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
 {
     public class RadioAudioProvider : AudioProvider
     {

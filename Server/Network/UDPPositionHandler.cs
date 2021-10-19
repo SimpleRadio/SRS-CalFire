@@ -11,7 +11,9 @@ using Caliburn.Micro;
 using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.Network;
 using Ciribob.SRS.Common.Setting;
-using Ciribob.DCS.SimpleRadio.Standalone.Server.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings;
+using Ciribob.SRS.Common.Network.Models;
+using Ciribob.SRS.Common.PlayerState;
 using NLog;
 using LogManager = NLog.LogManager;
 
@@ -172,8 +174,8 @@ namespace Ciribob.SRS.Server.Network
                                             // Only trigger transmitting frequency update for "proper" packets (excluding invalid frequencies)
                                             if (mainFrequency > 0)
                                             {
-                                                RadioInformation.Modulation mainModulation = (RadioInformation.Modulation)udpVoicePacket.Modulations[0];
-                                                if (mainModulation == RadioInformation.Modulation.INTERCOM)
+                                                RadioConfig.Modulation mainModulation = (RadioConfig.Modulation)udpVoicePacket.Modulations[0];
+                                                if (mainModulation == RadioConfig.Modulation.INTERCOM)
                                                 {
                                                     client.TransmittingFrequency = "INTERCOM";
                                                 }

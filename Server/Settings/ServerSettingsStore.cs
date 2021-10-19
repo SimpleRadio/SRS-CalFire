@@ -7,7 +7,7 @@ using NLog;
 using SharpConfig;
 using Ciribob.SRS.Common.Setting;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Server.Settings
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings
 {
     public class ServerSettingsStore
     {
@@ -72,7 +72,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Server.Settings
                 _configuration = new Configuration();
                 _configuration.Add(new Section("General Settings"));
                 _configuration.Add(new Section("Server Settings"));
-                _configuration.Add(new Section("External AWACS Mode Settings"));
 
                 Save();
             }

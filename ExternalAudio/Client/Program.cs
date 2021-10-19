@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Speech.Synthesis;
 using Ciribob.SRS.Common;
+using Ciribob.SRS.Common.PlayerState;
 using CommandLine;
 using Google.Cloud.TextToSpeech.V1;
 using NLog;
@@ -14,7 +15,7 @@ using NLog.Config;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Client
+namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
 {
     public class Program
     {
@@ -108,7 +109,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Client
 
             [Option('n',"name",
                 HelpText = "Name - name of your transmitter - no spaces",
-                Default = "DCS-STTS",
+                Default = "FS3D-STTS",
                 Required = false)]
             public string Name { get; set; }
 
@@ -187,11 +188,11 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Client
 
             var modulationStr = opts.Modulations.Split(',');
 
-            List<RadioInformation.Modulation> modulation = new List<RadioInformation.Modulation>();
+            List<RadioConfig.Modulation> modulation = new List<RadioConfig.Modulation>();
             foreach (var s in modulationStr)
             {
-                RadioInformation.Modulation mod;
-                if (RadioInformation.Modulation.TryParse(s.Trim().ToUpper(), out mod))
+                RadioConfig.Modulation mod;
+                if (RadioConfig.Modulation.TryParse(s.Trim().ToUpper(), out mod))
                 {
                     modulation.Add(mod);
                 }

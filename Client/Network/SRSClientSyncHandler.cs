@@ -1,20 +1,18 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
-using Ciribob.SRS.Common;
-using Ciribob.SRS.Common.DCSState;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.SRS.Common.Network;
 using Ciribob.SRS.Common.Setting;
-using Ciribob.SRS.Client.Network.DCS;
+using Ciribob.SRS.Client.Network.Sync;
+using Ciribob.SRS.Common.Network.Models;
+using Ciribob.SRS.Common.PlayerState;
 using Easy.MessageHub;
 using Newtonsoft.Json;
 using NLog;
@@ -24,7 +22,6 @@ namespace Ciribob.SRS.Client.Network
     public class SRSClientSyncHandler
     {
         public delegate void ConnectCallback(bool result, bool connectionError, string connection);
-        public delegate void ExternalAWACSModeConnectCallback(bool result, int coalition);
         public delegate void UpdateUICallback();
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -35,7 +32,7 @@ namespace Ciribob.SRS.Client.Network
         private readonly string _guid;
         private ConnectCallback _callback;
         private UpdateUICallback _updateUICallback;
-        private readonly DCSRadioSyncHandler.NewAircraft _newAircraft;
+        private readonly RadioSyncHandler.NewAircraft _newAircraft;
         private IPEndPoint _serverEndpoint;
         private TcpClient _tcpClient;
 
@@ -44,35 +41,23 @@ namespace Ciribob.SRS.Client.Network
         private readonly ConnectedClientsSingleton _clients = ConnectedClientsSingleton.Instance;
 
 
-        private DCSRadioSyncManager _radioDCSSync = null;
+        private RadioSyncManager _radioSync = null;
 
         private static readonly int MAX_DECODE_ERRORS = 5;
 
         private long _lastSent = -1;
-        private DispatcherTimer _idleTimeout;
 
 
-        public SRSClientSyncHandler(string guid, UpdateUICallback uiCallback, DCSRadioSyncHandler.NewAircraft _newAircraft)
+        public SRSClientSyncHandler(string guid, UpdateUICallback uiCallback, RadioSyncHandler.NewAircraft _newAircraft)
         {
             _guid = guid;
             _updateUICallback = uiCallback;
             this._newAircraft = _newAircraft;
 
-            _idleTimeout = new DispatcherTimer(DispatcherPriority.Background, Application.Current.Dispatcher) {Interval = TimeSpan.FromSeconds(1)};
-            _idleTimeout.Tick += CheckIfIdleTimeOut;
-            _idleTimeout.Interval = TimeSpan.FromSeconds(10);
+          
         }
 
-        private void CheckIfIdleTimeOut(object sender, EventArgs e)
-        {
-            var timeout = GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.IdleTimeOut).IntValue;
-            if (_lastSent != -1 && TimeSpan.FromTicks(DateTime.Now.Ticks - _lastSent).TotalSeconds > timeout)
-            {
-                Logger.Warn("Disconnecting - Idle Time out");
-                Disconnect();
-            }
-
-        }
+  
 
 
         public void TryConnect(IPEndPoint endpoint, ConnectCallback callback)
@@ -88,18 +73,17 @@ namespace Ciribob.SRS.Client.Network
         private void Connect()
         {
             _lastSent = DateTime.Now.Ticks;
-            _idleTimeout.Start();
 
-            if (_radioDCSSync != null)
+            if (_radioSync != null)
             {
-                _radioDCSSync.Stop();
-                _radioDCSSync = null;
+                _radioSync.Stop();
+                _radioSync = null;
             }
           
 
             bool connectionError = false;
 
-            _radioDCSSync = new DCSRadioSyncManager(ClientRadioUpdated, ClientCoalitionUpdate, _guid,_newAircraft);
+            _radioSync = new RadioSyncManager(ClientRadioUpdated, ClientCoalitionUpdate, _guid,_newAircraft);
 
             using (_tcpClient = new TcpClient())
             {
@@ -113,7 +97,7 @@ namespace Ciribob.SRS.Client.Network
 
                     if (_tcpClient.Connected)
                     {
-                        _radioDCSSync.Start();
+                        _radioSync.Start();
 
                         _tcpClient.NoDelay = true;
 
@@ -135,8 +119,7 @@ namespace Ciribob.SRS.Client.Network
                 }
             }
 
-            _radioDCSSync.Stop();
-            _idleTimeout?.Stop();
+            _radioSync.Stop();
 
             //disconnect callback
             CallOnMain(false, connectionError);
@@ -152,13 +135,11 @@ namespace Ciribob.SRS.Client.Network
             {
                 Client = new SRClient
                 {
-                    Coalition = sideInfo.side,
                     Name = sideInfo.name,
-                    Seat = sideInfo.seat,
                     ClientGuid = _guid,
-                    RadioInfo = _clientStateSingleton.PlayerRadioInfo
+                    UnitState = _clientStateSingleton.PlayerUnitState
                 },
-                MsgType = NetworkMessage.MessageType.RADIO_UPDATE
+                MsgType = NetworkMessage.MessageType.FULL_UPDATE
             };
 
             var needValidPosition = _serverSettings.GetSettingAsBool(ServerSettingsKeys.DISTANCE_ENABLED) || _serverSettings.GetSettingAsBool(ServerSettingsKeys.LOS_ENABLED);
@@ -185,9 +166,7 @@ namespace Ciribob.SRS.Client.Network
             {
                 Client = new SRClient
                 {
-                    Coalition = sideInfo.side,
                     Name = sideInfo.name,
-                    Seat = sideInfo.seat,
                     ClientGuid = _guid
                 },
                 MsgType = NetworkMessage.MessageType.UPDATE
@@ -250,11 +229,10 @@ namespace Ciribob.SRS.Client.Network
                     {
                         Client = new SRClient
                         {
-                            Coalition = sideInfo.side,
                             Name = sideInfo.name.Length > 0 ? sideInfo.name : _clientStateSingleton.LastSeenName,
                             LatLngPosition = sideInfo.LngLngPosition,
                             ClientGuid = _guid,
-                            RadioInfo = _clientStateSingleton.PlayerRadioInfo
+                            UnitState = _clientStateSingleton.PlayerUnitState
                         },
                         MsgType = NetworkMessage.MessageType.SYNC,
                     });
@@ -274,7 +252,7 @@ namespace Ciribob.SRS.Client.Network
                                     case NetworkMessage.MessageType.PING:
                                         // Do nothing for now
                                         break;
-                                    case NetworkMessage.MessageType.RADIO_UPDATE:
+                                    case NetworkMessage.MessageType.FULL_UPDATE:
                                     case NetworkMessage.MessageType.UPDATE:
 
                                         if (serverMessage.ServerSettings != null)
@@ -290,23 +268,22 @@ namespace Ciribob.SRS.Client.Network
                                             {
                                                 srClient.LastUpdate = DateTime.Now.Ticks;
                                                 srClient.Name = updatedSrClient.Name;
-                                                srClient.Coalition = updatedSrClient.Coalition;
 
                                                 srClient.LatLngPosition = updatedSrClient.LatLngPosition;
 
-                                                if (updatedSrClient.RadioInfo != null)
+                                                if (updatedSrClient.UnitState != null)
                                                 {
-                                                    srClient.RadioInfo = updatedSrClient.RadioInfo;
-                                                    srClient.RadioInfo.LastUpdate = DateTime.Now.Ticks;
+                                                    srClient.UnitState = updatedSrClient.UnitState;
+                                                    srClient.UnitState.LastUpdate = DateTime.Now.Ticks;
                                                 }
                                                 else
                                                 {
                                                     //radio update but null RadioInfo means no change
                                                     if (serverMessage.MsgType ==
-                                                        NetworkMessage.MessageType.RADIO_UPDATE &&
-                                                        srClient.RadioInfo != null)
+                                                        NetworkMessage.MessageType.FULL_UPDATE &&
+                                                        srClient.UnitState != null)
                                                     {
-                                                        srClient.RadioInfo.LastUpdate = DateTime.Now.Ticks;
+                                                        srClient.UnitState.LastUpdate = DateTime.Now.Ticks;
                                                     }
                                                 }
 
@@ -448,7 +425,7 @@ namespace Ciribob.SRS.Client.Network
             }
 
             //disconnected - reset DCS Info
-            ClientStateSingleton.Instance.PlayerRadioInfo.LastUpdate = 0;
+            ClientStateSingleton.Instance.PlayerUnitState.LastUpdate = 0;
 
             //clear the clients list
             _clients.Clear();
@@ -476,7 +453,7 @@ namespace Ciribob.SRS.Client.Network
 
                 var json = message.Encode();
 
-                if (message.MsgType == NetworkMessage.MessageType.RADIO_UPDATE)
+                if (message.MsgType == NetworkMessage.MessageType.FULL_UPDATE)
                 {
                     Logger.Debug("Sending Radio Update To Server: "+ (json));
                 }
@@ -502,8 +479,6 @@ namespace Ciribob.SRS.Client.Network
             _stop = true;
 
             _lastSent = DateTime.Now.Ticks;
-            _idleTimeout?.Stop();
-
 
             try
             {

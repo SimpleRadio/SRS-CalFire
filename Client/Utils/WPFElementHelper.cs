@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Utils
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 {
     public class WPFElementHelper
     {

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Media;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
 {
     public static class Sounds
     {

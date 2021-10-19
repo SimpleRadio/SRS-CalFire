@@ -1,9 +1,9 @@
-﻿using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.UI;
-using System;
+﻿using System;
 using System.Windows.Data;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Utils.ValueConverters
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils.ValueConverters
 {
     class ConnectionStatusImageConverter : IValueConverter
     {

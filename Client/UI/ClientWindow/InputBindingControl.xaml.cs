@@ -1,8 +1,8 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
 {
     /// <summary>
     ///     Interaction logic for InputBindingControl.xaml

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Server.Properties {
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

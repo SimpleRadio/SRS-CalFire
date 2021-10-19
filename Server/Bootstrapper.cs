@@ -11,8 +11,8 @@ using Caliburn.Micro;
 using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.Network;
 using Ciribob.SRS.Server.Network;
-using Ciribob.DCS.SimpleRadio.Standalone.Server.UI.ClientAdmin;
-using Ciribob.DCS.SimpleRadio.Standalone.Server.UI.MainWindow;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.ClientAdmin;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -20,7 +20,7 @@ using NLog.Targets.Wrappers;
 using Sentry;
 using LogManager = NLog.LogManager;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Server
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
 {
     public class Bootstrapper : BootstrapperBase
     {

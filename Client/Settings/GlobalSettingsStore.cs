@@ -4,12 +4,12 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Windows;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.SRS.Common.Network;
 using NLog;
 using SharpConfig;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 {
   
     public enum GlobalSettingsKeys
@@ -17,7 +17,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
         MinimiseToTray,
         StartMinimised,
 
-        RefocusDCS,
         ExpandControls,
         AutoConnectPrompt, //message about auto connect
         RadioOverlayTaskbarHide,
@@ -41,13 +40,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
 
         CliendIdShort, // not used anymore
         ClientIdLong,
-        DCSLOSOutgoingUDP, //9086
-        DCSIncomingUDP, //9084
-        CommandListenerUDP, //=9040,
-        OutgoingDCSUDPInfo, //7080
-        OutgoingDCSUDPOther, //7082
-        DCSIncomingGameGUIUDP, // 5068
-        DCSLOSIncomingUDP, //9085
 
         AGC,
         AGCTarget,
@@ -70,19 +62,10 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
 
         RequireAdmin,
 
-        //LotATC
-        LotATCIncomingUDP, //10710
-        LotATCOutgoingUDP, //10711
-
+   
         SettingsProfiles,
         AutoSelectSettingsProfile,
 
-        VAICOMIncomingUDP, //33501 
-        VAICOMTXInhibitEnabled,
-
-        LotATCHeightOffset,
-
-        DCSAutoConnectUDP, // 5069
         ShowTransmitterName,
 
         IdleTimeOut,
@@ -356,7 +339,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
             {GlobalSettingsKeys.AutoConnectPrompt.ToString(), "false"},
             {GlobalSettingsKeys.AutoConnectMismatchPrompt.ToString(), "true"},
             {GlobalSettingsKeys.RadioOverlayTaskbarHide.ToString(), "false"},
-            {GlobalSettingsKeys.RefocusDCS.ToString(), "false"},
             {GlobalSettingsKeys.ExpandControls.ToString(), "false"},
 
             {GlobalSettingsKeys.MinimiseToTray.ToString(), "false"},
@@ -389,16 +371,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
         //    {GlobalSettingsKeys.CliendIdShort.ToString(), ShortGuid.NewGuid().ToString()},
             {GlobalSettingsKeys.ClientIdLong.ToString(), Guid.NewGuid().ToString()},
 
-            {GlobalSettingsKeys.DCSLOSOutgoingUDP.ToString(), "9086"},
-            {GlobalSettingsKeys.DCSIncomingUDP.ToString(), "9084"},
-            {GlobalSettingsKeys.CommandListenerUDP.ToString(), "9040"},
-            {GlobalSettingsKeys.OutgoingDCSUDPInfo.ToString(), "7080"},
-            {GlobalSettingsKeys.OutgoingDCSUDPOther.ToString(), "7082"},
-            {GlobalSettingsKeys.DCSIncomingGameGUIUDP.ToString(), "5068"},
-            {GlobalSettingsKeys.DCSLOSIncomingUDP.ToString(), "9085"},
-            {GlobalSettingsKeys.DCSAutoConnectUDP.ToString(), "5069"},
-            
-
             {GlobalSettingsKeys.AGC.ToString(), "true"},
             {GlobalSettingsKeys.AGCTarget.ToString(), "30000"},
             {GlobalSettingsKeys.AGCDecrement.ToString(), "-60"},
@@ -420,14 +392,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
 
             {GlobalSettingsKeys.AutoSelectSettingsProfile.ToString(),"false" },
 
-            {GlobalSettingsKeys.LotATCIncomingUDP.ToString(), "10710"},
-            {GlobalSettingsKeys.LotATCOutgoingUDP.ToString(), "10711"},
-            {GlobalSettingsKeys.LotATCHeightOffset.ToString(), "50"},
-
-
-
-            {GlobalSettingsKeys.VAICOMIncomingUDP.ToString(), "33501"},
-            {GlobalSettingsKeys.VAICOMTXInhibitEnabled.ToString(), "false"},
             {GlobalSettingsKeys.ShowTransmitterName.ToString(), "true"},
 
             {GlobalSettingsKeys.IdleTimeOut.ToString(), "600"}, // 10 mins

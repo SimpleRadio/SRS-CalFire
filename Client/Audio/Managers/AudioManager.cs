@@ -5,27 +5,22 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Windows;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Utility;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.DSP;
-using Ciribob.SRS.Client.Network;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
-using Ciribob.SRS.Common;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.SRS.Common.Helpers;
-using Ciribob.SRS.Common.Network;
+using Ciribob.SRS.Common.Network.Models;
+using Ciribob.SRS.Common.PlayerState;
 using Easy.MessageHub;
 using FragLabs.Audio.Codecs;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
-using NAudio.Wave.Compression;
 using NAudio.Wave.SampleProviders;
 using NLog;
 using WPFCustomMessageBox;
-using static Ciribob.SRS.Common.RadioInformation;
 using Application = FragLabs.Audio.Codecs.Opus.Application;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 {
     public class AudioManager
     {
@@ -59,7 +54,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers
         private readonly Queue<short> _micInputQueue = new Queue<short>(MIC_SEGMENT_FRAMES * 3);
 
         private float _speakerBoost = 1.0f;
-        private UdpVoiceHandler _udpVoiceHandler;
+        private UDPVoiceHandler _udpVoiceHandler;
         private VolumeSampleProviderWithPeak _volumeSampleProvider;
 
         private WasapiCapture _wasapiCapture;
@@ -472,9 +467,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers
 
         private void InitAudioBuffers()
         {
-            _effectsOutputBuffer = new RadioAudioProvider[_clientStateSingleton.PlayerRadioInfo.radios.Length];
+            _effectsOutputBuffer = new RadioAudioProvider[_clientStateSingleton.PlayerUnitState.Radios.Length];
 
-            for (var i = 0; i < _clientStateSingleton.PlayerRadioInfo.radios.Length; i++)
+            for (var i = 0; i < _clientStateSingleton.PlayerUnitState.Radios.Length; i++)
             {
                 _effectsOutputBuffer[i] = new RadioAudioProvider(OUTPUT_SAMPLE_RATE);
                 _clientAudioMixer.AddMixerInput(_effectsOutputBuffer[i].VolumeSampleProvider);
@@ -482,7 +477,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers
         }
 
 
-        public void PlaySoundEffectStartReceive(int transmitOnRadio, bool encrypted, float volume, Modulation modulation)
+        public void PlaySoundEffectStartReceive(int transmitOnRadio, bool encrypted, float volume, RadioConfig.Modulation modulation)
         {
             if (!_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_Start))
             {
@@ -491,7 +486,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers
 
             bool midsTone = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
 
-            if (modulation == Modulation.MIDS && midsTone)
+            if (modulation == RadioConfig.Modulation.MIDS && midsTone)
             {
                 //no tone for MIDS
                 return;
@@ -525,7 +520,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers
             }
         }
 
-        public void PlaySoundEffectStartTransmit(int transmitOnRadio, bool encrypted, float volume, Modulation modulation)
+        public void PlaySoundEffectStartTransmit(int transmitOnRadio, bool encrypted, float volume, RadioConfig.Modulation modulation)
         {
             if (!_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_Start))
             {
@@ -547,7 +542,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers
                         transmitOnRadio);
                 }
             }
-            else if (modulation == Modulation.MIDS && midsTone)
+            else if (modulation == RadioConfig.Modulation.MIDS && midsTone)
             {
                 _effectBuffer.VolumeSampleProvider.Volume = volume;
                 var effect = _cachedAudioEffectsProvider.MIDSTransmitTone;
@@ -572,7 +567,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers
         }
 
 
-        public void PlaySoundEffectEndReceive(int transmitOnRadio, float volume, Modulation modulation)
+        public void PlaySoundEffectEndReceive(int transmitOnRadio, float volume, RadioConfig.Modulation modulation)
         {
             
             if (!_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_End))
@@ -582,7 +577,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers
 
             bool midsTone = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
 
-            if (modulation == Modulation.MIDS && midsTone)
+            if (modulation == RadioConfig.Modulation.MIDS && midsTone)
             {
                 //end receive tone for MIDS
                 var effectsBuffer = _effectsOutputBuffer[transmitOnRadio];
@@ -612,7 +607,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers
 
         }
 
-        public void PlaySoundEffectEndTransmit(int transmitOnRadio, float volume, Modulation modulation)
+        public void PlaySoundEffectEndTransmit(int transmitOnRadio, float volume, RadioConfig.Modulation modulation)
         {
             if (!_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_End))
             {
@@ -622,7 +617,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers
             bool midsTone = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
             var _effectBuffer = _effectsOutputBuffer[transmitOnRadio];
 
-            if (modulation == Modulation.MIDS && midsTone)
+            if (modulation == RadioConfig.Modulation.MIDS && midsTone)
             {
                 _effectBuffer.VolumeSampleProvider.Volume = volume;
                 var effect = _cachedAudioEffectsProvider.MIDSEndTone;

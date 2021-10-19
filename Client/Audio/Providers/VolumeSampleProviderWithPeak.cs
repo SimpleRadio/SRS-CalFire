@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NAudio.Wave;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
 {
     //From https://raw.githubusercontent.com/naudio/NAudio/master/NAudio/Wave/SampleProviders/VolumeSampleProvider.cs
     public class VolumeSampleProviderWithPeak : ISampleProvider

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Utils
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 {
     public class DelegateCommand : ICommand
     {

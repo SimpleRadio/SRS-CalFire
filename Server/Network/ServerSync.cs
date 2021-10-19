@@ -10,7 +10,8 @@ using Caliburn.Micro;
 using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.Network;
 using Ciribob.SRS.Common.Setting;
-using Ciribob.DCS.SimpleRadio.Standalone.Server.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings;
+using Ciribob.SRS.Common.Network.Models;
 using NetCoreServer;
 using Newtonsoft.Json;
 using NLog;
@@ -140,7 +141,7 @@ namespace Ciribob.SRS.Server.Network
                     case NetworkMessage.MessageType.UPDATE:
                         HandleClientMetaDataUpdate(state, message, true);
                         break;
-                    case NetworkMessage.MessageType.RADIO_UPDATE:
+                    case NetworkMessage.MessageType.FULL_UPDATE:
                         bool showTuned = _serverSettings.GetGeneralSetting(ServerSettingsKeys.SHOW_TUNED_COUNT)
                             .BoolValue;
                         HandleClientMetaDataUpdate(state, message, !showTuned);
@@ -242,14 +243,12 @@ namespace Ciribob.SRS.Server.Network
 
                 if (client != null)
                 {
-                    bool redrawClientAdminList = client.Name != message.Client.Name || client.Coalition != message.Client.Coalition;
+                    bool redrawClientAdminList = client.Name != message.Client.Name;
 
                     //copy the data we need
                     client.LastUpdate = DateTime.Now.Ticks;
                     client.Name = message.Client.Name;
-                    client.Coalition = message.Client.Coalition;
                     client.LatLngPosition = message.Client.LatLngPosition;
-                    client.Seat = message.Client.Seat;
 
                     //send update to everyone
                     //Remove Client Radio Info
@@ -259,10 +258,8 @@ namespace Ciribob.SRS.Server.Network
                         Client = new SRClient
                         {
                             ClientGuid = client.ClientGuid,
-                            Coalition = client.Coalition,
                             Name = client.Name,
                             LatLngPosition = client.LatLngPosition,
-                            Seat = client.Seat
                         }
                     };
 
@@ -305,40 +302,36 @@ namespace Ciribob.SRS.Server.Network
                 if (client != null)
                 {
                     //shouldnt be the case but just incase...
-                    if (message.Client.RadioInfo == null)
+                    if (message.Client.UnitState == null)
                     {
-                        message.Client.RadioInfo = new PlayerRadioInfo();
+                        message.Client.UnitState = new PlayerUnitState();
                     }
                     //update to local ticks
-                    message.Client.RadioInfo.LastUpdate = DateTime.Now.Ticks;
+                    message.Client.UnitState.LastUpdate = DateTime.Now.Ticks;
 
                     var changed = false;
 
-                    if (client.RadioInfo == null)
+                    if (client.UnitState == null)
                     {
-                        client.RadioInfo = message.Client.RadioInfo;
+                        client.UnitState = message.Client.UnitState;
                         changed = true;
                     }
                     else
                     {
-                        changed = !client.RadioInfo.Equals(message.Client.RadioInfo);
+                        changed = !client.UnitState.Equals(message.Client.UnitState);
                     }
 
 
                     if (!changed)
                     {
-                        changed = client.Name != message.Client.Name || client.Coalition != message.Client.Coalition
-                                                                     || !message.Client.LatLngPosition.Equals(client.LatLngPosition)
-                                                                     || message.Client.Seat != client.Seat;
+                        changed = client.Name != message.Client.Name
+                                  || !message.Client.LatLngPosition.Equals(client.LatLngPosition);
                     }
 
                     client.LastUpdate = DateTime.Now.Ticks;
                     client.Name = message.Client.Name;
-                    client.Coalition = message.Client.Coalition;
-                    client.Seat = message.Client.Seat;
-                    client.RadioInfo = message.Client.RadioInfo;
+                    client.UnitState = message.Client.UnitState;
                     client.LatLngPosition = message.Client.LatLngPosition;
-                    client.Seat = message.Client.Seat;
 
                     TimeSpan lastSent = new TimeSpan(DateTime.Now.Ticks - client.LastRadioUpdateSent);
 
@@ -352,15 +345,13 @@ namespace Ciribob.SRS.Server.Network
                             client.LastRadioUpdateSent = DateTime.Now.Ticks;
                             replyMessage = new NetworkMessage
                             {
-                                MsgType = NetworkMessage.MessageType.RADIO_UPDATE,
+                                MsgType = NetworkMessage.MessageType.FULL_UPDATE,
                                 Client = new SRClient
                                 {
                                     ClientGuid = client.ClientGuid,
-                                    Coalition = client.Coalition,
                                     Name = client.Name,
                                     LatLngPosition = client.LatLngPosition,
-                                    RadioInfo = client.RadioInfo, //send radio info
-                                    Seat = client.Seat
+                                    UnitState = client.UnitState, //send radio info
                                 }
                             };
                             Multicast(replyMessage.Encode());
@@ -391,10 +382,8 @@ namespace Ciribob.SRS.Server.Network
                 Client = new SRClient
                 {
                     ClientGuid = message.Client.ClientGuid,
-                    RadioInfo = message.Client.RadioInfo,
+                    UnitState = message.Client.UnitState,
                     Name = message.Client.Name,
-                    Coalition = message.Client.Coalition,
-                    Seat = message.Client.Seat,
                     LatLngPosition = message.Client.LatLngPosition
                 }
             };

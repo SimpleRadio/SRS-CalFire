@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Properties;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Properties;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
 using NAudio.Wave;
 using NLog;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
 {
     public class CachedAudioEffect
     {

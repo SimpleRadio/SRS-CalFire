@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Diagnostics;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.UI;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI;
 using Ciribob.SRS.Common;
 using MathNet.Filtering;
 using NAudio.Dsp;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.DSP;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.DSP;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.SRS.Common.PlayerState;
 using FragLabs.Audio.Codecs;
 using NLog;
-using static Ciribob.SRS.Common.RadioInformation;
+using static Ciribob.SRS.Common.Radio;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
 {
     public class ClientAudioProvider : AudioProvider
     {
@@ -33,9 +34,9 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         //used for comparison
-        public static readonly short FM = Convert.ToInt16((int)RadioInformation.Modulation.FM);
-        public static readonly short HQ = Convert.ToInt16((int)RadioInformation.Modulation.HAVEQUICK);
-        public static readonly short AM = Convert.ToInt16((int)RadioInformation.Modulation.AM);
+        public static readonly short FM = Convert.ToInt16((int)RadioConfig.Modulation.FM);
+        public static readonly short HQ = Convert.ToInt16((int)RadioConfig.Modulation.HAVEQUICK);
+        public static readonly short AM = Convert.ToInt16((int)RadioConfig.Modulation.AM);
 
         private static readonly double HQ_RESET_CHANCE = 0.8;
 
@@ -163,7 +164,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
             AdjustVolumeForLoss(audio);
 
             if (audio.ReceivedRadio == 0
-                || audio.Modulation == (short)RadioInformation.Modulation.MIDS)
+                || audio.Modulation == (short)RadioConfig.Modulation.MIDS)
             {
                 if (profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects))
                 {
@@ -258,7 +259,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client
 
         private void AdjustVolumeForLoss(ClientAudio clientAudio)
         {
-            if (clientAudio.Modulation == (short)Modulation.MIDS || clientAudio.Modulation == (short)Modulation.SATCOM)
+            if (clientAudio.Modulation == (short)RadioConfig.Modulation.MIDS || clientAudio.Modulation == (short)RadioConfig.Modulation.SATCOM)
             {
                 return;
             }

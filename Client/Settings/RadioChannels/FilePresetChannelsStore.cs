@@ -6,10 +6,10 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.PresetChannels;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI;
 using NLog;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings.RadioChannels
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels
 {
     public class FilePresetChannelsStore : IPresetChannelsStore
     {

@@ -1,6 +1,4 @@
-﻿using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow;
-using NAudio.CoreAudioApi;
+﻿using NAudio.CoreAudioApi;
 using NAudio.Dmo;
 using NLog;
 using System;
@@ -8,8 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
 {
     public class AudioOutputSingleton
     {

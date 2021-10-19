@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
 {
     public class AudioDeviceListItem
     {

@@ -5,7 +5,7 @@ using System.IO;
 using System.Speech.AudioFormat;
 using System.Speech.Synthesis;
 using System.Threading.Tasks;
-using Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Client;
+using Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client;
 using FragLabs.Audio.Codecs;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
@@ -19,7 +19,7 @@ using Google.Cloud.TextToSpeech.V1;
 using Grpc.Core;
 
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Audio
+namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Audio
 {
     public class AudioGenerator
     {

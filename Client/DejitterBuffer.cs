@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using NLog;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
 {
     public class DejitterBuffer
     {

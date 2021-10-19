@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
 using NAudio.Utils;
 using NAudio.Wave;
 using NLog;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
 {
     public class JitterBufferProviderInterface : IWaveProvider
     {

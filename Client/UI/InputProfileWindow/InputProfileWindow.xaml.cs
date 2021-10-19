@@ -12,10 +12,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using MahApps.Metro.Controls;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.InputProfileWindow
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.InputProfileWindow
 {
     /// <summary>
     /// Interaction logic for InputProfileWindow.xaml

@@ -3,30 +3,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.SRS.Common.DCSState;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Utils
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 {
     public static class TransponderHelper
     {
 
         public static Transponder GetTransponder(bool onlyIfOverlayControls = false)
         {
-            var dcsPlayerRadioInfo = ClientStateSingleton.Instance.PlayerRadioInfo;
+            var dcsPlayerRadioInfo = ClientStateSingleton.Instance.PlayerUnitState;
 
-            if ((dcsPlayerRadioInfo != null) && dcsPlayerRadioInfo.IsCurrent() && dcsPlayerRadioInfo.iff !=null && dcsPlayerRadioInfo.iff.control != Transponder.IFFControlMode.DISABLED)
+            if ((dcsPlayerRadioInfo != null) && dcsPlayerRadioInfo.IsCurrent() && dcsPlayerRadioInfo.Transponder !=null && dcsPlayerRadioInfo.Transponder.control != Transponder.IFFControlMode.DISABLED)
             {
                 if (onlyIfOverlayControls)
                 {
-                    if (dcsPlayerRadioInfo.iff.control == Transponder.IFFControlMode.OVERLAY)
+                    if (dcsPlayerRadioInfo.Transponder.control == Transponder.IFFControlMode.OVERLAY)
                     {
-                        return dcsPlayerRadioInfo.iff;
+                        return dcsPlayerRadioInfo.Transponder;
                     }
                 }
                 else
                 {
-                    return dcsPlayerRadioInfo.iff;
+                    return dcsPlayerRadioInfo.Transponder;
                 }
             }
 

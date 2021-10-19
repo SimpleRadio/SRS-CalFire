@@ -1,5 +1,4 @@
-﻿using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
-using Ciribob.SRS.Common.Network;
+﻿using Ciribob.SRS.Common.Network;
 using MahApps.Metro.Controls;
 using NLog;
 using System;
@@ -18,8 +17,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
+using Ciribob.SRS.Common.Network.Models;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList
 {
     /// <summary>
     /// Interaction logic for ClientListWindow.xaml
@@ -56,8 +57,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList
                 tempList.Add(srClient);
             }
 
-            foreach (var clientListModel in tempList.OrderByDescending(model => model.Coalition)
-                .ThenBy(model => model.Name.ToLower()).ToList())
+            foreach (var clientListModel in tempList.OrderByDescending(model => model.Name.ToLower()).ToList())
             {
                 _clientList.Add(clientListModel);
             }

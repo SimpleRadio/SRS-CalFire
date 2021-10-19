@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using MahApps.Metro.Controls;
 using NLog;
 using NLog.Config;
@@ -17,7 +17,7 @@ using NLog.Targets;
 using NLog.Targets.Wrappers;
 using Sentry;
 
-namespace DCS_SR_Client
+namespace SRSClient
 {
     /// <summary>
     ///     Interaction logic for App.xaml
@@ -192,7 +192,7 @@ namespace DCS_SR_Client
 
             _notifyIcon = new System.Windows.Forms.NotifyIcon
             {
-                Icon = Ciribob.DCS.SimpleRadio.Standalone.Client.Properties.Resources.audio_headset,
+                Icon = Ciribob.FS3D.SimpleRadio.Standalone.Client.Properties.Resources.audio_headset,
                 Visible = true
             };
             _notifyIcon.ContextMenu = notifyIconContextMenu;

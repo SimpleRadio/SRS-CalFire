@@ -5,7 +5,7 @@ using System.Windows.Forms;
 using Ciribob.SRS.Common.Setting;
 using NLog;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 {
     public class SyncedServerSettings
     {

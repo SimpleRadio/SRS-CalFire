@@ -1,13 +1,13 @@
-﻿using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.UI.ClientWindow;
-using NAudio.Wave;
+﻿using NAudio.Wave;
 using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow;
 using NAudio.CoreAudioApi;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
 {
     public class AudioInputSingleton
     {

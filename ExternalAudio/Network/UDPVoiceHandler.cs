@@ -7,10 +7,11 @@ using System.Text;
 using System.Threading;
 using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.Network;
+using Ciribob.SRS.Common.Network.Models;
 using NLog;
 using Timer = Cabhishek.Timers.Timer;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Network
+namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
 {
     internal class UdpVoiceHandler
     {
@@ -21,7 +22,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Network
         private readonly byte[] _guidAsciiBytes;
         private readonly CancellationTokenSource _pingStop = new CancellationTokenSource();
         private readonly int _port;
-        private readonly PlayerRadioInfo gameState;
+        private readonly PlayerUnitState gameState;
 
         private readonly CancellationTokenSource _stopFlag = new CancellationTokenSource();
 
@@ -36,7 +37,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Network
 
 
 
-        public UdpVoiceHandler(string guid, IPAddress address, int port, PlayerRadioInfo gameState)
+        public UdpVoiceHandler(string guid, IPAddress address, int port, PlayerUnitState gameState)
         {
             _guidAsciiBytes = Encoding.ASCII.GetBytes(guid);
 
@@ -101,7 +102,7 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Network
                         AudioPart1Bytes = bytes,
                         AudioPart1Length = (ushort) bytes.Length,
                         Frequencies =freq,
-                        UnitId = gameState.unitId,
+                        UnitId = gameState.UnitId,
                         Modulations = modulation,
                         PacketNumber = _packetNumber++,
                         OriginalClientGuidBytes = _guidAsciiBytes,

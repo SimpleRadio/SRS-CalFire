@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Managers;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Providers;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Audio.Utility;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.DSP;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Singletons;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.DSP;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.Helpers;
 using FragLabs.Audio.Codecs;
@@ -19,7 +19,7 @@ using NAudio.Wave.SampleProviders;
 using NLog;
 using WPFCustomMessageBox;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Audio
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
 {
     internal class AudioPreview
     {

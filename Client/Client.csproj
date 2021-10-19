@@ -7,7 +7,7 @@
     <ProjectGuid>{CFF33E05-1D37-4807-B1F7-5A1488D8EC4F}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Ciribob.DCS.SimpleRadio.Standalone.Client</RootNamespace>
+    <RootNamespace>Ciribob.FS3D.SimpleRadio.Standalone.Client</RootNamespace>
     <AssemblyName>SRS-Client</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -54,7 +54,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>DCS_SR_Client.App</StartupObject>
+    <StartupObject>
+    </StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <TargetZone>
@@ -210,8 +211,8 @@
     <Compile Include="Audio\Utility\SpeexWrapper.cs" />
     <Compile Include="Settings\ProfileSettingsStore.cs" />
     <Compile Include="Input\InputBindState.cs" />
-    <Compile Include="Network\DCS\DCSRadioSyncHandler.cs" />
-    <Compile Include="Network\DCS\Models\CombinedRadioState.cs" />
+    <Compile Include="Network\Sync\RadioSyncHandler.cs" />
+    <Compile Include="Network\Sync\Models\CombinedRadioState.cs" />
     <Compile Include="Network\UDPVoiceHandler.cs" />
     <Compile Include="Settings\SynchedServerSettings.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -228,9 +229,6 @@
     <Compile Include="UI\ClientWindow\ClientList\ClientListWindow.xaml.cs">
       <DependentUpon>ClientListWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\RadioOverlayWindow\TransponderPanel.xaml.cs">
-      <DependentUpon>TransponderPanel.xaml</DependentUpon>
-    </Compile>
     <Compile Include="UI\ClientWindow\InputBindingControl.xaml.cs">
       <DependentUpon>InputBindingControl.xaml</DependentUpon>
     </Compile>
@@ -243,41 +241,35 @@
     <Compile Include="UI\InputProfileWindow\InputProfileWindow.xaml.cs">
       <DependentUpon>InputProfileWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\RadioOverlayWindow\PresetChannels\PresetChannelsView.xaml.cs">
+    <Compile Include="UI\Common\PresetChannels\PresetChannelsView.xaml.cs">
       <DependentUpon>PresetChannelsView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\RadioOverlayWindow\PresetChannels\PresetChannelsViewModel.cs" />
+    <Compile Include="UI\Common\PresetChannels\PresetChannelsViewModel.cs" />
     <Compile Include="UI\ClientWindow\RadioChannelConfigUI.xaml.cs">
       <DependentUpon>RadioChannelConfigUI.xaml</DependentUpon>
     </Compile>
     <Compile Include="Audio\Providers\RadioAudioProvider.cs" />
-    <Compile Include="UI\AwacsRadioOverlayWindow\AwacsIntercomControlGroup.xaml.cs">
-      <DependentUpon>AwacsIntercomControlGroup.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UI\AwacsRadioOverlayWindow\AwacsRadioControlGroup.xaml.cs">
+    <Compile Include="UI\AircraftOverlayWindow\AwacsRadioControlGroup.xaml.cs">
       <DependentUpon>AwacsRadioControlGroup.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\AwacsRadioOverlayWindow\AwacsOverlay.xaml.cs">
+    <Compile Include="UI\AircraftOverlayWindow\AwacsOverlay.xaml.cs">
       <DependentUpon>AwacsOverlay.xaml</DependentUpon>
     </Compile>
     <Compile Include="Settings\Favourites\ServerAddress.cs" />
-    <Compile Include="UI\RadioOverlayWindow\IntercomControlGroup.xaml.cs">
-      <DependentUpon>IntercomControlGroup.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UI\RadioOverlayWindow\RadioControlGroup.xaml.cs">
+    <Compile Include="UI\HandheldRadioOverlayWindow\RadioControlGroup.xaml.cs">
       <DependentUpon>RadioControlGroup.xaml</DependentUpon>
     </Compile>
     <Compile Include="Audio\Providers\RadioFilter.cs" />
-    <Compile Include="UI\RadioOverlayWindow\RadioOverlay.xaml.cs">
+    <Compile Include="UI\HandheldRadioOverlayWindow\RadioOverlay.xaml.cs">
       <DependentUpon>RadioOverlay.xaml</DependentUpon>
     </Compile>
     <Compile Include="Network\Models\RadioSendingState.cs" />
-    <Compile Include="Network\DCS\DCSRadioSyncManager.cs" />
+    <Compile Include="Network\Sync\RadioSyncManager.cs" />
     <Compile Include="UI\ClientWindow\ServerSettingsWindow\ServerSettingsWindow.xaml.cs">
       <DependentUpon>ServerSettingsWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Settings\GlobalSettingsStore.cs" />
-    <Compile Include="UI\RadioOverlayWindow\WindowHelper.cs" />
+    <Compile Include="UI\HandheldRadioOverlayWindow\WindowHelper.cs" />
     <Compile Include="UI\Sounds.cs" />
     <Compile Include="UI\ToolTips.cs" />
     <Compile Include="Utils\DelegateCommand.cs" />
@@ -288,10 +280,6 @@
     <Compile Include="Utils\ValueConverters\MicAvailabilityTooltipConverter.cs" />
     <Compile Include="Utils\WPFElementHelper.cs" />
     <Page Include="UI\ClientWindow\ClientList\ClientListWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="UI\RadioOverlayWindow\TransponderPanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -316,7 +304,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UI\RadioOverlayWindow\PresetChannels\PresetChannelsView.xaml">
+    <Page Include="UI\Common\PresetChannels\PresetChannelsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -324,27 +312,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UI\AwacsRadioOverlayWindow\AwacsIntercomControlGroup.xaml">
+    <Page Include="UI\AircraftOverlayWindow\AwacsRadioControlGroup.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="UI\AwacsRadioOverlayWindow\AwacsRadioControlGroup.xaml">
+    <Page Include="UI\AircraftOverlayWindow\AwacsOverlay.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="UI\AwacsRadioOverlayWindow\AwacsOverlay.xaml">
+    <Page Include="UI\HandheldRadioOverlayWindow\RadioControlGroup.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="UI\RadioOverlayWindow\IntercomControlGroup.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="UI\RadioOverlayWindow\RadioControlGroup.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="UI\RadioOverlayWindow\RadioOverlay.xaml">
+    <Page Include="UI\HandheldRadioOverlayWindow\RadioOverlay.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -371,7 +351,10 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <None Include="awacs-radios.json">
+    <None Include="handheld-radio.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="aircraft-radios.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Content Include="AudioEffects\FM_NOISE.wav">

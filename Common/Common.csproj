@@ -58,6 +58,9 @@
       <HintPath>..\packages\Costura.Fody.1.6.2\lib\dotnet\Costura.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Easy.MessageHub, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Easy.MessageHub.5.0.0\lib\net45\Easy.MessageHub.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -106,33 +109,49 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DCSState\LatLngPosition.cs" />
-    <Compile Include="DCSState\Transponder.cs" />
-    <Compile Include="DCSState\RadioReceivingPriority.cs" />
-    <Compile Include="DCSState\RadioReceivingState.cs" />
+    <Compile Include="Network\Client\DisconnectRequestMessage.cs" />
+    <Compile Include="Network\Models\EventMessages\SRClientUpdateMessage.cs" />
+    <Compile Include="Network\Client\TCPClientHandler.cs" />
+    <Compile Include="Network\Models\EventMessages\TCPClientStatusMessage.cs" />
+    <Compile Include="Network\Models\EventMessages\VOIPStatusMessage.cs" />
+    <Compile Include="Network\Proxies\RadioProxy.cs" />
+    <Compile Include="Network\Proxies\TransponderProxy.cs" />
+    <Compile Include="Network\Singletons\ClientStateSingleton.cs" />
+    <Compile Include="Network\Singletons\MessageHubSingleton.cs" />
+    <Compile Include="Network\Client\ClientAudio.cs" />
+    <Compile Include="Network\Client\UDPVoiceHandler.cs" />
+    <Compile Include="Network\Proxies\PlayerStateNetworkProxy.cs" />
+    <Compile Include="Network\Singletons\ConnectedClientsSingleton.cs" />
+    <Compile Include="Network\Models\EventMessages\ServerSettingsUpdatedMessage.cs" />
+    <Compile Include="Network\Singletons\SyncedServerSettings.cs" />
+    <Compile Include="PlayerState\LatLngPosition.cs" />
+    <Compile Include="PlayerState\PresetChannel.cs" />
+    <Compile Include="PlayerState\RadioConfig.cs" />
+    <Compile Include="PlayerState\Transponder.cs" />
+    <Compile Include="PlayerState\RadioReceivingPriority.cs" />
+    <Compile Include="PlayerState\RadioReceivingState.cs" />
     <Compile Include="Helpers\CircularBuffer.cs" />
     <Compile Include="Helpers\ConversionHelpers.cs" />
-    <Compile Include="DCSState\PlayerSideInfo.cs" />
-    <Compile Include="Helpers\JsonDCSIgnoreSerializationAttribute.cs" />
+    <Compile Include="PlayerState\PlayerSideInfo.cs" />
     <Compile Include="Helpers\JsonNetworkIgnoreSerializationAttribute.cs" />
-    <Compile Include="Helpers\JsonDCSPropertiesResolver.cs" />
     <Compile Include="Helpers\JsonNetworkPropertiesResolver.cs" />
     <Compile Include="Helpers\ListHelper.cs" />
     <Compile Include="Helpers\VolumeConversionHelper.cs" />
-    <Compile Include="Network\ClientListExport.cs" />
-    <Compile Include="Network\NetworkMessage.cs" />
+    <Compile Include="Network\Models\ClientListExport.cs" />
+    <Compile Include="Network\Models\NetworkMessage.cs" />
+    <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="DCSState\PlayerRadioInfo.cs" />
+    <Compile Include="PlayerState\PlayerUnitState.cs" />
     <Compile Include="Helpers\RadioCalculator.cs" />
-    <Compile Include="DCSState\RadioInformation.cs" />
-    <Compile Include="DCSState\RadioTransmit.cs" />
+    <Compile Include="PlayerState\Radio.cs" />
+    <Compile Include="PlayerState\RadioTransmit.cs" />
     <Compile Include="Setting\ServerSettingsKeys.cs" />
-    <Compile Include="Network\ShortGuid.cs" />
-    <Compile Include="Network\SRClient.cs" />
+    <Compile Include="Network\Models\ShortGuid.cs" />
+    <Compile Include="Network\Models\SRClient.cs" />
     <Compile Include="Setting\UpdaterChecker.cs" />
     <Compile Include="Timers\ITimer.cs" />
     <Compile Include="Timers\Timer.cs" />
-    <Compile Include="Network\UDPVoicePacket.cs" />
+    <Compile Include="Network\Models\UDPVoicePacket.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -140,7 +159,9 @@
   <ItemGroup>
     <None Include="FodyWeavers.xml" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Network\Server\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

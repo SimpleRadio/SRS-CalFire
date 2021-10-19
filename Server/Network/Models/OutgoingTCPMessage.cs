@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Ciribob.SRS.Common.Network;
+using Ciribob.SRS.Common.Network.Models;
 
 namespace Ciribob.SRS.Server.Network.Models
 {

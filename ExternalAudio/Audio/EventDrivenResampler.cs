@@ -6,7 +6,7 @@ using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NLog;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient.Audio
+namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Audio
 {
 
     public class EventDrivenResampler

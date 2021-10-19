@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.Network;
+using Ciribob.SRS.Common.Network.Models;
 
 namespace Ciribob.SRS.Server.Network
 {

@@ -6,12 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Ciribob.DCS.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Microsoft.Win32;
 using NLog;
 using SharpConfig;
 
-namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 {
     public enum ProfileSettingsKeys
     {
@@ -40,7 +40,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
         AutoSelectPresetChannel, //auto select preset channel
 
         AlwaysAllowHotasControls,
-        AllowDCSPTT,
         RadioSwitchIsPTT,
 
 
@@ -110,7 +109,6 @@ namespace Ciribob.DCS.SimpleRadio.Standalone.Client.Settings
             {ProfileSettingsKeys.AutoSelectPresetChannel.ToString(), "true"},
 
             {ProfileSettingsKeys.AlwaysAllowHotasControls.ToString(),"false" },
-            {ProfileSettingsKeys.AllowDCSPTT.ToString(),"true" },
             {ProfileSettingsKeys.RadioSwitchIsPTT.ToString(), "false"},
             {ProfileSettingsKeys.RadioSwitchIsPTTOnlyWhenValid.ToString(), "false"},
             {ProfileSettingsKeys.AlwaysAllowTransponderOverlay.ToString(), "false"},

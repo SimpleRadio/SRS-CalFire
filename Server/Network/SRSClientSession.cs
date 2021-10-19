@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Ciribob.SRS.Common.Network.Models;
 using Newtonsoft.Json;
 using NLog;
 
