@@ -29,17 +29,17 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
         private TcpClient _tcpClient;
 
         private static readonly int MAX_DECODE_ERRORS = 5;
-        private readonly string name;
-        private readonly int coalition;
-        private LatLngPosition position;
+
 
         public SRSClientSyncHandler(string guid, PlayerUnitState gameState, string name, int coalition, LatLngPosition position)
         {
             _guid = guid;
             this.gameState = gameState;
-            this.name = name;
-            this.coalition = coalition;
-            this.position = position;
+
+            this.gameState.Name = name;
+            this.gameState.LatLng = position;
+            this.gameState.Coalition = coalition;
+        
         }
 
         public void TryConnect(IPEndPoint endpoint)
@@ -104,10 +104,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
                     {
                         Client = new SRClient
                         {
-                            Name = this.name,
                             ClientGuid = _guid,
                             UnitState = gameState,
-                            LatLngPosition = position
                         },
                         MsgType = NetworkMessage.MessageType.SYNC,
 
@@ -118,10 +116,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
                     {
                         Client = new SRClient
                         {
-                            Name = this.name,
                             ClientGuid = _guid,
-                            UnitState = gameState,
-                            LatLngPosition = position
+                            UnitState = gameState
                         },
                         MsgType = NetworkMessage.MessageType.FULL_UPDATE,
 
@@ -144,7 +140,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
                                 {
                                     case NetworkMessage.MessageType.PING:
                                     case NetworkMessage.MessageType.FULL_UPDATE:
-                                    case NetworkMessage.MessageType.UPDATE:
                                     case NetworkMessage.MessageType.SERVER_SETTINGS:
                                     case NetworkMessage.MessageType.CLIENT_DISCONNECT:
                                         break;

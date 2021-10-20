@@ -70,7 +70,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
             var playerRadioInfo = _clientStateSingleton.PlayerUnitState;
 
             if ((playerRadioInfo == null) || !playerRadioInfo.IsCurrent() ||
-                RadioId > playerRadioInfo.Radios.Length - 1 || RadioId < 0)
+                RadioId > playerRadioInfo.Radios.Count - 1 || RadioId < 0)
             {
                 //remove focus to somewhere else
                 RadioVolume.Focus();
@@ -181,7 +181,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
         {
             var currentRadio = _clientStateSingleton.PlayerUnitState.Radios[RadioId];
 
-            if (currentRadio.volMode == RadioConfig.VolumeMode.OVERLAY)
+            if (currentRadio.Config.VolumeControl == RadioConfig.VolumeMode.OVERLAY)
             {
                 var clientRadio = _clientStateSingleton.PlayerUnitState.Radios[RadioId];
 
@@ -230,7 +230,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
                         && _clientStateSingleton.PlayerUnitState.simultaneousTransmissionControl == PlayerUnitState.SimultaneousTransmissionControl.ENABLED_INTERNAL_SRS_CONTROLS)
                     {
                         int simulTransmission = 0;
-                        for (int i = 0; i < _clientStateSingleton.PlayerUnitState.Radios.Length; i++)
+                        for (int i = 0; i < _clientStateSingleton.PlayerUnitState.Radios.Count; i++)
                         {
                             if (_clientStateSingleton.PlayerUnitState.Radios[i].SimultaneousTransmission)
                             {
@@ -295,7 +295,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
             var dcsPlayerRadioInfo = _clientStateSingleton.PlayerUnitState;
 
             if (!_clientStateSingleton.IsConnected || (dcsPlayerRadioInfo == null) || !dcsPlayerRadioInfo.IsCurrent() ||
-                RadioId > dcsPlayerRadioInfo.Radios.Length - 1)
+                RadioId > dcsPlayerRadioInfo.Radios.Count - 1)
             {
                 RadioActive.Fill = new SolidColorBrush(Colors.Red);
                 RadioLabel.Text = "No Radio";
@@ -383,7 +383,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
                 else
                 {
                     if (!RadioFrequency.IsFocused
-                        || currentRadio.freqMode == RadioConfig.FreqMode.COCKPIT
+                        || currentRadio.Config.FrequencyControl == RadioConfig.FreqMode.COCKPIT
                         || currentRadio.Modulation == RadioConfig.Modulation.DISABLED)
                     {
                         RadioFrequency.Text =
@@ -417,7 +417,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
                     {
                         RadioMetaData.Text += (" C" + currentRadio.CurrentChannel);
                     }
-                    if (currentRadio.Enc && (currentRadio.EncryptionKey > 0))
+                    if (currentRadio.Encrypted && (currentRadio.EncryptionKey > 0))
                     {
                         RadioMetaData.Text += " E" + currentRadio.EncryptionKey; // ENCRYPTED
                     }
@@ -433,7 +433,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
                     RadioMetaData.Text += " 👤" + count;
                 }
 
-                if (currentRadio.volMode == RadioConfig.VolumeMode.OVERLAY)
+                if (currentRadio.Config.VolumeControl == RadioConfig.VolumeMode.OVERLAY)
                 {
                     RadioVolume.IsEnabled = true;
 
@@ -448,7 +448,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
                     //  _dragging = false;
                 }
 
-                ToggleButtons(currentRadio.freqMode == RadioConfig.FreqMode.OVERLAY);
+                ToggleButtons(currentRadio.Config.FrequencyControl == RadioConfig.FreqMode.OVERLAY);
 
                 if (_dragging == false)
                 {
@@ -474,11 +474,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
             {
                 var currentRadio = dcsPlayerRadioInfo.Radios[RadioId];
 
-                if (currentRadio.rtMode == RadioConfig.RetransmitMode.DISABLED)
+                if (currentRadio.Config.RetransmitControl == RadioConfig.RetransmitMode.DISABLED)
                 {
                     Retransmit.Visibility = Visibility.Hidden;
                 }
-                else if (currentRadio.rtMode == RadioConfig.RetransmitMode.COCKPIT)
+                else if (currentRadio.Config.RetransmitControl == RadioConfig.RetransmitMode.COCKPIT)
                 {
                     Retransmit.Visibility = Visibility.Visible;
                     Retransmit.IsEnabled = false;

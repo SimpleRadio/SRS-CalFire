@@ -25,7 +25,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.ClientAdmin
 
         public SRClient Client { get; }
 
-        public string ClientName => Client.Name;
+        public string ClientName => Client?.UnitState?.Name;
 
         public string TransmittingFrequency => Client.TransmittingFrequency;
 
@@ -35,7 +35,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.ClientAdmin
         {
             get
             {
-                switch (Client.Coalition)
+                switch (Client?.UnitState.Coalition)
                 {
                     case 0:
                         return new SolidColorBrush(Colors.White);
@@ -63,7 +63,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.ClientAdmin
 
         public void KickClient()
         {
-            var messageBoxResult = MessageBox.Show($"Are you sure you want to Kick {Client.Name}?", "Ban Confirmation",
+            var messageBoxResult = MessageBox.Show($"Are you sure you want to Kick {Client.UnitState.Name}?", "Ban Confirmation",
                 MessageBoxButton.YesNo);
             if (messageBoxResult == MessageBoxResult.Yes)
             {
@@ -73,7 +73,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.ClientAdmin
 
         public void BanClient()
         {
-            var messageBoxResult = MessageBox.Show($"Are you sure you want to Ban {Client.Name}?", "Ban Confirmation",
+            var messageBoxResult = MessageBox.Show($"Are you sure you want to Ban {Client.UnitState.Name}?", "Ban Confirmation",
                 MessageBoxButton.YesNo);
             if (messageBoxResult == MessageBoxResult.Yes)
             {

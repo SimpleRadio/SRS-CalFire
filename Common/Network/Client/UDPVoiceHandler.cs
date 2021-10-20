@@ -19,7 +19,7 @@ using NLog;
 
 namespace  Ciribob.SRS.Common.Network.Client
 {
-    public class UdpVoiceHandler
+    public class UDPVoiceHandler
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -46,7 +46,7 @@ namespace  Ciribob.SRS.Common.Network.Client
 
         public ConnectionState ConnectionStateDelegate { get; }
 
-        public UdpVoiceHandler(string guid, IPEndPoint endPoint)
+        public UDPVoiceHandler(string guid, IPEndPoint endPoint)
         {
            
             _guidAsciiBytes = Encoding.ASCII.GetBytes(guid);

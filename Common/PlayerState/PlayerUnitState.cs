@@ -139,10 +139,10 @@ namespace Ciribob.SRS.Common
                 {
                     return false;
                 }
-                //if (side != compareRadio.side)
-                //{
-                //    return false;
-                //}
+                if (Coalition != compareRadio.Coalition)
+                {
+                    return false;
+                }
                 if (!Name.Equals(compareRadio.Name))
                 {
                     return false;

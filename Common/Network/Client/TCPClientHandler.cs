@@ -37,7 +37,7 @@ namespace Ciribob.SRS.Common.Network.Client
         private long _lastSent = -1;
         private readonly List<Guid> _subscriptions = new List<Guid>();
 
-        private UdpVoiceHandler _udpVoiceHandler;
+        private UDPVoiceHandler _udpVoiceHandler;
 
         private ClientStateSingleton _clientState = ClientStateSingleton.Instance;
 
@@ -178,7 +178,7 @@ namespace Ciribob.SRS.Common.Network.Client
                         MsgType = NetworkMessage.MessageType.SYNC,
                     });
 
-                    var udpHandler = new UdpVoiceHandler(_guid, _serverEndpoint);
+                    var udpHandler = new UDPVoiceHandler(_guid, _serverEndpoint);
 
                     string line;
                     while ((line = reader.ReadLine()) != null)

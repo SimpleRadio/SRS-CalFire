@@ -15,7 +15,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 
             if (radio != null)
             {
-                if (radio.freqMode == RadioConfig.FreqMode.OVERLAY || radio.guardFreqMode == RadioConfig.FreqMode.OVERLAY)
+                if (radio.Config.FrequencyControl == RadioConfig.FreqMode.OVERLAY || radio.Config.GuardFrequencyControl == RadioConfig.FreqMode.OVERLAY)
                 {
                     if (radio.SecondaryFrequency > 0)
                     {
@@ -38,7 +38,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 
             if (radio != null)
             {
-                if (radio.freqMode == RadioConfig.FreqMode.OVERLAY || radio.guardFreqMode == RadioConfig.FreqMode.OVERLAY)
+                if (radio.Config.FrequencyControl == RadioConfig.FreqMode.OVERLAY || radio.Config.GuardFrequencyControl == RadioConfig.FreqMode.OVERLAY)
                 {
                     if (!enabled)
                     {
@@ -71,7 +71,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
             {
                 if (radio.Modulation != RadioConfig.Modulation.DISABLED
                     && radio.Modulation != RadioConfig.Modulation.INTERCOM
-                    && radio.freqMode == RadioConfig.FreqMode.OVERLAY)
+                    && radio.Config.FrequencyControl == RadioConfig.FreqMode.OVERLAY)
                 {
                     if (delta)
                     {
@@ -83,15 +83,15 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                     }
 
                     //make sure we're not over or under a limit
-                    if (radio.Frequency > radio.freqMax)
+                    if (radio.Frequency > radio.Config.MaxFrequency)
                     {
                         inLimit = false;
-                        radio.Frequency = radio.freqMax;
+                        radio.Frequency = radio.Config.MaxFrequency;
                     }
-                    else if (radio.Frequency < radio.freqMin)
+                    else if (radio.Frequency < radio.Config.MinimumFrequency)
                     {
                         inLimit = false;
-                        radio.Frequency = radio.freqMin;
+                        radio.Frequency = radio.Config.MinimumFrequency;
                     }
 
                     //set to no channel
@@ -127,7 +127,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
             var dcsPlayerRadioInfo = ClientStateSingleton.Instance.PlayerUnitState;
 
             if ((dcsPlayerRadioInfo != null) && dcsPlayerRadioInfo.IsCurrent() &&
-                radio < dcsPlayerRadioInfo.Radios.Length && (radio >= 0))
+                radio < dcsPlayerRadioInfo.Radios.Count && (radio >= 0))
             {
                 return dcsPlayerRadioInfo.Radios[radio];
             }
@@ -145,8 +145,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                 dcsPlayerRadioInfo.control == PlayerUnitState.RadioSwitchControls.HOTAS)
             {
                 if (dcsPlayerRadioInfo.SelectedRadio < 0
-                    || dcsPlayerRadioInfo.SelectedRadio > dcsPlayerRadioInfo.Radios.Length
-                    || dcsPlayerRadioInfo.SelectedRadio + 1 > dcsPlayerRadioInfo.Radios.Length)
+                    || dcsPlayerRadioInfo.SelectedRadio > dcsPlayerRadioInfo.Radios.Count
+                    || dcsPlayerRadioInfo.SelectedRadio + 1 > dcsPlayerRadioInfo.Radios.Count)
                 {
                     SelectRadio(1);
 
@@ -157,7 +157,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                     int currentRadio = dcsPlayerRadioInfo.SelectedRadio;
 
                     //find next radio
-                    for (int i = currentRadio + 1; i < dcsPlayerRadioInfo.Radios.Length; i++)
+                    for (int i = currentRadio + 1; i < dcsPlayerRadioInfo.Radios.Count; i++)
                     {
                         if (SelectRadio(i))
                         {
@@ -185,7 +185,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                 dcsPlayerRadioInfo.control == PlayerUnitState.RadioSwitchControls.HOTAS)
             {
                 if (dcsPlayerRadioInfo.SelectedRadio < 0
-                    || dcsPlayerRadioInfo.SelectedRadio > dcsPlayerRadioInfo.Radios.Length)
+                    || dcsPlayerRadioInfo.SelectedRadio > dcsPlayerRadioInfo.Radios.Count)
                 {
                     dcsPlayerRadioInfo.SelectedRadio = 1;
                     return;
@@ -204,7 +204,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                     }
 
                     //search down to current radio
-                    for (int i = dcsPlayerRadioInfo.Radios.Length; i > currentRadio; i--)
+                    for (int i = dcsPlayerRadioInfo.Radios.Count; i > currentRadio; i--)
                     {
                         if (SelectRadio(i))
                         {
@@ -320,7 +320,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 
             if (currentRadio != null
                 && currentRadio.Modulation != RadioConfig.Modulation.DISABLED
-                && currentRadio.volMode == Radio.VolumeState.Mode.OVERLAY)
+                && currentRadio.Config.VolumeControl == RadioConfig.VolumeMode.OVERLAY)
             {
                 currentRadio.Volume = volume;
             }
@@ -332,7 +332,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 
             if (radio != null)
             {
-                if (radio.RTMode == RadioConfig.RetransmitMode.OVERLAY)
+                if (radio.Config.RetransmitControl == RadioConfig.RetransmitMode.OVERLAY)
                 {
                     radio.Retransmit = !radio.Retransmit;
 

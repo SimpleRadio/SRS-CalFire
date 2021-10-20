@@ -1,0 +1,36 @@
+﻿using System.Windows;
+using System.Windows.Controls;
+
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSettingsControl
+{
+    /// <summary>
+    /// Interaction logic for BackgroundEffectVolumeControl.xaml
+    /// </summary>
+    public partial class BackgroundEffectVolumeControl : UserControl
+    {
+
+        public BackgroundEffectVolumeControl()
+        {
+            InitializeComponent();
+        }
+
+        public static readonly DependencyProperty VolumeSliderDependencyProperty =
+            DependencyProperty.Register("VolumeValue", typeof(float), typeof(BackgroundEffectVolumeControl),
+                new FrameworkPropertyMetadata((float)0)
+            );
+
+        public float VolumeValue
+        {
+            set
+            {
+                SetValue(VolumeSliderDependencyProperty, value);
+            }
+            get
+            {
+                float val = (float)GetValue(VolumeSliderDependencyProperty);
+                return val;
+            }
+        }
+
+    }
+}

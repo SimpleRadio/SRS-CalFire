@@ -229,6 +229,16 @@
     <Compile Include="UI\ClientWindow\ClientList\ClientListWindow.xaml.cs">
       <DependentUpon>ClientListWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\ClientWindow\ClientSettingsControl\BackgroundEffectVolumeControl.xaml.cs">
+      <DependentUpon>BackgroundEffectVolumeControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ClientWindow\ClientSettingsControl\ClientSettings.xaml.cs">
+      <DependentUpon>ClientSettings.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ClientWindow\ClientSettingsControl\ClientSettingsViewModel.cs" />
+    <Compile Include="UI\ClientWindow\ClientSettingsControl\SettingsToggleControl.xaml.cs">
+      <DependentUpon>SettingsToggleControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\ClientWindow\InputBindingControl.xaml.cs">
       <DependentUpon>InputBindingControl.xaml</DependentUpon>
     </Compile>
@@ -245,7 +255,7 @@
       <DependentUpon>PresetChannelsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\Common\PresetChannels\PresetChannelsViewModel.cs" />
-    <Compile Include="UI\ClientWindow\RadioChannelConfigUI.xaml.cs">
+    <Compile Include="UI\ClientWindow\ClientSettingsControl\RadioChannelConfigUI.xaml.cs">
       <DependentUpon>RadioChannelConfigUI.xaml</DependentUpon>
     </Compile>
     <Compile Include="Audio\Providers\RadioAudioProvider.cs" />
@@ -283,6 +293,18 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="UI\ClientWindow\ClientSettingsControl\BackgroundEffectVolumeControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\ClientWindow\ClientSettingsControl\ClientSettings.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\ClientWindow\ClientSettingsControl\SettingsToggleControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UI\ClientWindow\InputBindingControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -308,7 +330,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UI\ClientWindow\RadioChannelConfigUI.xaml">
+    <Page Include="UI\ClientWindow\ClientSettingsControl\RadioChannelConfigUI.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

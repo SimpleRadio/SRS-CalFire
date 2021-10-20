@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Ciribob.SRS.Common.Network.Models.EventMessages;
 using Ciribob.SRS.Common.Setting;
 using NLog;
 

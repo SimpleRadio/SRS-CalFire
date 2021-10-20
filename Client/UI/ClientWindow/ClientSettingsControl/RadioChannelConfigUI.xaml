@@ -4,7 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.UI"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             Name="RadioChannelConfig"
+             x:Name="RadioChannelConfig"
              d:DesignHeight="50"
              d:DesignWidth="200"
              mc:Ignorable="d">
@@ -12,7 +12,7 @@
         <Slider Name="ChannelSelector"
                   Maximum="1.0"
                   Minimum="-1.0"
-                  Value="0" TickPlacement="BottomRight"
+                  Value="{Binding ElementName=RadioChannelConfig, Path=VolumeValue, Mode=TwoWay}" TickPlacement="BottomRight"
                   SmallChange="0.1" 
                   LargeChange="0.3"
                     IsSnapToTickEnabled="True"

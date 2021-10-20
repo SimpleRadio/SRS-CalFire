@@ -138,7 +138,7 @@ namespace Ciribob.SRS.Server.Network
                     case NetworkMessage.MessageType.PING:
                         // Do nothing for now
                         break;
-                    case NetworkMessage.MessageType.UPDATE:
+                    case NetworkMessage.MessageType.PARTIAL_UPDATE:
                         HandleClientMetaDataUpdate(state, message, true);
                         break;
                     case NetworkMessage.MessageType.FULL_UPDATE:
@@ -243,25 +243,26 @@ namespace Ciribob.SRS.Server.Network
 
                 if (client != null)
                 {
-                    bool redrawClientAdminList = client.Name != message.Client.Name;
+                    bool redrawClientAdminList = client?.UnitState?.Name != message?.Client?.UnitState?.Name;
 
                     //copy the data we need
                     client.LastUpdate = DateTime.Now.Ticks;
-                    client.Name = message.Client.Name;
-                    client.LatLngPosition = message.Client.LatLngPosition;
+                    client.UnitState.Name = message.Client.UnitState.Name;
+                    client.UnitState.LatLng = message.Client.UnitState.LatLng;
 
                     //send update to everyone
                     //Remove Client Radio Info
                     var replyMessage = new NetworkMessage
                     {
-                        MsgType = NetworkMessage.MessageType.UPDATE,
+                        MsgType = NetworkMessage.MessageType.PARTIAL_UPDATE,
                         Client = new SRClient
                         {
                             ClientGuid = client.ClientGuid,
-                            Name = client.Name,
-                            LatLngPosition = client.LatLngPosition,
+                            UnitState = client.UnitState
                         }
                     };
+                    //remove radios
+                    replyMessage.Client.UnitState.Radios = null;
 
                     if (send)
                         Multicast(replyMessage.Encode());
@@ -321,17 +322,8 @@ namespace Ciribob.SRS.Server.Network
                         changed = !client.UnitState.Equals(message.Client.UnitState);
                     }
 
-
-                    if (!changed)
-                    {
-                        changed = client.Name != message.Client.Name
-                                  || !message.Client.LatLngPosition.Equals(client.LatLngPosition);
-                    }
-
                     client.LastUpdate = DateTime.Now.Ticks;
-                    client.Name = message.Client.Name;
                     client.UnitState = message.Client.UnitState;
-                    client.LatLngPosition = message.Client.LatLngPosition;
 
                     TimeSpan lastSent = new TimeSpan(DateTime.Now.Ticks - client.LastRadioUpdateSent);
 
@@ -349,8 +341,6 @@ namespace Ciribob.SRS.Server.Network
                                 Client = new SRClient
                                 {
                                     ClientGuid = client.ClientGuid,
-                                    Name = client.Name,
-                                    LatLngPosition = client.LatLngPosition,
                                     UnitState = client.UnitState, //send radio info
                                 }
                             };
@@ -378,13 +368,11 @@ namespace Ciribob.SRS.Server.Network
             //Remove Client Radio Info
             var update = new NetworkMessage
             {
-                MsgType = NetworkMessage.MessageType.UPDATE,
+                MsgType = NetworkMessage.MessageType.FULL_UPDATE,
                 Client = new SRClient
                 {
                     ClientGuid = message.Client.ClientGuid,
-                    UnitState = message.Client.UnitState,
-                    Name = message.Client.Name,
-                    LatLngPosition = message.Client.LatLngPosition
+                    UnitState = message.Client.UnitState
                 }
             };
 

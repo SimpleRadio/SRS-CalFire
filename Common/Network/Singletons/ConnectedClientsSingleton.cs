@@ -112,7 +112,7 @@ namespace Ciribob.SRS.Common.Network.Singletons
                 return 0;
             }
 
-            var currentUnitId = ClientStateSingleton.Instance.PlayerUnitState.unitId;
+            var currentUnitId = ClientStateSingleton.Instance.PlayerUnitState.UnitId;
       
             int count = 0;
 

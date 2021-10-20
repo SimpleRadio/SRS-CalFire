@@ -55,9 +55,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow
             if (ChannelViewModel != null)
             {
                 ChannelViewModel.Max =
-                    _clientStateSingleton.PlayerUnitState.Radios[RadioId].freqMax;
+                    _clientStateSingleton.PlayerUnitState.Radios[RadioId].Config.MaxFrequency;
                 ChannelViewModel.Min =
-                    _clientStateSingleton.PlayerUnitState.Radios[RadioId].freqMin;
+                    _clientStateSingleton.PlayerUnitState.Radios[RadioId].Config.MinimumFrequency;
             }
 
 
@@ -140,7 +140,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow
         {
             var currentRadio = _clientStateSingleton.PlayerUnitState.Radios[RadioId];
 
-            if (currentRadio.volMode == RadioConfig.VolumeMode.OVERLAY)
+            if (currentRadio.Config.VolumeControl == RadioConfig.VolumeMode.OVERLAY)
             {
                 var clientRadio = _clientStateSingleton.PlayerUnitState.Radios[RadioId];
 
@@ -303,7 +303,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow
                         RadioFrequency.Text += " C" + currentRadio.CurrentChannel;
                     }
 
-                    if (currentRadio.Enc && (currentRadio.EncryptionKey > 0))
+                    if (currentRadio.Encrypted && (currentRadio.EncryptionKey > 0))
                     {
                         RadioFrequency.Text += " E" + currentRadio.EncryptionKey; // ENCRYPTED
                     }
@@ -324,7 +324,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow
 
                 RadioLabel.Text = dcsPlayerRadioInfo.Radios[RadioId].Name;
 
-                if (currentRadio.volMode == RadioConfig.VolumeMode.OVERLAY)
+                if (currentRadio.Config.VolumeControl == RadioConfig.VolumeMode.OVERLAY)
                 {
                     RadioVolume.IsEnabled = true;
 
@@ -339,7 +339,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow
                     //  _dragging = false;
                 }
 
-                ToggleButtons(currentRadio.freqMode == RadioConfig.FreqMode.OVERLAY);
+                ToggleButtons(currentRadio.Config.FrequencyControl == RadioConfig.FreqMode.OVERLAY);
 
                 if (_dragging == false)
                 {

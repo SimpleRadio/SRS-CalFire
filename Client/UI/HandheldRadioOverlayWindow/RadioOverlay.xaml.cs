@@ -116,27 +116,33 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Overlay
                 {
                     handheldRadio[i] = new Radio
                     {
+                        Config = new RadioConfig()
+                        {
+                            MinimumFrequency = 1,
+                            MaxFrequency = 1,
+                            FrequencyControl = RadioConfig.FreqMode.COCKPIT,
+                            VolumeControl = RadioConfig.VolumeMode.COCKPIT,
+                        },
                         Frequency = 1,
-                        freqMin = 1,
-                        freqMax = 1,
                         SecondaryFrequency = 0,
                         Modulation = RadioConfig.Modulation.DISABLED,
                         Name = "Invalid Config",
-                        freqMode = RadioConfig.FreqMode.COCKPIT,
-                        volMode = RadioConfig.VolumeMode.COCKPIT
                     };
                 }
 
                 handheldRadio[1] =  new Radio
                 {
                     Frequency = 1.51e+8,
-                    freqMin = 1.0e+8,
-                    freqMax = 3.51e+8,
+                    Config = new RadioConfig()
+                    {
+                        MinimumFrequency = 1.0e+8,
+                        MaxFrequency = 3.51e+8,
+                        FrequencyControl = RadioConfig.FreqMode.OVERLAY,
+                        VolumeControl = RadioConfig.VolumeMode.OVERLAY,
+                    },
                     SecondaryFrequency = 1.215e+8,
                     Modulation = RadioConfig.Modulation.AM,
                     Name = "BK RADIO",
-                    freqMode = RadioConfig.FreqMode.OVERLAY,
-                    volMode = RadioConfig.VolumeMode.OVERLAY
                 };
             }
 

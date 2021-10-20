@@ -57,7 +57,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList
                 tempList.Add(srClient);
             }
 
-            foreach (var clientListModel in tempList.OrderByDescending(model => model.Name.ToLower()).ToList())
+            foreach (var clientListModel in tempList.OrderByDescending(model => model?.UnitState?.Name.ToLower()).ToList())
             {
                 _clientList.Add(clientListModel);
             }

@@ -9,6 +9,7 @@ using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.SRS.Common.Helpers;
+using Ciribob.SRS.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.PlayerState;
 using Easy.MessageHub;
@@ -252,8 +253,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                     _wasapiCapture.DataAvailable += WasapiCaptureOnDataAvailable;
                     _wasapiCapture.RecordingStopped += WasapiCaptureOnRecordingStopped;
 
-                    _udpVoiceHandler =
-                        new UdpVoiceHandler(guid, ipAddress, port, this, inputManager);
+                    //TODO
+                   // _udpVoiceHandler =
+                   //     new UDPVoiceHandler(guid, ipAddress, port, this, inputManager);
                     var voiceSenderThread = new Thread(_udpVoiceHandler.Listen);
 
                     voiceSenderThread.Start();
@@ -273,10 +275,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             }
             else
             {
+                //TODO
                 //no mic....
-                _udpVoiceHandler =
-                    new UdpVoiceHandler(guid, ipAddress, port, this, inputManager);
-                MessageHub.Instance.Subscribe<SRClient>(RemoveClientBuffer);
+                // _udpVoiceHandler =
+                //     new UdpVoiceHandler(guid, ipAddress, port, this, inputManager);
+                 MessageHub.Instance.Subscribe<SRClient>(RemoveClientBuffer);
                 var voiceSenderThread = new Thread(_udpVoiceHandler.Listen);
                 voiceSenderThread.Start();
             }
@@ -360,7 +363,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                             Buffer.BlockCopy(buff, 0, encoded, 0, len);
 
                             // Console.WriteLine("Sending: " + e.BytesRecorded);
-                            var clientAudio = _udpVoiceHandler.Send(encoded, len);
+                            //TODO
+                            /*var clientAudio = _udpVoiceHandler.Send(encoded, len);
 
                             // _beforeWaveFile.Write(pcmBytes, 0, pcmBytes.Length);
 
@@ -377,7 +381,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                                     _micWaveOutBuffer?.AddSamples(processedAudioBytes, 0, processedAudioBytes.Length);
                                 }
                                 
-                            }
+                            }*/
                         }
                         else
                         {
@@ -467,9 +471,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
         private void InitAudioBuffers()
         {
-            _effectsOutputBuffer = new RadioAudioProvider[_clientStateSingleton.PlayerUnitState.Radios.Length];
+            _effectsOutputBuffer = new RadioAudioProvider[_clientStateSingleton.PlayerUnitState.Radios.Count];
 
-            for (var i = 0; i < _clientStateSingleton.PlayerUnitState.Radios.Length; i++)
+            for (var i = 0; i < _clientStateSingleton.PlayerUnitState.Radios.Count; i++)
             {
                 _effectsOutputBuffer[i] = new RadioAudioProvider(OUTPUT_SAMPLE_RATE);
                 _clientAudioMixer.AddMixerInput(_effectsOutputBuffer[i].VolumeSampleProvider);
