@@ -70,8 +70,6 @@
 
                     <Button Grid.Row="3"
                                     Grid.Column="1"
-                                    HorizontalContentAlignment="Center"
-                                    VerticalContentAlignment="Center"
                                     Command="{Binding ResetOverlayCommand}"
                                     Content="Reset" />
 
@@ -82,29 +80,11 @@
                                    VerticalContentAlignment="Center"
                                    Content="Hide Overlay Taskbar Item" />
 
-                    <ToggleButton Name="RadioOverlayTaskbarItem"
-                                          Grid.Row="4"
-                                          Grid.Column="1"
-                                          HorizontalContentAlignment="Center"
-                                          VerticalContentAlignment="Center"
-                                      
-                                          IsChecked="{Binding HideRadioOverlayTaskbar, Mode=TwoWay}"
-                                          >
-                        <ToggleButton.Style>
-                            <Style TargetType="{x:Type ToggleButton}">
-                                <Setter Property="Content" Value="ON" />
-                                <Style.Triggers>
-                                    <Trigger Property="IsChecked" Value="True">
-                                        <Setter Property="Content" Value="ON" />
-                                    </Trigger>
-                                    <Trigger Property="IsChecked" Value="False">
-                                        <Setter Property="Content" Value="OFF" />
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ToggleButton.Style>
-                    </ToggleButton>
-
+                    <local:SettingsToggleControl 
+                                           Grid.Row="4"
+                                           Grid.Column="1"
+                                           ToggleValue="{Binding HideRadioOverlayTaskbar, Mode=TwoWay}"
+                    />
 
                     <Label Grid.Row="6"
                                    Grid.Column="0"
@@ -112,27 +92,11 @@
                                    VerticalContentAlignment="Center"
                                    Content="Allow More Input Devices" />
 
-                    <ToggleButton Name="ExpandInputDevices"
-                                          Grid.Row="6"
-                                          Grid.Column="1"
-                                          HorizontalContentAlignment="Center"
-                                          VerticalContentAlignment="Center"
-                                          IsChecked="{Binding AllowMoreInputs, Mode=TwoWay}"
-                                          >
-                        <ToggleButton.Style>
-                            <Style TargetType="{x:Type ToggleButton}">
-                                <Setter Property="Content" Value="ON" />
-                                <Style.Triggers>
-                                    <Trigger Property="IsChecked" Value="True">
-                                        <Setter Property="Content" Value="ON" />
-                                    </Trigger>
-                                    <Trigger Property="IsChecked" Value="False">
-                                        <Setter Property="Content" Value="OFF" />
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ToggleButton.Style>
-                    </ToggleButton>
+                    <local:SettingsToggleControl 
+                                           Grid.Row="6"
+                                           Grid.Column="1"
+                                           ToggleValue="{Binding AllowMoreInputs, Mode=TwoWay}"
+                    />
 
 
                     <Label Grid.Row="7"
@@ -141,27 +105,11 @@
                                    VerticalContentAlignment="Center"
                                    Content="Microphone Automatic Gain Control" />
 
-                    <ToggleButton Name="MicAGC"
-                                          Grid.Row="7"
-                                          Grid.Column="1"
-                                          HorizontalContentAlignment="Center"
-                                          VerticalContentAlignment="Center"
-                                          IsChecked="{Binding MicAGC, Mode=TwoWay}"
-                                          >
-                        <ToggleButton.Style>
-                            <Style TargetType="{x:Type ToggleButton}">
-                                <Setter Property="Content" Value="ON" />
-                                <Style.Triggers>
-                                    <Trigger Property="IsChecked" Value="True">
-                                        <Setter Property="Content" Value="ON" />
-                                    </Trigger>
-                                    <Trigger Property="IsChecked" Value="False">
-                                        <Setter Property="Content" Value="OFF" />
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ToggleButton.Style>
-                    </ToggleButton>
+                    <local:SettingsToggleControl 
+                                           Grid.Row="7"
+                                           Grid.Column="1"
+                                           ToggleValue="{Binding MicAGC, Mode=TwoWay}"
+                    />
 
 
                     <Label Grid.Row="8"
@@ -170,27 +118,11 @@
                                    VerticalContentAlignment="Center"
                                    Content="Microphone Noise Suppression" />
 
-                    <ToggleButton Name="MicDenoise"
-                                          Grid.Row="8"
-                                          Grid.Column="1"
-                                          HorizontalContentAlignment="Center"
-                                          VerticalContentAlignment="Center"
-                                          IsChecked="{Binding MicDenoise, Mode=TwoWay}"
-                                          >
-                        <ToggleButton.Style>
-                            <Style TargetType="{x:Type ToggleButton}">
-                                <Setter Property="Content" Value="ON" />
-                                <Style.Triggers>
-                                    <Trigger Property="IsChecked" Value="True">
-                                        <Setter Property="Content" Value="ON" />
-                                    </Trigger>
-                                    <Trigger Property="IsChecked" Value="False">
-                                        <Setter Property="Content" Value="OFF" />
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ToggleButton.Style>
-                    </ToggleButton>
+                    <local:SettingsToggleControl 
+                                           Grid.Row="8"
+                                           Grid.Column="1"
+                                           ToggleValue="{Binding MicDenoise, Mode=TwoWay}"
+                    />
 
                     <Label Grid.Row="9"
                                    Grid.Column="0"
@@ -198,27 +130,11 @@
                                    VerticalContentAlignment="Center"
                                    Content="Minimise to tray" />
 
-                    <ToggleButton Name="MinimiseToTray"
-                                          Grid.Row="9"
-                                          Grid.Column="1"
-                                          HorizontalContentAlignment="Center"
-                                          VerticalContentAlignment="Center"
-                                          IsChecked="{Binding MinimiseToTray, Mode=TwoWay}"
-                                          >
-                        <ToggleButton.Style>
-                            <Style TargetType="{x:Type ToggleButton}">
-                                <Setter Property="Content" Value="ON" />
-                                <Style.Triggers>
-                                    <Trigger Property="IsChecked" Value="True">
-                                        <Setter Property="Content" Value="ON" />
-                                    </Trigger>
-                                    <Trigger Property="IsChecked" Value="False">
-                                        <Setter Property="Content" Value="OFF" />
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ToggleButton.Style>
-                    </ToggleButton>
+                    <local:SettingsToggleControl 
+                                           Grid.Row="9"
+                                           Grid.Column="1"
+                                           ToggleValue="{Binding MinimiseToTray, Mode=TwoWay}"
+                    />
 
                     <Label Grid.Row="10"
                                    Grid.Column="0"
@@ -226,27 +142,11 @@
                                    VerticalContentAlignment="Center"
                                    Content="Start minimised" />
 
-                    <ToggleButton Name="StartMinimised"
-                                          Grid.Row="10"
-                                          Grid.Column="1"
-                                          HorizontalContentAlignment="Center"
-                                          VerticalContentAlignment="Center"
-                                          IsChecked="{Binding StartMinimised, Mode=TwoWay}"
-                                          >
-                        <ToggleButton.Style>
-                            <Style TargetType="{x:Type ToggleButton}">
-                                <Setter Property="Content" Value="ON" />
-                                <Style.Triggers>
-                                    <Trigger Property="IsChecked" Value="True">
-                                        <Setter Property="Content" Value="ON" />
-                                    </Trigger>
-                                    <Trigger Property="IsChecked" Value="False">
-                                        <Setter Property="Content" Value="OFF" />
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ToggleButton.Style>
-                    </ToggleButton>
+                    <local:SettingsToggleControl 
+                                           Grid.Row="10"
+                                           Grid.Column="1"
+                                           ToggleValue="{Binding StartMinimised, Mode=TwoWay}"
+                    />
 
 
                     <Label Grid.Row="13"
@@ -255,27 +155,12 @@
                                    VerticalContentAlignment="Center"
                                    Content="Play connection sounds" />
 
-                    <ToggleButton Name="PlayConnectionSounds"
-                                          Grid.Row="13"
-                                          Grid.Column="1"
-                                          HorizontalContentAlignment="Center"
-                                          VerticalContentAlignment="Center"
-                                          IsChecked="{Binding PlayConnectionSounds, Mode=TwoWay}"
-                                         >
-                        <ToggleButton.Style>
-                            <Style TargetType="{x:Type ToggleButton}">
-                                <Setter Property="Content" Value="ON" />
-                                <Style.Triggers>
-                                    <Trigger Property="IsChecked" Value="True">
-                                        <Setter Property="Content" Value="ON" />
-                                    </Trigger>
-                                    <Trigger Property="IsChecked" Value="False">
-                                        <Setter Property="Content" Value="OFF" />
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ToggleButton.Style>
-                    </ToggleButton>
+                    <local:SettingsToggleControl 
+                                           Grid.Row="13"
+                                           Grid.Column="1"
+                                           ToggleValue="{Binding PlayConnectionSounds, Mode=TwoWay}"
+                    />
+                     
 
 
                 </Grid>
@@ -369,27 +254,13 @@
                                            VerticalContentAlignment="Center"
                                            Content="Radio Switch works as Push To Talk (PTT)" />
 
-                            <ToggleButton Name="RadioSwitchIsPTT"
-                                                  Grid.Row="0"
-                                                  Grid.Column="1"
-                                                  HorizontalContentAlignment="Center"
-                                                  VerticalContentAlignment="Center"
-                                                  IsChecked="{Binding RadioSwitchIsPTT, Mode=TwoWay}"
-                                                  >
-                                <ToggleButton.Style>
-                                    <Style TargetType="{x:Type ToggleButton}">
-                                        <Setter Property="Content" Value="ON" />
-                                        <Style.Triggers>
-                                            <Trigger Property="IsChecked" Value="True">
-                                                <Setter Property="Content" Value="ON" />
-                                            </Trigger>
-                                            <Trigger Property="IsChecked" Value="False">
-                                                <Setter Property="Content" Value="OFF" />
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ToggleButton.Style>
-                            </ToggleButton>
+                            <local:SettingsToggleControl 
+                                                   Grid.Row="0"
+                                                   Grid.Column="1"
+                                                   ToggleValue="{Binding RadioSwitchIsPTT, Mode=TwoWay}"
+                            />
+                             
+                            
 
 
                             <Label Grid.Row="1"
@@ -400,27 +271,11 @@
                                         
                                            />
 
-                            <ToggleButton Name="AutoSelectChannel"
-                                                  Grid.Row="1"
-                                                  Grid.Column="1"
-                                                  HorizontalContentAlignment="Center"
-                                                  VerticalContentAlignment="Center"
-                                                  IsChecked="{Binding AutoSelectChannel, Mode=TwoWay}"
-                                                  >
-                                <ToggleButton.Style>
-                                    <Style TargetType="{x:Type ToggleButton}">
-                                        <Setter Property="Content" Value="ON" />
-                                        <Style.Triggers>
-                                            <Trigger Property="IsChecked" Value="True">
-                                                <Setter Property="Content" Value="ON" />
-                                            </Trigger>
-                                            <Trigger Property="IsChecked" Value="False">
-                                                <Setter Property="Content" Value="OFF" />
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ToggleButton.Style>
-                            </ToggleButton>
+                            <local:SettingsToggleControl 
+                                                   Grid.Row="1"
+                                                   Grid.Column="1"
+                                                   ToggleValue="{Binding AutoSelectChannel, Mode=TwoWay}"
+                            />
 
                             <Label Grid.Row="5"
                                            Grid.Column="0"
@@ -537,45 +392,19 @@
                                                Orientation="Horizontal">
                                 <Label>Start</Label>
 
-                                <ToggleButton Name="RadioRxStartToggle"
-                                                      HorizontalContentAlignment="Center"
-                                                      VerticalContentAlignment="Center"
-                                                      IsChecked="{Binding RadioRxStartToggle, Mode=TwoWay}"
-                                                     >
-                                    <ToggleButton.Style>
-                                        <Style TargetType="{x:Type ToggleButton}">
-                                            <Setter Property="Content" Value="ON" />
-                                            <Style.Triggers>
-                                                <Trigger Property="IsChecked" Value="True">
-                                                    <Setter Property="Content" Value="ON" />
-                                                </Trigger>
-                                                <Trigger Property="IsChecked" Value="False">
-                                                    <Setter Property="Content" Value="OFF" />
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </ToggleButton.Style>
-                                </ToggleButton>
+                                <local:SettingsToggleControl 
+                                                       HorizontalContentAlignment="Center"
+                                                       VerticalContentAlignment="Center"
+                                                       ToggleValue="{Binding RadioRxStartToggle, Mode=TwoWay}"
+                                />
+                                
                                 <Label Content="End" />
-                                <ToggleButton Name="RadioRxEndToggle"
-                                                      HorizontalContentAlignment="Center"
-                                                      VerticalContentAlignment="Center"
-                                                      IsChecked="{Binding RadioRxEndToggle, Mode=TwoWay}"
-                                                      >
-                                    <ToggleButton.Style>
-                                        <Style TargetType="{x:Type ToggleButton}">
-                                            <Setter Property="Content" Value="ON" />
-                                            <Style.Triggers>
-                                                <Trigger Property="IsChecked" Value="True">
-                                                    <Setter Property="Content" Value="ON" />
-                                                </Trigger>
-                                                <Trigger Property="IsChecked" Value="False">
-                                                    <Setter Property="Content" Value="OFF" />
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </ToggleButton.Style>
-                                </ToggleButton>
+                                <local:SettingsToggleControl 
+                                                       HorizontalContentAlignment="Center"
+                                                       VerticalContentAlignment="Center"
+                                                       ToggleValue="{Binding RadioRxEndToggle, Mode=TwoWay}"
+                                />
+                                
                             </WrapPanel>
 
 
@@ -594,45 +423,17 @@
                                 <WrapPanel Orientation="Horizontal">
                                     <Label>Start</Label>
 
-                                    <ToggleButton Name="RadioTxStartToggle"
-                                                          HorizontalContentAlignment="Center"
-                                                          VerticalContentAlignment="Center"
-                                                          IsChecked="{Binding RadioTxStartToggle, Mode=TwoWay}"
-                                                          >
-                                        <ToggleButton.Style>
-                                            <Style TargetType="{x:Type ToggleButton}">
-                                                <Setter Property="Content" Value="ON" />
-                                                <Style.Triggers>
-                                                    <Trigger Property="IsChecked" Value="True">
-                                                        <Setter Property="Content" Value="ON" />
-                                                    </Trigger>
-                                                    <Trigger Property="IsChecked" Value="False">
-                                                        <Setter Property="Content" Value="OFF" />
-                                                    </Trigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </ToggleButton.Style>
-                                    </ToggleButton>
+                                    <local:SettingsToggleControl 
+                                                           HorizontalContentAlignment="Center"
+                                                           VerticalContentAlignment="Center"
+                                                           ToggleValue="{Binding RadioTxStartToggle, Mode=TwoWay}"
+                                    />
                                     <Label Content="End" />
-                                    <ToggleButton Name="RadioTxEndToggle"
-                                                          HorizontalContentAlignment="Center"
-                                                          VerticalContentAlignment="Center"
-                                                          IsChecked="{Binding RadioTxEndToggle, Mode=TwoWay}"
-                                            >
-                                        <ToggleButton.Style>
-                                            <Style TargetType="{x:Type ToggleButton}">
-                                                <Setter Property="Content" Value="ON" />
-                                                <Style.Triggers>
-                                                    <Trigger Property="IsChecked" Value="True">
-                                                        <Setter Property="Content" Value="ON" />
-                                                    </Trigger>
-                                                    <Trigger Property="IsChecked" Value="False">
-                                                        <Setter Property="Content" Value="OFF" />
-                                                    </Trigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </ToggleButton.Style>
-                                    </ToggleButton>
+                                    <local:SettingsToggleControl 
+                                                           HorizontalContentAlignment="Center"
+                                                           VerticalContentAlignment="Center"
+                                                           ToggleValue="{Binding RadioTxEndToggle, Mode=TwoWay}"
+                                    />
                                 </WrapPanel>
 
                             </WrapPanel>
@@ -674,29 +475,11 @@
                                            VerticalContentAlignment="Center"
                                            Content="Enable Radio Voice Effect" />
 
-                            <ToggleButton Name="RadioSoundEffects"
-                                                  Grid.Row="4"
-                                                  Grid.Column="1"
-                                                  HorizontalContentAlignment="Center"
-                                                  VerticalContentAlignment="Center"
-                                                  IsChecked="{Binding RadioSoundEffectsToggle, Mode=TwoWay}"
-                                                  >
-                                <ToggleButton.Style>
-                                    <Style TargetType="{x:Type ToggleButton}">
-                                        <Setter Property="Content" Value="ON" />
-                                        <Style.Triggers>
-                                            <Trigger Property="IsChecked" Value="True">
-                                                <Setter Property="Content" Value="ON" />
-                                            </Trigger>
-                                            <Trigger Property="IsChecked" Value="False">
-                                                <Setter Property="Content" Value="OFF" />
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ToggleButton.Style>
-                            </ToggleButton>
-
-
+                            <local:SettingsToggleControl 
+                                                   Grid.Row="4"
+                                                   Grid.Column="1"
+                                                   ToggleValue="{Binding RadioSoundEffectsToggle, Mode=TwoWay}"
+                            />
 
                             <Label Grid.Row="5"
                                            Grid.Column="0"
@@ -704,27 +487,11 @@
                                            VerticalContentAlignment="Center"
                                            Content="Enable Clipping Effect (Requires Radio effects on!)" />
 
-                            <ToggleButton Name="RadioSoundEffectsClipping"
+                            <local:SettingsToggleControl
                                                   Grid.Row="5"
                                                   Grid.Column="1"
-                                                  HorizontalContentAlignment="Center"
-                                                  VerticalContentAlignment="Center"
-                                                  IsChecked="{Binding RadioEffectsClippingToggle, Mode=TwoWay}"
-                                                  >
-                                <ToggleButton.Style>
-                                    <Style TargetType="{x:Type ToggleButton}">
-                                        <Setter Property="Content" Value="ON" />
-                                        <Style.Triggers>
-                                            <Trigger Property="IsChecked" Value="True">
-                                                <Setter Property="Content" Value="ON" />
-                                            </Trigger>
-                                            <Trigger Property="IsChecked" Value="False">
-                                                <Setter Property="Content" Value="OFF" />
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ToggleButton.Style>
-                            </ToggleButton>
+                                                  ToggleValue="{Binding RadioEffectsClippingToggle, Mode=TwoWay}"
+                                                  />
 
 
                             <Label Grid.Row="6"
@@ -929,12 +696,11 @@
                                                                 Grid.Row="9"
                                                                 Grid.Column="1"
                                                                 VolumeValue="{Binding RadioChannel10, Mode=TwoWay}" />
-
                             <Label Grid.Row="10"
-                                           Grid.Column="0"
-                                           HorizontalContentAlignment="Center"
-                                           VerticalContentAlignment="Center"
-                                           Content="Intercom Audio Channel" />
+                                   Grid.Column="0"
+                                   HorizontalContentAlignment="Center"
+                                   VerticalContentAlignment="Center"
+                                   Content="Intercom Audio Channel" />
                             <ui:RadioChannelConfigUi x:Name="IntercomConfig"
                                                                 Grid.Row="10"
                                                                 Grid.Column="1"
