@@ -59,7 +59,7 @@
                             VerticalAlignment="Top"
                             Click="PreviewAudio"
                             Content="Audio Preview"
-                            Style="{DynamicResource SquareButtonStyle}"
+                      
                             ToolTipService.ShowOnDisabled="True"
                             IsEnabled="{Binding AudioInput.MicrophoneAvailable}"
                             ToolTip="{Binding Path=AudioInput.MicrophoneAvailable, Converter={StaticResource MicAvailabilityTooltipConverter}}" />
@@ -146,7 +146,7 @@
                                 HorizontalAlignment="Center"
                                 Command="{Binding Path=ConnectCommand}"
                                 Content="Connect"
-                                Style="{DynamicResource SquareButtonStyle}"
+                             
                                 ToolTip="{Binding Path=AudioInput.MicrophoneAvailable, Converter={StaticResource MicAvailabilityTooltipConverter}}" />
                         <Button x:Name="ToggleServerSettings"
                                 Width="125"
@@ -155,7 +155,7 @@
                                 Click="ToggleServerSettings_OnClick"
                                 Content="Show Server Settings"
                                 IsEnabled="False"
-                                Style="{DynamicResource SquareButtonStyle}" />
+                                />
 
                     </StackPanel>
                     <StackPanel Margin="0"
@@ -167,21 +167,21 @@
                                 HorizontalAlignment="Center"
                                 Click="ShowOverlay_OnClick"
                                 Content="toggle single radio"
-                                Style="{DynamicResource SquareButtonStyle}" />
+                                 />
                         <Button x:Name="ShowAwacsOverlay"
                                 Width="125"
                                 Margin="0,15,20,0"
                                 HorizontalAlignment="Center"
                                 Click="ShowAwacsOverlay_OnClick"
                                 Content="toggle multi radio"
-                                Style="{DynamicResource SquareButtonStyle}" />
+                                />
                         <Button x:Name="ShowClientList"
                                 Width="125"
                                 Margin="0,15,0,0"
                                 HorizontalAlignment="Center"
                                 Click="ShowClientList_OnClick"
                                 Content="Toggle Client List"
-                                Style="{DynamicResource SquareButtonStyle}" />
+                                 />
                     </StackPanel>
 
                    
@@ -469,24 +469,7 @@
                                                        Grid.ColumnSpan="5"
                                                        ControlInputBinding="{x:Static settings:InputBinding.PreviousRadio}"
                                                        InputName="Previous Radio" />
-
-                            <local:InputBindingControl x:Name="ToggleEncryption"
-                                                       Grid.Row="29"
-                                                       Grid.ColumnSpan="5"
-                                                       ControlInputBinding="{x:Static settings:InputBinding.ToggleEncryption}"
-                                                       InputName="Toggle Encryption" />
-
-                            <local:InputBindingControl x:Name="EncryptionKeyIncrease"
-                                                       Grid.Row="30"
-                                                       Grid.ColumnSpan="5"
-                                                       ControlInputBinding="{x:Static settings:InputBinding.EncryptionKeyIncrease}"
-                                                       InputName="Encryption Key Increase" />
-
-                            <local:InputBindingControl x:Name="EncryptionKeyDecrease"
-                                                       Grid.Row="31"
-                                                       Grid.ColumnSpan="5"
-                                                       ControlInputBinding="{x:Static settings:InputBinding.EncryptionKeyDecrease}"
-                                                       InputName="Encryption Key Decrease" />
+                      
 
                             <local:InputBindingControl x:Name="RadioChannelUp"
                                                        Grid.Row="32"
@@ -500,11 +483,6 @@
                                                        ControlInputBinding="{x:Static settings:InputBinding.RadioChannelDown}"
                                                        InputName="Radio Channel Down" />
 
-                            <local:InputBindingControl x:Name="TransponderIDENT"
-                                                       Grid.Row="34"
-                                                       Grid.ColumnSpan="5"
-                                                       ControlInputBinding="{x:Static settings:InputBinding.TransponderIDENT}"
-                                                       InputName="Transponder IDENT" />
 
 
                         </Grid>
@@ -514,18 +492,10 @@
             </GroupBox>
 
         </TabItem>
-        <!-- -->
-        <!-- <TabItem x:Name="FavouritesSeversTab" Header="Favourites"> -->
-        <!--     <GroupBox Header="Favourites"> -->
-        <!--         <clientWindow:FavouriteServersView DataContext="{Binding Path=FavouriteServersViewModel}" /> -->
-        <!--     </GroupBox> -->
-        <!-- </TabItem> -->
 
         <TabItem Header="Settings">
           <clientWindow:ClientSettings></clientWindow:ClientSettings>
         </TabItem>
-
-      
 
     </TabControl>
 </controls:MetroWindow>

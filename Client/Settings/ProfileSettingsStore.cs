@@ -62,6 +62,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         HFNoiseVolume,
 
         PTTStartDelay,
+        HotIntercomMic
     }
 
     public class ProfileSettingsStore
@@ -80,6 +81,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             {
                 _settingsCache.Clear();
                 _currentProfileName = value;
+                //TODO trigger from here the change
 
             }
         }
@@ -112,6 +114,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             {ProfileSettingsKeys.RadioSwitchIsPTT.ToString(), "false"},
             {ProfileSettingsKeys.RadioSwitchIsPTTOnlyWhenValid.ToString(), "false"},
             {ProfileSettingsKeys.AlwaysAllowTransponderOverlay.ToString(), "false"},
+            {ProfileSettingsKeys.HotIntercomMic.ToString(), "false"},
 
             {ProfileSettingsKeys.PTTReleaseDelay.ToString(), "0"},
             {ProfileSettingsKeys.PTTStartDelay.ToString(), "0"},
@@ -279,6 +282,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
             var inputProfile = new Dictionary<InputBinding, InputDevice>();
             InputProfiles[GetProfileName(profileName)] = inputProfile;
+
+            //TODO trigger from here?
         }
 
         private string GetProfileCfgFileName(string prof)

@@ -169,14 +169,17 @@
             <GroupBox Header="Profile">
                 <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="10">
                     <ComboBox x:Name="ControlsProfile"
-                                      Width="200"
-                                      HorizontalAlignment="Center"
-                                      VerticalAlignment="Top" Margin="5" Padding="5" />
+                              Width="200"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Top" Margin="5" Padding="5"
+                              SelectedItem="{Binding SelectedProfile, Mode=TwoWay}"
+                              ItemsSource="{Binding AvailableProfiles, Mode=TwoWay}"
+                    />
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
-                        <Button Margin="5" Padding="5" Content="Create Profile"/>
-                        <Button Margin="5" Padding="5" Content="Copy Profile"  />
-                        <Button Margin="5" Padding="5" Content="Rename Profile"/>
-                        <Button Margin="5" Padding="5" Content="Delete Profile" />
+                        <Button Margin="5" Padding="5" Content="Create Profile" Command="{Binding CreateProfileCommand}"/>
+                        <Button Margin="5" Padding="5" Content="Copy Profile" Command="{Binding CopyProfileCommand}" />
+                        <Button Margin="5" Padding="5" Content="Rename Profile" Command="{Binding RenameProfileCommand}"/>
+                        <Button Margin="5" Padding="5" Content="Delete Profile" Command="{Binding DeleteProfileCommand}" />
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
@@ -259,9 +262,6 @@
                                                    Grid.Column="1"
                                                    ToggleValue="{Binding RadioSwitchIsPTT, Mode=TwoWay}"
                             />
-                             
-                            
-
 
                             <Label Grid.Row="1"
                                            Grid.Column="0"
@@ -348,6 +348,19 @@
                                 </Grid>
 
                             </StackPanel>
+
+                            <Label Grid.Row="7"
+                                   Grid.Column="0"
+                                   HorizontalContentAlignment="Center"
+                                   VerticalContentAlignment="Center"
+                                   Content="Intercom Hot Mic" />
+
+                            <local:SettingsToggleControl 
+                                Grid.Row="7"
+                                Grid.Column="1"
+                                ToggleValue="{Binding HotIntercomMicToggle, Mode=TwoWay}"
+                            />
+
                         </Grid>
                     </GroupBox>
 

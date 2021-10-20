@@ -25,6 +25,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
 
         public ICommand ResetOverlayCommand { get; set; }
 
+        public ICommand CreateProfileCommand { get; set; }
+        public ICommand CopyProfileCommand { get; set; }
+        public ICommand RenameProfileCommand { get; set; }
+        public ICommand DeleteProfileCommand { get; set; }
+
         public void NotifyPropertyChanged([CallerMemberName] string caller = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
@@ -32,13 +37,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
 
         public ClientSettingsViewModel()
         {
-            // InitSettingsScreen();
-            //
-            // InitSettingsProfiles();
-            // ReloadProfile();
-            //
-            // InitInput();
-
             ResetOverlayCommand = new DelegateCommand(() =>
             {
                 //TODO trigger event on messagehub
@@ -52,8 +50,150 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
                 _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioHeight, 270);
                 _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioOpacity, 1.0);
             });
+
+            CreateProfileCommand = new DelegateCommand(() =>
+            {
+                var inputProfileWindow = new InputProfileWindow.InputProfileWindow(name =>
+                {
+                    if (name.Trim().Length > 0)
+                    {
+                        _globalSettings.ProfileSettingsStore.AddNewProfile(name);
+
+                        NotifyPropertyChanged("AvailableProfiles");
+                        ReloadSettings();
+                    }
+                });
+                inputProfileWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                inputProfileWindow.Owner = Application.Current.MainWindow;
+                inputProfileWindow.ShowDialog();
+            });
+
+            CopyProfileCommand = new DelegateCommand(() =>
+            {
+                var current = _globalSettings.ProfileSettingsStore.CurrentProfileName;
+                var inputProfileWindow = new InputProfileWindow.InputProfileWindow(name =>
+                {
+                    if (name.Trim().Length > 0)
+                    {
+                        _globalSettings.ProfileSettingsStore.CopyProfile(current, name);
+                        NotifyPropertyChanged("AvailableProfiles");
+                        ReloadSettings();
+                    }
+                });
+                inputProfileWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                inputProfileWindow.Owner = Application.Current.MainWindow;
+                inputProfileWindow.ShowDialog();
+                
+            });
+
+            RenameProfileCommand = new DelegateCommand(() =>
+            {
+                var current = _globalSettings.ProfileSettingsStore.CurrentProfileName;
+                if (current.Equals("default"))
+                {
+                    MessageBox.Show(Application.Current.MainWindow,
+                        "Cannot rename the default input!",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+                else
+                {
+                    var oldName = current;
+                    var inputProfileWindow = new InputProfileWindow.InputProfileWindow(name =>
+                    {
+                        if (name.Trim().Length > 0)
+                        {
+                            _globalSettings.ProfileSettingsStore.RenameProfile(oldName, name);
+                            SelectedProfile = _globalSettings.ProfileSettingsStore.CurrentProfileName;
+                            NotifyPropertyChanged("AvailableProfiles");
+                            ReloadSettings();
+                        }
+                    }, true, oldName);
+                    inputProfileWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                    inputProfileWindow.Owner = Application.Current.MainWindow;
+                    inputProfileWindow.ShowDialog();
+                }
+
+            });
+
+            DeleteProfileCommand = new DelegateCommand(() =>
+            {
+                var current = _globalSettings.ProfileSettingsStore.CurrentProfileName;
+                
+                if (current.Equals("default"))
+                {
+                    MessageBox.Show(Application.Current.MainWindow,
+                        "Cannot delete the default input!",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+                else
+                {
+                    var result = MessageBox.Show(Application.Current.MainWindow,
+                        $"Are you sure you want to delete {current} ?",
+                        "Confirmation",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+                
+                    if (result == MessageBoxResult.Yes)
+                    { 
+                        _globalSettings.ProfileSettingsStore.RemoveProfile(current);
+
+                      
+                        SelectedProfile = _globalSettings.ProfileSettingsStore.CurrentProfileName;
+                        NotifyPropertyChanged("AvailableProfiles");
+                        ReloadSettings();
+                    }
+                
+                }
+            });
+
         }
-        
+
+        private void ReloadSettings()
+        {
+            NotifyPropertyChanged("MinimiseToTray");
+            NotifyPropertyChanged("StartMinimised");
+            NotifyPropertyChanged("MicAGC");
+            NotifyPropertyChanged("MicDenoise");
+            NotifyPropertyChanged("PlayConnectionSounds");
+            NotifyPropertyChanged("RadioSwitchIsPTT");
+            NotifyPropertyChanged("AutoSelectChannel");
+            NotifyPropertyChanged("PTTReleaseDelay");
+            NotifyPropertyChanged("PTTStartDelay");
+            NotifyPropertyChanged("HotIntercomMicToggle");
+            NotifyPropertyChanged("RadioRxStartToggle");
+            NotifyPropertyChanged("RadioRxEndToggle");
+            NotifyPropertyChanged("RadioTxStartToggle");
+            NotifyPropertyChanged("RadioTxEndToggle");
+            NotifyPropertyChanged("SelectedRadioTransmissionStartEffect");
+            NotifyPropertyChanged("SelectedRadioTransmissionEndEffect");
+            NotifyPropertyChanged("RadioSoundEffectsToggle");
+            NotifyPropertyChanged("RadioEffectsClippingToggle");
+            NotifyPropertyChanged("FMRadioToneToggle");
+            NotifyPropertyChanged("FMRadioToneVolume");
+            NotifyPropertyChanged("BackgroundRadioNoiseToggle");
+            NotifyPropertyChanged("UHFEffectVolume");
+            NotifyPropertyChanged("VHFEffectVolume");
+            NotifyPropertyChanged("HFEffectVolume");
+            NotifyPropertyChanged("FMEffectVolume");
+            NotifyPropertyChanged("RadioChannel1");
+            NotifyPropertyChanged("RadioChannel2");
+            NotifyPropertyChanged("RadioChannel3");
+            NotifyPropertyChanged("RadioChannel4");
+            NotifyPropertyChanged("RadioChannel5");
+            NotifyPropertyChanged("RadioChannel6");
+            NotifyPropertyChanged("RadioChannel7");
+            NotifyPropertyChanged("RadioChannel8");
+            NotifyPropertyChanged("RadioChannel9");
+            NotifyPropertyChanged("RadioChannel10");
+            NotifyPropertyChanged("Intercom");
+            NotifyPropertyChanged("SelectedProfile");
+            
+        }
+
         /**
          * Global Settings
          */
@@ -180,6 +320,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
             set
             {
                 _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.PTTStartDelay, value);
+                NotifyPropertyChanged();
+            }
+        }
+
+        public bool HotIntercomMicToggle
+        {
+            get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.HotIntercomMic);
+            set
+            {
+                _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.HotIntercomMic, value);
                 NotifyPropertyChanged();
             }
         }
@@ -493,176 +643,38 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
             }
         }
 
-        private void ReloadProfileSettings()
+        public string SelectedProfile
         {
-            // RadioEncryptionEffectsToggle.IsChecked = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects);
-            // RadioSwitchIsPTT.IsChecked = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioSwitchIsPTT);
-            //
-            // RadioTxStartToggle.IsChecked = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_Start);
-            // RadioTxEndToggle.IsChecked = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_End);
-            //
-            // RadioRxStartToggle.IsChecked = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_Start);
-            // RadioRxEndToggle.IsChecked = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_End);
-            //
-            // RadioMIDSToggle.IsChecked = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
-            //
-            // RadioSoundEffects.IsChecked = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
-            // RadioSoundEffectsClipping.IsChecked = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping);
-            // NATORadioToneToggle.IsChecked = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.NATOTone);
-            // BackgroundRadioNoiseToggle.IsChecked =
-            //     _globalSettings.ProfileSettingsStore.GetClientSettingBool(
-            //         ProfileSettingsKeys.RadioBackgroundNoiseEffect);
-            //
-            // AutoSelectChannel.IsChecked = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.AutoSelectPresetChannel);
-            //
-            // //disable to set without triggering onchange
-            // PTTReleaseDelay.IsEnabled = false;
-            // PTTReleaseDelay.ValueChanged += PushToTalkReleaseDelay_ValueChanged;
-            // PTTReleaseDelay.Value =
-            //     _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.PTTReleaseDelay);
-            // PTTReleaseDelay.IsEnabled = true;
-            //
-            // PTTStartDelay.IsEnabled = false;
-            // PTTStartDelay.ValueChanged += PushToTalkStartDelay_ValueChanged;
-            // PTTStartDelay.Value =
-            //     _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.PTTStartDelay);
-            // PTTStartDelay.IsEnabled = true;
-            //
-            // RadioEndTransmitEffect.IsEnabled = false;
-            // RadioEndTransmitEffect.ItemsSource = CachedAudioEffectProvider.Instance.RadioTransmissionEnd;
-            // RadioEndTransmitEffect.SelectedItem = CachedAudioEffectProvider.Instance.SelectedRadioTransmissionEndEffect;
-            // RadioEndTransmitEffect.IsEnabled = true;
-            //
-            // RadioStartTransmitEffect.IsEnabled = false;
-            // RadioStartTransmitEffect.SelectedIndex = 0;
-            // RadioStartTransmitEffect.ItemsSource = CachedAudioEffectProvider.Instance.RadioTransmissionStart;
-            // RadioStartTransmitEffect.SelectedItem = CachedAudioEffectProvider.Instance.SelectedRadioTransmissionStartEffect;
-            // RadioStartTransmitEffect.IsEnabled = true;
-            //
-            // NATOToneVolume.IsEnabled = false;
-            // NATOToneVolume.ValueChanged += (sender, e) =>
-            // {
-            //     if (NATOToneVolume.IsEnabled)
-            //     {
-            //         var orig = double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.NATOToneVolume.ToString()], CultureInfo.InvariantCulture);
-            //
-            //         var vol = orig * (e.NewValue / 100);
-            //
-            //         _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.NATOToneVolume, (float)vol);
-            //     }
-            //
-            // };
-            // NATOToneVolume.Value = (_globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.NATOToneVolume)
-            //                         / double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.NATOToneVolume.ToString()], CultureInfo.InvariantCulture)) * 100;
-            // NATOToneVolume.IsEnabled = true;
-            //
-            //
-            // FMEffectVolume.IsEnabled = false;
-            // FMEffectVolume.ValueChanged += (sender, e) =>
-            // {
-            //     if (FMEffectVolume.IsEnabled)
-            //     {
-            //         var orig = double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.FMNoiseVolume.ToString()], CultureInfo.InvariantCulture);
-            //
-            //         var vol = orig * (e.NewValue / 100);
-            //
-            //         _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.FMNoiseVolume, (float)vol);
-            //     }
-            //
-            // };
-            // FMEffectVolume.Value = (_globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.FMNoiseVolume)
-            //                         / double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.FMNoiseVolume.ToString()], CultureInfo.InvariantCulture)) * 100;
-            // FMEffectVolume.IsEnabled = true;
-            //
-            // VHFEffectVolume.IsEnabled = false;
-            // VHFEffectVolume.ValueChanged += (sender, e) =>
-            // {
-            //     if (VHFEffectVolume.IsEnabled)
-            //     {
-            //         var orig = double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.VHFNoiseVolume.ToString()], CultureInfo.InvariantCulture);
-            //
-            //         var vol = orig * (e.NewValue / 100);
-            //
-            //         _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.VHFNoiseVolume, (float)vol);
-            //     }
-            //
-            // };
-            // VHFEffectVolume.Value = (_globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.VHFNoiseVolume)
-            //                          / double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.VHFNoiseVolume.ToString()], CultureInfo.InvariantCulture)) * 100;
-            // VHFEffectVolume.IsEnabled = true;
-            //
-            // UHFEffectVolume.IsEnabled = false;
-            // UHFEffectVolume.ValueChanged += (sender, e) =>
-            // {
-            //     if (UHFEffectVolume.IsEnabled)
-            //     {
-            //         var orig = double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.UHFNoiseVolume.ToString()], CultureInfo.InvariantCulture);
-            //
-            //         var vol = orig * (e.NewValue / 100);
-            //
-            //         _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.UHFNoiseVolume, (float)vol);
-            //     }
-            //
-            // };
-            // UHFEffectVolume.Value = (_globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.UHFNoiseVolume)
-            //                          / double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.UHFNoiseVolume.ToString()], CultureInfo.InvariantCulture)) * 100;
-            // UHFEffectVolume.IsEnabled = true;
-            //
-            // HFEffectVolume.IsEnabled = false;
-            // HFEffectVolume.ValueChanged += (sender, e) =>
-            // {
-            //     if (HFEffectVolume.IsEnabled)
-            //     {
-            //         var orig = double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.HFNoiseVolume.ToString()], CultureInfo.InvariantCulture);
-            //
-            //         var vol = orig * (e.NewValue / 100);
-            //
-            //         _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.HFNoiseVolume, (float)vol);
-            //     }
-            //
-            // };
-            // HFEffectVolume.Value = (_globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.HFNoiseVolume)
-            //                         / double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.HFNoiseVolume.ToString()], CultureInfo.InvariantCulture)) * 100;
-            // HFEffectVolume.IsEnabled = true;
+            set
+            {
+                if (value != null)
+                {
+                    _globalSettings.ProfileSettingsStore.CurrentProfileName = value;
+                    //TODO send event notifying of change to current profile
+                    ReloadSettings();
+                }
 
+                NotifyPropertyChanged();
+            }
+            get
+            {
+                return _globalSettings.ProfileSettingsStore.CurrentProfileName;
+            }
         }
-        //
-        // private void CopyProfile(object sender, RoutedEventArgs e)
-        // {
-        //     var current = ControlsProfile.SelectedValue as string;
-        //     var inputProfileWindow = new InputProfileWindow.InputProfileWindow(name =>
-        //     {
-        //         if (name.Trim().Length > 0)
-        //         {
-        //             _globalSettings.ProfileSettingsStore.CopyProfile(current, name);
-        //             InitSettingsProfiles();
-        //         }
-        //     });
-        //     inputProfileWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        //     inputProfileWindow.Owner = this;
-        //     inputProfileWindow.ShowDialog();
-        // }
-        //
-        //
-        //
-        // private void PushToTalkReleaseDelay_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        // {
-        //     if (PTTReleaseDelay.IsEnabled)
-        //         _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.PTTReleaseDelay, (float)e.NewValue);
-        // }
-        //
-        // private void PushToTalkStartDelay_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        // {
-        //     if (PTTStartDelay.IsEnabled)
-        //         _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.PTTStartDelay, (float)e.NewValue);
-        // }
-        //
-        //
-        // private void BackgroundRadioNoiseToggle_OnClick(object sender, RoutedEventArgs e)
-        // {
-        //     _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioBackgroundNoiseEffect, (bool)BackgroundRadioNoiseToggle.IsChecked);
-        // }
-        //
+
+        public List<string> AvailableProfiles
+        {
+            set
+            {
+                //do nothing
+            }
+            get
+            {
+                return _globalSettings.ProfileSettingsStore.ProfileNames;
+            }
+        }
+
+      
         //
         // private void RenameProfile(object sender, RoutedEventArgs e)
         // {
@@ -695,99 +707,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
         // }
         //
         //
-        // private void DeleteProfile(object sender, RoutedEventArgs e)
-        // {
-        //     var current = ControlsProfile.SelectedValue as string;
-        //
-        //     if (current.Equals("default"))
-        //     {
-        //         MessageBox.Show(this,
-        //             "Cannot delete the default input!",
-        //             "Error",
-        //             MessageBoxButton.OK,
-        //             MessageBoxImage.Error);
-        //     }
-        //     else
-        //     {
-        //         var result = MessageBox.Show(this,
-        //             $"Are you sure you want to delete {current} ?",
-        //             "Confirmation",
-        //             MessageBoxButton.YesNo,
-        //             MessageBoxImage.Warning);
-        //
-        //         if (result == MessageBoxResult.Yes)
-        //         {
-        //             ControlsProfile.SelectedIndex = 0;
-        //             _globalSettings.ProfileSettingsStore.RemoveProfile(current);
-        //             InitSettingsProfiles();
-        //         }
-        //
-        //     }
-        //
-        // }
-        //
-        // private void RadioOverlayTaskbarItem_Click(object sender, RoutedEventArgs e)
-        // {
-        //     _globalSettings.SetClientSetting(GlobalSettingsKeys.RadioOverlayTaskbarHide, (bool)RadioOverlayTaskbarItem.IsChecked);
-        //
-        //     if (_radioOverlayWindow != null)
-        //         _radioOverlayWindow.ShowInTaskbar = !_globalSettings.GetClientSettingBool(GlobalSettingsKeys.RadioOverlayTaskbarHide);
-        //     else if (_awacsRadioOverlay != null) _awacsRadioOverlay.ShowInTaskbar = !_globalSettings.GetClientSettingBool(GlobalSettingsKeys.RadioOverlayTaskbarHide);
-        // }
-        //
-        // private void ExpandInputDevices_OnClick_Click(object sender, RoutedEventArgs e)
-        // {
-        //     MessageBox.Show(
-        //         "You must restart SRS for this setting to take effect.\n\nTurning this on will allow almost any DirectX device to be used as input expect a Mouse but may cause issues with other devices being detected",
-        //         "Restart SimpleRadio Standalone", MessageBoxButton.OK,
-        //         MessageBoxImage.Warning);
-        //
-        //     _globalSettings.SetClientSetting(GlobalSettingsKeys.ExpandControls, (bool)ExpandInputDevices.IsChecked);
-        // }
-        //
-        //
-        // private void RadioSoundEffects_OnClick(object sender, RoutedEventArgs e)
-        // {
-        //     _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioEffects,
-        //         (bool)RadioSoundEffects.IsChecked);
-        // }
-        //
-        // private void RadioTxStart_Click(object sender, RoutedEventArgs e)
-        // {
-        //     _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_Start, (bool)RadioTxStartToggle.IsChecked);
-        // }
-        //
-        // private void RadioTxEnd_Click(object sender, RoutedEventArgs e)
-        // {
-        //     _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_End, (bool)RadioTxEndToggle.IsChecked);
-        // }
-        //
-        // private void RadioRxStart_Click(object sender, RoutedEventArgs e)
-        // {
-        //     _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_Start, (bool)RadioRxStartToggle.IsChecked);
-        // }
-        //
-        // private void RadioRxEnd_Click(object sender, RoutedEventArgs e)
-        // {
-        //     _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_End, (bool)RadioRxEndToggle.IsChecked);
-        // }
-        //
-        // private void RadioMIDS_Click(object sender, RoutedEventArgs e)
-        // {
-        //     _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect, (bool)RadioMIDSToggle.IsChecked);
-        // }
-        //
-        // private void AudioSelectChannel_OnClick(object sender, RoutedEventArgs e)
-        // {
-        //     _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.AutoSelectPresetChannel, (bool)AutoSelectChannel.IsChecked);
-        // }
-        //
-        // private void RadioSoundEffectsClipping_OnClick(object sender, RoutedEventArgs e)
-        // {
-        //     _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping,
-        //         (bool)RadioSoundEffectsClipping.IsChecked);
-        //
-        // }
+ 
         //
         //
         // private void RescanInputDevices(object sender, RoutedEventArgs e)
@@ -800,69 +720,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
         //         MessageBoxImage.Information);
         // }
         //
-        // private void SetSRSPath_Click(object sender, RoutedEventArgs e)
-        // {
-        //     Registry.SetValue("HKEY_CURRENT_USER\\SOFTWARE\\DCS-SR-Standalone", "SRPathStandalone", Directory.GetCurrentDirectory());
-        //
-        //     MessageBox.Show(this,
-        //         "SRS Path set to: " + Directory.GetCurrentDirectory(),
-        //         "SRS Client Path",
-        //         MessageBoxButton.OK,
-        //         MessageBoxImage.Information);
-        // }
-        //
-        //
-        // private void CreateProfile(object sender, RoutedEventArgs e)
-        // {
-        //     var inputProfileWindow = new InputProfileWindow.InputProfileWindow(name =>
-        //     {
-        //         if (name.Trim().Length > 0)
-        //         {
-        //             _globalSettings.ProfileSettingsStore.AddNewProfile(name);
-        //             InitSettingsProfiles();
-        //
-        //         }
-        //     });
-        //     inputProfileWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        //     inputProfileWindow.Owner = this;
-        //     inputProfileWindow.ShowDialog();
-        // }
-        //
+   
         //
 
-        // private void RadioEncryptionEffects_Click(object sender, RoutedEventArgs e)
-        // {
-        //     _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects,
-        //         (bool)RadioEncryptionEffectsToggle.IsChecked);
-        // }
-        //
-        // private void NATORadioTone_Click(object sender, RoutedEventArgs e)
-        // {
-        //     _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.NATOTone,
-        //         (bool)NATORadioToneToggle.IsChecked);
-        // }
-        //
-        // private void RadioSwitchPTT_Click(object sender, RoutedEventArgs e)
-        // {
-        //     _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioSwitchIsPTT, (bool)RadioSwitchIsPTT.IsChecked);
-        // }
-        //
-        //
-        //
-        private void ReloadRadioAudioChannelSettings()
-        {
-            // Radio1Config.Reload();
-            // Radio2Config.Reload();
-            // Radio3Config.Reload();
-            // Radio4Config.Reload();
-            // Radio5Config.Reload();
-            // Radio6Config.Reload();
-            // Radio7Config.Reload();
-            // Radio8Config.Reload();
-            // Radio9Config.Reload();
-            // Radio10Config.Reload();
-            // IntercomConfig.Reload();
-        }
+        
         //
         //
         // private void ReloadInputBindings()
@@ -1051,13 +912,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
         //     TransponderIDENT.ControlInputBinding = InputBinding.TransponderIDENT;
         //     TransponderIDENT.InputDeviceManager = InputManager;
         // }
-        //
-        // private void OnProfileDropDownChanged(object sender, SelectionChangedEventArgs e)
-        // {
-        //     if (ControlsProfile.IsEnabled)
-        //         ReloadProfile();
-        // }
-        //
+      
         // private void OnRadioStartTransmitEffectChanged(object sender, SelectionChangedEventArgs e)
         // {
         //     if (RadioStartTransmitEffect.IsEnabled)
@@ -1089,6 +944,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
         // }
         //
         //
+
         // private void InitSettingsProfiles()
         // {
         //     ControlsProfile.IsEnabled = false;
