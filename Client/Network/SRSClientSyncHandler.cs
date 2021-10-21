@@ -297,7 +297,7 @@
 //                                             var connectedClient = serverMessage.Client;
 //                                             connectedClient.LastUpdate = DateTime.Now.Ticks;
 //
-//                                             //init with LOS true so you can hear them incase of bad DCS install where
+//                                             //init with LOS true so you can hear them incase of bad  install where
 //                                             //LOS isnt working
 //                                             connectedClient.LineOfSightLoss = 0.0f;
 //                                             //0.0 is NO LOSS therefore full Line of sight
@@ -345,7 +345,7 @@
 //                                             foreach (var client in serverMessage.Clients)
 //                                             {
 //                                                 client.LastUpdate = DateTime.Now.Ticks;
-//                                                 //init with LOS true so you can hear them incase of bad DCS install where
+//                                                 //init with LOS true so you can hear them incase of bad  install where
 //                                                 //LOS isnt working
 //                                                 client.LineOfSightLoss = 0.0f;
 //                                                 //0.0 is NO LOSS therefore full Line of sight
@@ -424,7 +424,7 @@
 //                 }
 //             }
 //
-//             //disconnected - reset DCS Info
+//             //disconnected - reset  Info
 //             ClientStateSingleton.Instance.PlayerUnitState.LastUpdate = 0;
 //
 //             //clear the clients list
@@ -498,3 +498,4 @@
 //         }
 //     }
 // }
+

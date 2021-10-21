@@ -4,8 +4,7 @@ namespace Ciribob.SRS.Client.Network
 {
     public class RadioSendingState
     {
-        [JsonIgnore]
-        public long LastSentAt { get; set; }
+        [JsonIgnore] public long LastSentAt { get; set; }
 
         public bool IsSending { get; set; }
 

@@ -5,7 +5,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
 {
     public class ServerAddress : INotifyPropertyChanged
     {
-        public ServerAddress(string name, string address, bool isDefault =false)
+        public ServerAddress(string name, string address, bool isDefault = false)
         {
             // Set private values directly so we don't trigger useless re-saving of favourites list when being loaded for the first time
             _name = name;
@@ -14,11 +14,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
         }
 
         private string _name;
-        public string Name {
-            get
-            {
-                return _name;
-            }
+
+        public string Name
+        {
+            get => _name;
             set
             {
                 if (_name != value)
@@ -30,12 +29,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
         }
 
         private string _address;
+
         public string Address
         {
-            get
-            {
-                return _address;
-            }
+            get => _address;
             set
             {
                 if (_address != value)
@@ -47,9 +44,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
         }
 
         private bool _isDefault;
+
         public bool IsDefault
         {
-            get { return _isDefault; }
+            get => _isDefault;
             set
             {
                 _isDefault = value;

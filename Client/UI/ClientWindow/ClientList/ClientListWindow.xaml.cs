@@ -25,7 +25,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList
     /// <summary>
     /// Interaction logic for ClientListWindow.xaml
     /// </summary>
-    public partial class ClientListWindow :  MetroWindow
+    public partial class ClientListWindow : MetroWindow
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly DispatcherTimer _updateTimer;
@@ -52,15 +52,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList
             var tempList = new List<SRClient>();
 
 
-            foreach (var srClient in ConnectedClientsSingleton.Instance.Values)
-            {
-                tempList.Add(srClient);
-            }
+            foreach (var srClient in ConnectedClientsSingleton.Instance.Values) tempList.Add(srClient);
 
-            foreach (var clientListModel in tempList.OrderByDescending(model => model?.UnitState?.Name.ToLower()).ToList())
-            {
-                _clientList.Add(clientListModel);
-            }
+            foreach (var clientListModel in tempList.OrderByDescending(model => model?.UnitState?.Name.ToLower())
+                .ToList()) _clientList.Add(clientListModel);
         }
 
 
@@ -73,7 +68,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList
             catch (Exception)
             {
             }
-
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -82,7 +76,5 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList
 
             _updateTimer?.Stop();
         }
-
-
     }
 }

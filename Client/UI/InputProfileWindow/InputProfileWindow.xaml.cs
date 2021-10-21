@@ -36,23 +36,20 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.InputProfileWindow
                 ProfileName.Text = initialText;
                 CreateRename.Content = "Rename";
             }
-
         }
 
         private static string CleanString(string str)
         {
-            string regexSearch = new string(System.IO.Path.GetInvalidFileNameChars()) + new string(System.IO.Path.GetInvalidPathChars());
-            Regex r = new Regex(string.Format("[{0}]", Regex.Escape(regexSearch)));
+            var regexSearch = new string(System.IO.Path.GetInvalidFileNameChars()) +
+                              new string(System.IO.Path.GetInvalidPathChars());
+            var r = new Regex(string.Format("[{0}]", Regex.Escape(regexSearch)));
             str = r.Replace(str, "").Replace(".cfg", "");
 
-            if (str.Equals("default"))
-            {
-                return str + " 1";
-            }
+            if (str.Equals("default")) return str + " 1";
 
             return str.Trim();
         }
-      
+
         private void CreateOrRename_Click(object sender, RoutedEventArgs e)
         {
             _callback(CleanString(ProfileName.Text));

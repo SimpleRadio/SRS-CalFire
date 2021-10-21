@@ -7,7 +7,6 @@ using NAudio.Wave.SampleProviders;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 {
-
     public class EventDrivenResampler
     {
         private readonly bool windowsN;
@@ -20,9 +19,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         private BufferedWaveProvider buf;
         private IWaveProvider waveOut;
         private int bufferMultiplier = 1;
-        private  readonly bool resampleRequired = false;
+        private readonly bool resampleRequired = false;
 
-        public EventDrivenResampler(bool windowsN, WaveFormat input,WaveFormat output)
+        public EventDrivenResampler(bool windowsN, WaveFormat input, WaveFormat output)
         {
             this.windowsN = windowsN;
             this.input = input;
@@ -30,10 +29,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             buf = new BufferedWaveProvider(input);
             buf.ReadFully = false;
 
-            if (output.BitsPerSample > input.BitsPerSample)
-            {
-                bufferMultiplier = 2;
-            }
+            if (output.BitsPerSample > input.BitsPerSample) bufferMultiplier = 2;
 
             if (windowsN)
             {
@@ -42,16 +38,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             }
             else
             {
-                dmoResampler = new ResamplerDmoStream(buf,output);
+                dmoResampler = new ResamplerDmoStream(buf, output);
             }
         }
 
         private byte[] ResampleBytesDMO(byte[] inputByteArray, int length)
         {
-            byte[] outBuffer = new byte[length * bufferMultiplier];
+            var outBuffer = new byte[length * bufferMultiplier];
             buf.AddSamples(inputByteArray, 0, length);
 
-            int read = dmoResampler.Read(outBuffer, 0, outBuffer.Length);
+            var read = dmoResampler.Read(outBuffer, 0, outBuffer.Length);
 
             if (read == 0)
             {
@@ -59,7 +55,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             }
             else
             {
-                byte[] finalBuf = new byte[read];
+                var finalBuf = new byte[read];
                 Buffer.BlockCopy(outBuffer, 0, finalBuf, 0, read);
 
                 return finalBuf;
@@ -68,11 +64,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
         private byte[] ResampleBytesMFC(byte[] inputByteArray, int length)
         {
-            byte[] outBuffer = new byte[length * bufferMultiplier];
+            var outBuffer = new byte[length * bufferMultiplier];
 
             buf.AddSamples(inputByteArray, 0, length);
 
-            int read = waveOut.Read(outBuffer, 0, outBuffer.Length);
+            var read = waveOut.Read(outBuffer, 0, outBuffer.Length);
 
             if (read == 0)
             {
@@ -80,40 +76,29 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             }
             else
             {
-
-                byte[] finalBuf = new byte[read];
-                Buffer.BlockCopy(outBuffer,0,finalBuf,0,read);
+                var finalBuf = new byte[read];
+                Buffer.BlockCopy(outBuffer, 0, finalBuf, 0, read);
 
                 return finalBuf;
             }
-
         }
 
         public byte[] ResampleBytes(byte[] inputByteArray, int length)
         {
             if (windowsN)
-            {
-                return ResampleBytesMFC(inputByteArray,length);
-
-            }
+                return ResampleBytesMFC(inputByteArray, length);
             else
-            {
                 return ResampleBytesDMO(inputByteArray, length);
-            }
         }
 
         private short[] ResampleDMO(byte[] inputByteArray, int length)
         {
+            var bytes = ResampleBytes(inputByteArray, length);
 
-            byte[] bytes = ResampleBytes(inputByteArray, length);
-
-            if (bytes.Length == 0)
-            {
-                return new short[0];
-            }
+            if (bytes.Length == 0) return new short[0];
 
             //convert byte to short
-            short[] sdata = new short[bytes.Length / 2];
+            var sdata = new short[bytes.Length / 2];
             Buffer.BlockCopy(bytes, 0, sdata, 0, bytes.Length);
 
             return sdata;
@@ -122,23 +107,18 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         public short[] Resample(byte[] inputByteArray, int length)
         {
             if (windowsN)
-            {
-                return ResampleMFC(inputByteArray,length);
-            }
+                return ResampleMFC(inputByteArray, length);
             else
-            {
                 return ResampleDMO(inputByteArray, length);
-            }
-            
         }
 
         private short[] ResampleMFC(byte[] inputByteArray, int length)
         {
-            byte[] outBuffer = new byte[length * bufferMultiplier];
+            var outBuffer = new byte[length * bufferMultiplier];
 
             buf.AddSamples(inputByteArray, 0, length);
 
-            int read = waveOut.Read(outBuffer, 0, outBuffer.Length);
+            var read = waveOut.Read(outBuffer, 0, outBuffer.Length);
 
             if (read == 0)
             {
@@ -147,7 +127,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             else
             {
                 //convert byte to short
-                short[] sdata = new short[read / 2];
+                var sdata = new short[read / 2];
                 Buffer.BlockCopy(outBuffer, 0, sdata, 0, read);
                 return sdata;
             }
@@ -170,9 +150,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 dmoResampler = null;
             }
         }
-        ~EventDrivenResampler(){
+
+        ~EventDrivenResampler()
+        {
             Dispose(false);
         }
-
     }
 }

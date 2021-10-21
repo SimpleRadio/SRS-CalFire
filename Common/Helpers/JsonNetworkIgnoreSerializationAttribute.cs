@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ciribob.SRS.Common.Helpers
 {
-    public class JsonNetworkIgnoreSerializationAttribute :Attribute
+    public class JsonNetworkIgnoreSerializationAttribute : Attribute
     {
     }
 }

@@ -7,9 +7,9 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{669389B5-E810-4689-9838-BA1D6DC3871A}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Ciribob.DCS.SimpleRadio.Standalone.ExternalAudioClient</RootNamespace>
-    <AssemblyName>DCS-SR-ExternalAudio</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <RootNamespace>Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient</RootNamespace>
+    <AssemblyName>FS3D-SRS-ExternalAudio</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
@@ -128,8 +128,8 @@
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.7.3\lib\net45\NLog.dll</HintPath>
+    <Reference Include="NLog">
+      <HintPath>..\packages\NLog.4.7.11\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="NVorbis, Version=0.10.0.2, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NVorbis.0.10.0\lib\net45\NVorbis.dll</HintPath>

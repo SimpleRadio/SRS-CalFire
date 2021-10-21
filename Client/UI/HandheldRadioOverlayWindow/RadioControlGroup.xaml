@@ -1,11 +1,6 @@
 ﻿<UserControl x:Class="Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow.RadioControlGroup"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Overlay"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:mvvm="clr-namespace:MvvmEventBinding;assembly=MvvmEventBinding"
-             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:presetChannels="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common.PresetChannels"
              Name="RadioControlContainer"
              Width="170"
@@ -61,55 +56,55 @@
 
                 <StackPanel Orientation="Horizontal">
                     <Button x:Name="Up10"
-                        Width="15"
-                        Height="10"
-                        Margin="20,0,0,0"
-                        HorizontalAlignment="Center"
-                        Click="Up10_Click"
-                        Content=""
-                        IsEnabled="False"
-                        Style="{StaticResource DarkStyle-Button}"
-                        ToolTip="+10MHz" />
+                            Width="15"
+                            Height="10"
+                            Margin="20,0,0,0"
+                            HorizontalAlignment="Center"
+                            Click="Up10_Click"
+                            Content=""
+                            IsEnabled="False"
+                            Style="{StaticResource DarkStyle-Button}"
+                            ToolTip="+10MHz" />
                     <Button x:Name="Up1"
-                        Width="15"
-                        Height="10"
-                        Margin="5,0,0,0"
-                        HorizontalAlignment="Center"
-                        Click="Up1_Click"
-                        Content=""
-                        IsEnabled="False"
-                        Style="{StaticResource DarkStyle-Button}"
-                        ToolTip="+1MHZ" />
+                            Width="15"
+                            Height="10"
+                            Margin="5,0,0,0"
+                            HorizontalAlignment="Center"
+                            Click="Up1_Click"
+                            Content=""
+                            IsEnabled="False"
+                            Style="{StaticResource DarkStyle-Button}"
+                            ToolTip="+1MHZ" />
                     <Button x:Name="Up01"
-                        Width="15"
-                        Height="10"
-                        Margin="5,0,0,0"
-                        HorizontalAlignment="Center"
-                        Click="Up01_Click"
-                        Content=""
-                        IsEnabled="False"
-                        Style="{StaticResource DarkStyle-Button}"
-                        ToolTip="+0.1MHz" />
+                            Width="15"
+                            Height="10"
+                            Margin="5,0,0,0"
+                            HorizontalAlignment="Center"
+                            Click="Up01_Click"
+                            Content=""
+                            IsEnabled="False"
+                            Style="{StaticResource DarkStyle-Button}"
+                            ToolTip="+0.1MHz" />
                     <Button x:Name="Up001"
-                        Width="15"
-                        Height="10"
-                        Margin="5,0,0,0"
-                        HorizontalAlignment="Center"
-                        Click="Up001_Click"
-                        Content=""
-                        IsEnabled="False"
-                        Style="{StaticResource DarkStyle-Button}"
-                        ToolTip="+0.01MHz" />
+                            Width="15"
+                            Height="10"
+                            Margin="5,0,0,0"
+                            HorizontalAlignment="Center"
+                            Click="Up001_Click"
+                            Content=""
+                            IsEnabled="False"
+                            Style="{StaticResource DarkStyle-Button}"
+                            ToolTip="+0.01MHz" />
                     <Button x:Name="Up0001"
-                        Width="15"
-                        Height="10"
-                        Margin="5,0,0,0"
-                        HorizontalAlignment="Center"
-                        Click="Up0001_Click"
-                        Content=""
-                        IsEnabled="False"
-                        Style="{StaticResource DarkStyle-Button}"
-                        ToolTip="+0.001MHz" />
+                            Width="15"
+                            Height="10"
+                            Margin="5,0,0,0"
+                            HorizontalAlignment="Center"
+                            Click="Up0001_Click"
+                            Content=""
+                            IsEnabled="False"
+                            Style="{StaticResource DarkStyle-Button}"
+                            ToolTip="+0.001MHz" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock x:Name="RadioFrequency"
@@ -139,57 +134,57 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <Button x:Name="Down10"
-                        Width="15"
-                        Height="10"
-                        Margin="20,0,0,0"
-                        HorizontalAlignment="Center"
-                        Click="Down10_Click"
-                        Content=""
-                        IsEnabled="False"
-                        Style="{StaticResource DarkStyle-Button}"
-                        ToolTip="-10MHZ" />
+                            Width="15"
+                            Height="10"
+                            Margin="20,0,0,0"
+                            HorizontalAlignment="Center"
+                            Click="Down10_Click"
+                            Content=""
+                            IsEnabled="False"
+                            Style="{StaticResource DarkStyle-Button}"
+                            ToolTip="-10MHZ" />
                     <Button x:Name="Down1"
-                        Width="15"
-                        Height="10"
-                        Margin="5,0,0,0"
-                        HorizontalAlignment="Center"
-                        Click="Down1_Click"
-                        Content=""
-                        IsEnabled="False"
-                        Style="{StaticResource DarkStyle-Button}"
-                        ToolTip="-1MHz" />
+                            Width="15"
+                            Height="10"
+                            Margin="5,0,0,0"
+                            HorizontalAlignment="Center"
+                            Click="Down1_Click"
+                            Content=""
+                            IsEnabled="False"
+                            Style="{StaticResource DarkStyle-Button}"
+                            ToolTip="-1MHz" />
                     <Button x:Name="Down01"
-                        Width="15"
-                        Height="10"
-                        Margin="5,0,0,0"
-                        HorizontalAlignment="Center"
-                        Click="Down01_Click"
-                        Content=""
-                        IsEnabled="False"
-                        Style="{StaticResource DarkStyle-Button}"
-                        ToolTip="-0.1MHz" />
+                            Width="15"
+                            Height="10"
+                            Margin="5,0,0,0"
+                            HorizontalAlignment="Center"
+                            Click="Down01_Click"
+                            Content=""
+                            IsEnabled="False"
+                            Style="{StaticResource DarkStyle-Button}"
+                            ToolTip="-0.1MHz" />
                     <Button x:Name="Down001"
-                        Width="15"
-                        Height="10"
-                        Margin="5,0,0,0"
-                        HorizontalAlignment="Center"
-                        Click="Down001_Click"
-                        Content=""
-                        IsEnabled="False"
-                        Style="{StaticResource DarkStyle-Button}"
-                        ToolTip="-0.01MHz" />
+                            Width="15"
+                            Height="10"
+                            Margin="5,0,0,0"
+                            HorizontalAlignment="Center"
+                            Click="Down001_Click"
+                            Content=""
+                            IsEnabled="False"
+                            Style="{StaticResource DarkStyle-Button}"
+                            ToolTip="-0.01MHz" />
                     <Button x:Name="Down0001"
-                        Width="15"
-                        Height="10"
-                        Margin="5,0,0,0"
-                        HorizontalAlignment="Center"
-                        Click="Down0001_Click"
-                        Content=""
-                        IsEnabled="False"
-                        Style="{StaticResource DarkStyle-Button}"
-                        ToolTip="-0.001MHz" />
+                            Width="15"
+                            Height="10"
+                            Margin="5,0,0,0"
+                            HorizontalAlignment="Center"
+                            Click="Down0001_Click"
+                            Content=""
+                            IsEnabled="False"
+                            Style="{StaticResource DarkStyle-Button}"
+                            ToolTip="-0.001MHz" />
                 </StackPanel>
-               
+
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
 
 
@@ -216,7 +211,7 @@
                 </StackPanel>
             </StackPanel>
         </TabItem>
-        
+
         <TabItem Name="ChannelTab">
             <TabItem.Header>
                 <TextBlock Margin="3,0,3,0"
@@ -227,9 +222,9 @@
             </TabItem.Header>
 
             <presetChannels:PresetChannelsView x:Name="PresetChannelsView"
-                                                HorizontalAlignment="Center"
-                                                Background="#444"
-                                                DataContext="{Binding ChannelViewModel,
+                                               HorizontalAlignment="Center"
+                                               Background="#444"
+                                               DataContext="{Binding ChannelViewModel,
                                                                       Mode=TwoWay}" />
 
         </TabItem>

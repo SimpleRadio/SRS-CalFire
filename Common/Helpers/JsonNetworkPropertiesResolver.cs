@@ -12,7 +12,7 @@ namespace Ciribob.SRS.Common.Helpers
     {
         protected override List<MemberInfo> GetSerializableMembers(Type objectType)
         {
-            List<MemberInfo> list = base.GetSerializableMembers(objectType);
+            var list = base.GetSerializableMembers(objectType);
 
             //filter out things we dont want on the TCP network sync
             list = list.Where(pi => !Attribute.IsDefined(pi, typeof(JsonNetworkIgnoreSerializationAttribute))).ToList();

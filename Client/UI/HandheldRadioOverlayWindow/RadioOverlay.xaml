@@ -1,7 +1,6 @@
 ﻿<Window x:Class="Ciribob.FS3D.SimpleRadio.Standalone.Overlay.RadioOverlayWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Overlay"
         xmlns:radioOverlayWindow="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow"
         Name="RadioOverlayWin"
         Title="Handheld Radio"
@@ -55,7 +54,7 @@
 
                 <Button Margin="2,0,0,0"
                         Click="Button_Close"
-                        Style="{StaticResource DarkStyle-Button}" >
+                        Style="{StaticResource DarkStyle-Button}">
                     <Button.Content>
                         <Grid Width="10" Height="10">
                             <TextBlock HorizontalAlignment="Center"

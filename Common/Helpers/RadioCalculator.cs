@@ -44,8 +44,8 @@ namespace Ciribob.SRS.Common
             //of 40 watts
 
             //Hard coded value 995267.9264 based on re-arranged Friis with 40dbm transmissing
-            return (MagicPartiallySolvedFriis *
-                    FrequencyToWaveLength(frequency)) / Math.PI;
+            return MagicPartiallySolvedFriis *
+                FrequencyToWaveLength(frequency) / Math.PI;
         }
 
         //we can hear if the received power is more than the RX sensivity
@@ -64,11 +64,9 @@ namespace Ciribob.SRS.Common
         public static double CalculateDistanceHaversine(LatLngPosition myLatLng, LatLngPosition clientLatLng)
         {
             if (myLatLng.lat == clientLatLng.lat || myLatLng.lng == clientLatLng.lng)
-            {
                 //the above will cause a divide by 0 error so this is protection against that....
                 //should be *almost* impossible...
                 return Math.Abs(myLatLng.alt - clientLatLng.alt);
-            }
 
             const double R = 6371e3; // meters
             var φ1 = DegreeToRadian(myLatLng.lat);
@@ -89,15 +87,10 @@ namespace Ciribob.SRS.Common
         {
             height = Math.Abs(height);
             distance = Math.Abs(distance);
-            if (height == 0)
-            {
-                return distance;
-            }
+            if (height == 0) return distance;
 
             //distance^2 and height^2 
-            return Math.Sqrt((distance * distance) + (height * height));
-
+            return Math.Sqrt(distance * distance + height * height);
         }
-      
     }
 }

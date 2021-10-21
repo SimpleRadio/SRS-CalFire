@@ -32,18 +32,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             {
                 lock (_lock)
                 {
-                    if (instance == null)
-                    {
-                        instance = new SyncedServerSettings();
-                    }
+                    if (instance == null) instance = new SyncedServerSettings();
                 }
+
                 return instance;
             }
         }
 
         public string GetSetting(ServerSettingsKeys key)
         {
-            string setting = key.ToString();
+            var setting = key.ToString();
 
             return _settings.GetOrAdd(setting, defaults.ContainsKey(setting) ? defaults[setting] : "");
         }
@@ -55,22 +53,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         public void Decode(Dictionary<string, string> encoded)
         {
-            foreach (KeyValuePair<string, string> kvp in encoded)
+            foreach (var kvp in encoded)
             {
                 _settings.AddOrUpdate(kvp.Key, kvp.Value, (key, oldVal) => kvp.Value);
-                
-                if(kvp.Key.Equals(ServerSettingsKeys.RETRANSMISSION_NODE_LIMIT.ToString()))
+
+                if (kvp.Key.Equals(ServerSettingsKeys.RETRANSMISSION_NODE_LIMIT.ToString()))
                 {
                     if (!int.TryParse(kvp.Value, out var nodeLimit))
-                    {
                         nodeLimit = 0;
-                    }
                     else
-                    {
                         RetransmitNodeLimit = nodeLimit;
-                    }
-
-
                 }
             }
         }

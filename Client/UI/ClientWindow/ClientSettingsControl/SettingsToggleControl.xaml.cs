@@ -23,8 +23,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
     {
         public SettingsToggleControl()
         {
-           
-
             /*
              *
              * <!-- <ToggleButton.Style> -->
@@ -83,16 +81,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
 
         public bool ToggleValue
         {
-            set
-            {
-                SetValue(ToggleDependencyProperty, value);
-            }
+            set => SetValue(ToggleDependencyProperty, value);
             get
             {
-                var val =  (bool)GetValue(ToggleDependencyProperty);
+                var val = (bool)GetValue(ToggleDependencyProperty);
                 return val;
             }
         }
-
     }
 }

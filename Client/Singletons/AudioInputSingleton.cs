@@ -14,25 +14,25 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         #region Singleton Definition
+
         private static volatile AudioInputSingleton _instance;
-        private static object _lock = new Object();
+        private static object _lock = new object();
 
         public static AudioInputSingleton Instance
         {
             get
             {
                 if (_instance == null)
-                {
                     lock (_lock)
                     {
                         if (_instance == null)
                             _instance = new AudioInputSingleton();
                     }
-                }
 
                 return _instance;
             }
         }
+
         #endregion
 
         #region Instance Definition
@@ -68,7 +68,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
             else
             {
                 MicrophoneAvailable = true;
-
             }
 
             Logger.Info("Audio Input - " + devices.Count + " audio input devices available, configuring as usual");
@@ -81,7 +80,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
             SelectedAudioInput = inputs[0];
 
             foreach (var item in devices)
-            {
                 try
                 {
                     var input = new AudioDeviceListItem()
@@ -96,7 +94,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
 
                     inputs.Add(input);
 
-                    if (item.ID.Trim().Equals(GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.AudioInputDeviceId).RawValue.Trim()))
+                    if (item.ID.Trim().Equals(GlobalSettingsStore.Instance
+                        .GetClientSetting(GlobalSettingsKeys.AudioInputDeviceId).RawValue.Trim()))
                     {
                         SelectedAudioInput = input;
                         Logger.Info("Audio Input - Found Saved ");
@@ -104,10 +103,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(ex,"Audio Input - " + item.DeviceFriendlyName );
+                    Logger.Error(ex, "Audio Input - " + item.DeviceFriendlyName);
                 }
-            
-            }
 
             return inputs;
         }

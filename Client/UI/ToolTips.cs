@@ -12,7 +12,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
         public static void Init()
         {
             ExternalAWACSMode = new ToolTip();
-            StackPanel externalAWACSModeContent = new StackPanel();
+            var externalAWACSModeContent = new StackPanel();
 
             externalAWACSModeContent.Children.Add(new TextBlock
             {
@@ -21,7 +21,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
             });
             externalAWACSModeContent.Children.Add(new TextBlock
             {
-                Text = "External AWACS Mode (EAM) allows you to use the AWACS functionality of SRS without having to run DCS."
+                Text =
+                    "External AWACS Mode (EAM) allows you to use the AWACS functionality of SRS without having to run DCS."
             });
             externalAWACSModeContent.Children.Add(new TextBlock
             {
@@ -32,7 +33,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
 
 
             ExternalAWACSModeName = new ToolTip();
-            StackPanel externalAWACSModeNameContent = new StackPanel();
+            var externalAWACSModeNameContent = new StackPanel();
 
             externalAWACSModeNameContent.Children.Add(new TextBlock
             {
@@ -48,7 +49,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
 
 
             ExternalAWACSModePassword = new ToolTip();
-            StackPanel externalAWACSModePasswordContent = new StackPanel();
+            var externalAWACSModePasswordContent = new StackPanel();
 
             externalAWACSModePasswordContent.Children.Add(new TextBlock
             {

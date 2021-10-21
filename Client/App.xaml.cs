@@ -46,9 +46,9 @@ namespace SRSClient
 
                 Environment.Exit(1);
             }
+
             if (!File.Exists(location + "\\speexdsp.dll"))
             {
-
                 MessageBox.Show(
                     $"You are missing the speexdsp.dll - Reinstall using the Installer and don't move the client from the installation directory!",
                     "Installation Error!", MessageBoxButton.OK,
@@ -70,27 +70,25 @@ namespace SRSClient
                 var allowMultiple = false;
 
                 foreach (var arg in args)
-                {
                     if (arg.Contains("-allowMultiple"))
-                    {
                         //restart flag to promote to admin
                         allowMultiple = true;
-                    }
-                }
 
-                if (GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.AllowMultipleInstances) || allowMultiple)
+                if (GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.AllowMultipleInstances) ||
+                    allowMultiple)
                 {
-                    Logger.Warn("Another SRS instance is already running, allowing multiple instances due to config setting");
+                    Logger.Warn(
+                        "Another SRS instance is already running, allowing multiple instances due to config setting");
                 }
                 else
                 {
                     Logger.Warn("Another SRS instance is already running, preventing second instance startup");
 
-                    MessageBoxResult result = MessageBox.Show(
-                    "Another instance of the SimpleRadio client is already running!\n\nThis one will now quit. Check your system tray for the SRS Icon",
-                    "Multiple SimpleRadio clients started!",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                    var result = MessageBox.Show(
+                        "Another instance of the SimpleRadio client is already running!\n\nThis one will now quit. Check your system tray for the SRS Icon",
+                        "Multiple SimpleRadio clients started!",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
 
 
                     Environment.Exit(0);
@@ -98,36 +96,27 @@ namespace SRSClient
                 }
             }
 
-       
-            InitNotificationIcon();
 
+            InitNotificationIcon();
         }
 
         private void ListArgs()
         {
             Logger.Info("Arguments:");
             var args = Environment.GetCommandLineArgs();
-            foreach (var s in args)
-            {
-                Logger.Info(s);
-            }
+            foreach (var s in args) Logger.Info(s);
         }
 
 
         private bool IsClientRunning()
         {
+            var currentProcess = Process.GetCurrentProcess();
+            var currentProcessName = currentProcess.ProcessName.ToLower().Trim();
 
-            Process currentProcess = Process.GetCurrentProcess();
-            string currentProcessName = currentProcess.ProcessName.ToLower().Trim();
-
-            foreach (Process clsProcess in Process.GetProcesses())
-            {
+            foreach (var clsProcess in Process.GetProcesses())
                 if (clsProcess.Id != currentProcess.Id &&
                     clsProcess.ProcessName.ToLower().Trim() == currentProcessName)
-                {
                     return true;
-                }
-            }
 
             return false;
         }
@@ -139,7 +128,7 @@ namespace SRSClient
         private void SetupLogging()
         {
             // If there is a configuration file then this will already be set
-            if(LogManager.Configuration != null)
+            if (LogManager.Configuration != null)
             {
                 loggingReady = true;
                 return;
@@ -153,12 +142,12 @@ namespace SRSClient
                 MaxArchiveFiles = 1,
                 ArchiveAboveSize = 104857600,
                 Layout =
-                @"${longdate} | ${logger} | ${message} ${exception:format=toString,Data:maxInnerExceptionLevel=1}"
+                    @"${longdate} | ${logger} | ${message} ${exception:format=toString,Data:maxInnerExceptionLevel=1}"
             };
 
             var wrapper = new AsyncTargetWrapper(fileTarget, 5000, AsyncTargetWrapperOverflowAction.Discard);
             config.AddTarget("asyncFileTarget", wrapper);
-            config.LoggingRules.Add( new LoggingRule("*", LogLevel.Info, wrapper));
+            config.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, wrapper));
 
             LogManager.Configuration = config;
             loggingReady = true;
@@ -169,26 +158,24 @@ namespace SRSClient
 
         private void InitNotificationIcon()
         {
-            if(_notifyIcon != null)
-            {
-                return;
-            }
-            System.Windows.Forms.MenuItem notifyIconContextMenuShow = new System.Windows.Forms.MenuItem
+            if (_notifyIcon != null) return;
+            var notifyIconContextMenuShow = new System.Windows.Forms.MenuItem
             {
                 Index = 0,
                 Text = "Show"
             };
             notifyIconContextMenuShow.Click += new EventHandler(NotifyIcon_Show);
 
-            System.Windows.Forms.MenuItem notifyIconContextMenuQuit = new System.Windows.Forms.MenuItem
+            var notifyIconContextMenuQuit = new System.Windows.Forms.MenuItem
             {
                 Index = 1,
                 Text = "Quit"
             };
             notifyIconContextMenuQuit.Click += new EventHandler(NotifyIcon_Quit);
 
-            System.Windows.Forms.ContextMenu notifyIconContextMenu = new System.Windows.Forms.ContextMenu();
-            notifyIconContextMenu.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] { notifyIconContextMenuShow, notifyIconContextMenuQuit });
+            var notifyIconContextMenu = new System.Windows.Forms.ContextMenu();
+            notifyIconContextMenu.MenuItems.AddRange(new System.Windows.Forms.MenuItem[]
+                { notifyIconContextMenuShow, notifyIconContextMenuQuit });
 
             _notifyIcon = new System.Windows.Forms.NotifyIcon
             {
@@ -197,7 +184,6 @@ namespace SRSClient
             };
             _notifyIcon.ContextMenu = notifyIconContextMenu;
             _notifyIcon.DoubleClick += new EventHandler(NotifyIcon_Show);
-
         }
 
         private void NotifyIcon_Show(object sender, EventArgs args)
@@ -209,12 +195,11 @@ namespace SRSClient
         private void NotifyIcon_Quit(object sender, EventArgs args)
         {
             MainWindow.Close();
-
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
-            if(_notifyIcon !=null)
+            if (_notifyIcon != null)
                 _notifyIcon.Visible = false;
             base.OnExit(e);
         }
@@ -223,8 +208,9 @@ namespace SRSClient
         {
             if (loggingReady)
             {
-                Logger logger = LogManager.GetCurrentClassLogger();
-                logger.Error((Exception) e.ExceptionObject, "Received unhandled exception, {0}", e.IsTerminating ? "exiting" : "continuing");
+                var logger = LogManager.GetCurrentClassLogger();
+                logger.Error((Exception)e.ExceptionObject, "Received unhandled exception, {0}",
+                    e.IsTerminating ? "exiting" : "continuing");
             }
         }
     }

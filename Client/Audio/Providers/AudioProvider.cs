@@ -7,11 +7,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
 {
     public abstract class AudioProvider
     {
-        protected readonly Settings.ProfileSettingsStore profileSettings;
+        protected readonly ProfileSettingsStore profileSettings;
 
         public AudioProvider()
         {
-            profileSettings = Settings.GlobalSettingsStore.Instance.ProfileSettingsStore;
+            profileSettings = GlobalSettingsStore.Instance.ProfileSettingsStore;
         }
 
         public byte[] SeperateAudio(byte[] pcmAudio, int radioId)
@@ -19,58 +19,34 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
             var settingType = ProfileSettingsKeys.Radio1Channel;
 
             if (radioId == 0)
-            {
                 settingType = ProfileSettingsKeys.IntercomChannel;
-            }
             else if (radioId == 1)
-            {
                 settingType = ProfileSettingsKeys.Radio1Channel;
-            }
             else if (radioId == 2)
-            {
                 settingType = ProfileSettingsKeys.Radio2Channel;
-            }
             else if (radioId == 3)
-            {
                 settingType = ProfileSettingsKeys.Radio3Channel;
-            }
             else if (radioId == 4)
-            {
                 settingType = ProfileSettingsKeys.Radio4Channel;
-            }
             else if (radioId == 5)
-            {
                 settingType = ProfileSettingsKeys.Radio5Channel;
-            }
             else if (radioId == 6)
-            {
                 settingType = ProfileSettingsKeys.Radio6Channel;
-            }
             else if (radioId == 7)
-            {
                 settingType = ProfileSettingsKeys.Radio7Channel;
-            }
             else if (radioId == 8)
-            {
                 settingType = ProfileSettingsKeys.Radio8Channel;
-            }
             else if (radioId == 9)
-            {
                 settingType = ProfileSettingsKeys.Radio9Channel;
-            }
             else if (radioId == 10)
-            {
                 settingType = ProfileSettingsKeys.Radio10Channel;
-            }
             else
-            {
-                return CreateBalancedMix(pcmAudio,0);
-            }
+                return CreateBalancedMix(pcmAudio, 0);
 
             float balance = 0;
             try
             {
-                balance  = profileSettings.GetClientSettingFloat(settingType);
+                balance = profileSettings.GetClientSettingFloat(settingType);
             }
             catch (Exception ex)
             {
@@ -82,13 +58,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
 
         public static byte[] CreateBalancedMix(byte[] pcmAudio, float balance)
         {
-            float left = 1.0f;
-            float right = 1.0f;
+            var left = 1.0f;
+            var right = 1.0f;
 
             //right
             if (balance > 0)
             {
-                var leftBias = 1- Math.Abs(balance);
+                var leftBias = 1 - Math.Abs(balance);
                 var rightBias = Math.Abs(balance);
                 //right
                 left = left * leftBias;
@@ -109,14 +85,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
                 right = 0.5f;
             }
 
-            if(left > 1f)
-            {
-                left = 1f;
-            }
-            if (right > 1f)
-            {
-                right = 1f;
-            }
+            if (left > 1f) left = 1f;
+            if (right > 1f) right = 1f;
 
             var stereoMix = new byte[pcmAudio.Length * 2];
             for (var i = 0; i < pcmAudio.Length / 2; i++)
@@ -146,6 +116,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
                 stereoMix[i * 4 + 2] = byte3;
                 stereoMix[i * 4 + 3] = byte4;
             }
+
             return stereoMix;
         }
     }

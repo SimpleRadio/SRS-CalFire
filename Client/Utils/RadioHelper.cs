@@ -14,22 +14,17 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
             var radio = GetRadio(radioId);
 
             if (radio != null)
-            {
-                if (radio.Config.FrequencyControl == RadioConfig.FreqMode.OVERLAY || radio.Config.GuardFrequencyControl == RadioConfig.FreqMode.OVERLAY)
+                if (radio.Config.FrequencyControl == RadioConfig.FreqMode.OVERLAY ||
+                    radio.Config.GuardFrequencyControl == RadioConfig.FreqMode.OVERLAY)
                 {
                     if (radio.SecondaryFrequency > 0)
-                    {
                         radio.SecondaryFrequency = 0; // 0 indicates we want it overridden + disabled
-                    }
                     else
-                    {
                         radio.SecondaryFrequency = 1; //indicates we want it back
-                    }
 
                     //make radio data stale to force resysnc
                     ClientStateSingleton.Instance.LastSent = 0;
                 }
-            }
         }
 
         public static void SetGuard(int radioId, bool enabled)
@@ -37,50 +32,37 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
             var radio = GetRadio(radioId);
 
             if (radio != null)
-            {
-                if (radio.Config.FrequencyControl == RadioConfig.FreqMode.OVERLAY || radio.Config.GuardFrequencyControl == RadioConfig.FreqMode.OVERLAY)
+                if (radio.Config.FrequencyControl == RadioConfig.FreqMode.OVERLAY ||
+                    radio.Config.GuardFrequencyControl == RadioConfig.FreqMode.OVERLAY)
                 {
                     if (!enabled)
-                    {
                         radio.SecondaryFrequency = 0; // 0 indicates we want it overridden + disabled
-                    }
                     else
-                    {
                         radio.SecondaryFrequency = 1; //indicates we want it back
-                    }
 
                     //make radio data stale to force resysnc
                     ClientStateSingleton.Instance.LastSent = 0;
                 }
-            }
         }
 
         public static bool UpdateRadioFrequency(double frequency, int radioId, bool delta = true, bool inMHz = true)
         {
-            bool inLimit = true;
+            var inLimit = true;
             const double MHz = 1000000;
 
-            if (inMHz)
-            {
-                frequency = frequency * MHz;
-            }
+            if (inMHz) frequency = frequency * MHz;
 
             var radio = GetRadio(radioId);
 
             if (radio != null)
-            {
-                if (radio.Modulation != RadioConfig.Modulation.DISABLED
-                    && radio.Modulation != RadioConfig.Modulation.INTERCOM
+                if (radio.Modulation != Modulation.DISABLED
+                    && radio.Modulation != Modulation.INTERCOM
                     && radio.Config.FrequencyControl == RadioConfig.FreqMode.OVERLAY)
                 {
                     if (delta)
-                    {
                         radio.Frequency = (int)Math.Round(radio.Frequency + frequency);
-                    }
                     else
-                    {
                         radio.Frequency = (int)Math.Round(frequency);
-                    }
 
                     //make sure we're not over or under a limit
                     if (radio.Frequency > radio.Config.MaxFrequency)
@@ -100,7 +82,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                     //make radio data stale to force resysnc
                     ClientStateSingleton.Instance.LastSent = 0;
                 }
-            }
+
             return inLimit;
         }
 
@@ -109,15 +91,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
             var radio = GetRadio(radioId);
 
             if (radio != null)
-            {
-                if (radio.Modulation != RadioConfig.Modulation.DISABLED
+                if (radio.Modulation != Modulation.DISABLED
                     && ClientStateSingleton.Instance.PlayerUnitState.control ==
                     PlayerUnitState.RadioSwitchControls.HOTAS)
                 {
-                    ClientStateSingleton.Instance.PlayerUnitState.SelectedRadio = (short) radioId;
+                    ClientStateSingleton.Instance.PlayerUnitState.SelectedRadio = (short)radioId;
                     return true;
                 }
-            }
 
             return false;
         }
@@ -126,22 +106,19 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
         {
             var dcsPlayerRadioInfo = ClientStateSingleton.Instance.PlayerUnitState;
 
-            if ((dcsPlayerRadioInfo != null) && dcsPlayerRadioInfo.IsCurrent() &&
-                radio < dcsPlayerRadioInfo.Radios.Count && (radio >= 0))
-            {
-                return dcsPlayerRadioInfo.Radios[radio];
-            }
+            if (dcsPlayerRadioInfo != null && dcsPlayerRadioInfo.IsCurrent() &&
+                radio < dcsPlayerRadioInfo.Radios.Count && radio >= 0)
+                return (Radio) dcsPlayerRadioInfo.Radios[radio];
 
             return null;
         }
-
 
 
         public static void SelectNextRadio()
         {
             var dcsPlayerRadioInfo = ClientStateSingleton.Instance.PlayerUnitState;
 
-            if ((dcsPlayerRadioInfo != null) && dcsPlayerRadioInfo.IsCurrent() &&
+            if (dcsPlayerRadioInfo != null && dcsPlayerRadioInfo.IsCurrent() &&
                 dcsPlayerRadioInfo.control == PlayerUnitState.RadioSwitchControls.HOTAS)
             {
                 if (dcsPlayerRadioInfo.SelectedRadio < 0
@@ -157,22 +134,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                     int currentRadio = dcsPlayerRadioInfo.SelectedRadio;
 
                     //find next radio
-                    for (int i = currentRadio + 1; i < dcsPlayerRadioInfo.Radios.Count; i++)
-                    {
+                    for (var i = currentRadio + 1; i < dcsPlayerRadioInfo.Radios.Count; i++)
                         if (SelectRadio(i))
-                        {
                             return;
-                        }
-                    }
 
                     //search up to current radio
-                    for (int i = 1; i < currentRadio; i++)
-                    {
+                    for (var i = 1; i < currentRadio; i++)
                         if (SelectRadio(i))
-                        {
                             return;
-                        }
-                    }
                 }
             }
         }
@@ -181,7 +150,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
         {
             var dcsPlayerRadioInfo = ClientStateSingleton.Instance.PlayerUnitState;
 
-            if ((dcsPlayerRadioInfo != null) && dcsPlayerRadioInfo.IsCurrent() &&
+            if (dcsPlayerRadioInfo != null && dcsPlayerRadioInfo.IsCurrent() &&
                 dcsPlayerRadioInfo.control == PlayerUnitState.RadioSwitchControls.HOTAS)
             {
                 if (dcsPlayerRadioInfo.SelectedRadio < 0
@@ -195,30 +164,22 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                     int currentRadio = dcsPlayerRadioInfo.SelectedRadio;
 
                     //find previous radio
-                    for (int i = currentRadio - 1; i > 0; i--)
-                    {
+                    for (var i = currentRadio - 1; i > 0; i--)
                         if (SelectRadio(i))
-                        {
                             return;
-                        }
-                    }
 
                     //search down to current radio
-                    for (int i = dcsPlayerRadioInfo.Radios.Count; i > currentRadio; i--)
-                    {
+                    for (var i = dcsPlayerRadioInfo.Radios.Count; i > currentRadio; i--)
                         if (SelectRadio(i))
-                        {
                             return;
-                        }
-                    }
                 }
             }
         }
 
-     
+
         public static void SelectRadioChannel(PresetChannel selectedPresetChannel, int radioId)
         {
-            if (UpdateRadioFrequency((double) selectedPresetChannel.Value, radioId, false, false))
+            if (UpdateRadioFrequency((double)selectedPresetChannel.Value, radioId, false, false))
             {
                 var radio = GetRadio(radioId);
 
@@ -228,11 +189,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 
         public static void RadioChannelUp(int radioId)
         {
-            var currentRadio = RadioHelper.GetRadio(radioId);
+            var currentRadio = GetRadio(radioId);
 
             if (currentRadio != null)
-            {
-                if (currentRadio.Modulation != RadioConfig.Modulation.DISABLED
+                if (currentRadio.Modulation != Modulation.DISABLED
                     && ClientStateSingleton.Instance.PlayerUnitState.control ==
                     PlayerUnitState.RadioSwitchControls.HOTAS)
                 {
@@ -245,7 +205,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 
                         if (radioChannels.PresetChannels.Count > 0)
                         {
-                            int next = currentRadio.CurrentChannel + 1;
+                            var next = currentRadio.CurrentChannel + 1;
 
                             if (radioChannels.PresetChannels.Count < next || currentRadio.CurrentChannel < 1)
                             {
@@ -263,16 +223,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                         }
                     }
                 }
-            }
         }
 
         public static void RadioChannelDown(int radioId)
         {
-            var currentRadio = RadioHelper.GetRadio(radioId);
+            var currentRadio = GetRadio(radioId);
 
             if (currentRadio != null)
-            {
-                if (currentRadio.Modulation != RadioConfig.Modulation.DISABLED
+                if (currentRadio.Modulation != Modulation.DISABLED
                     && ClientStateSingleton.Instance.PlayerUnitState.control ==
                     PlayerUnitState.RadioSwitchControls.HOTAS)
                 {
@@ -285,7 +243,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 
                         if (radioChannels.PresetChannels.Count > 0)
                         {
-                            int previous = currentRadio.CurrentChannel - 1;
+                            var previous = currentRadio.CurrentChannel - 1;
 
                             if (previous < 1)
                             {
@@ -303,27 +261,20 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                         }
                     }
                 }
-            }
         }
 
         public static void SetRadioVolume(float volume, int radioId)
         {
             if (volume > 1.0)
-            {
                 volume = 1.0f;
-            }else if (volume < 0)
-            {
-                volume = 0;
-            }
+            else if (volume < 0) volume = 0;
 
-            var currentRadio = RadioHelper.GetRadio(radioId);
+            var currentRadio = GetRadio(radioId);
 
             if (currentRadio != null
-                && currentRadio.Modulation != RadioConfig.Modulation.DISABLED
+                && currentRadio.Modulation != Modulation.DISABLED
                 && currentRadio.Config.VolumeControl == RadioConfig.VolumeMode.OVERLAY)
-            {
                 currentRadio.Volume = volume;
-            }
         }
 
         public static void ToggleRetransmit(int radioId)
@@ -331,7 +282,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
             var radio = GetRadio(radioId);
 
             if (radio != null)
-            {
                 if (radio.Config.RetransmitControl == RadioConfig.RetransmitMode.OVERLAY)
                 {
                     radio.Retransmit = !radio.Retransmit;
@@ -339,8 +289,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                     //make radio data stale to force resysnc
                     ClientStateSingleton.Instance.LastSent = 0;
                 }
-            }
-
         }
     }
 }

@@ -12,10 +12,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Overlay
         public static void BringProcessToFront(Process process)
         {
             var handle = process.MainWindowHandle;
-            if (IsIconic(handle))
-            {
-                ShowWindow(handle, SW_RESTORE);
-            }
+            if (IsIconic(handle)) ShowWindow(handle, SW_RESTORE);
 
             SetForegroundWindow(handle);
         }

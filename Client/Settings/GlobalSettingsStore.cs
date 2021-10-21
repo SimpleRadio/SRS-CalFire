@@ -11,7 +11,6 @@ using SharpConfig;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 {
-  
     public enum GlobalSettingsKeys
     {
         MinimiseToTray,
@@ -24,13 +23,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         AudioInputDeviceId,
         AudioOutputDeviceId,
         LastServer,
-        MicBoost ,
+        MicBoost,
         SpeakerBoost,
-        RadioX ,
-        RadioY ,
+        RadioX,
+        RadioY,
         RadioSize,
         RadioOpacity,
-        RadioWidth ,
+        RadioWidth,
         RadioHeight,
         ClientX,
         ClientY,
@@ -57,12 +56,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         AutoConnectMismatchPrompt, //message about auto connect mismatch
 
-        DisableWindowVisibilityCheck ,
+        DisableWindowVisibilityCheck,
         PlayConnectionSounds,
 
         RequireAdmin,
 
-   
+
         SettingsProfiles,
         AutoSelectSettingsProfile,
 
@@ -174,7 +173,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         ModifierRadioChannelDown = 232,
 
         TransponderIDENT = 133,
-        ModifierTransponderIDENT = 233,
+        ModifierTransponderIDENT = 233
     }
 
 
@@ -191,46 +190,42 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         public string ConfigFileName { get; } = CFG_FILE_NAME;
 
-        private  ProfileSettingsStore _profileSettingsStore;
+        private ProfileSettingsStore _profileSettingsStore;
         public ProfileSettingsStore ProfileSettingsStore => _profileSettingsStore;
 
         public string Path { get; } = "";
 
         private GlobalSettingsStore()
         {
-
             //Try migrating
             MigrateSettings();
 
             //check commandline
             var args = Environment.GetCommandLineArgs();
-            
+
             foreach (var arg in args)
-            {
                 if (arg.Trim().StartsWith("-cfg="))
                 {
                     Path = arg.Trim().Replace("-cfg=", "").Trim();
-                    if (!Path.EndsWith("\\"))
-                    {
-                        Path = Path + "\\";
-                    }
-                    Logger.Info($"Found -cfg loading: {Path +ConfigFileName}");
+                    if (!Path.EndsWith("\\")) Path = Path + "\\";
+                    Logger.Info($"Found -cfg loading: {Path + ConfigFileName}");
                 }
-            }
 
             try
             {
-                int count = 0;
+                var count = 0;
                 while (IsFileLocked(new FileInfo(ConfigFileName)) && count < 10)
                 {
                     Thread.Sleep(200);
                     count++;
                 }
+
                 _configuration = Configuration.LoadFromFile(ConfigFileName);
             }
             catch (FileNotFoundException ex)
             {
-                Logger.Info($"Did not find client config file at path ${Path}/${ConfigFileName}, initialising with default config");
+                Logger.Info(
+                    $"Did not find client config file at path ${Path}/${ConfigFileName}, initialising with default config");
 
                 _configuration = new Configuration();
                 _configuration.Add(new Section("Position Settings"));
@@ -241,17 +236,18 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             }
             catch (ParserException ex)
             {
-                Logger.Error(ex, "Failed to parse client config, potentially corrupted. Creating backing and re-initialising with default config");
+                Logger.Error(ex,
+                    "Failed to parse client config, potentially corrupted. Creating backing and re-initialising with default config");
 
                 MessageBox.Show("Failed to read client config, it might have become corrupted.\n" +
-                    "SRS will create a backup of your current config file (client.cfg.bak) and initialise using default settings.",
+                                "SRS will create a backup of your current config file (client.cfg.bak) and initialise using default settings.",
                     "Config error",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
 
                 try
                 {
-                    File.Copy(Path+ConfigFileName, Path + ConfigFileName +".bak", true);
+                    File.Copy(Path + ConfigFileName, Path + ConfigFileName + ".bak", true);
                 }
                 catch (Exception e)
                 {
@@ -271,14 +267,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         public static bool IsFileLocked(FileInfo file)
         {
-            if (!file.Exists)
-            {
-                return false;
-            }
+            if (!file.Exists) return false;
 
             try
             {
-                using (FileStream stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None))
+                using (var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None))
                 {
                     stream.Close();
                 }
@@ -298,8 +291,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         private void MigrateSettings()
         {
-            try 
-            { 
+            try
+            {
                 if (File.Exists(Path + PREVIOUS_CFG_FILE_NAME) && !File.Exists(Path + CFG_FILE_NAME))
                 {
                     Logger.Info($"Migrating {Path + PREVIOUS_CFG_FILE_NAME} to {Path + CFG_FILE_NAME}");
@@ -309,7 +302,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             }
             catch (Exception ex)
             {
-                Logger.Error(ex,"Error migrating global settings");
+                Logger.Error(ex, "Error migrating global settings");
             }
         }
 
@@ -318,12 +311,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             get
             {
                 if (_instance == null)
-                {
                     _instance = new GlobalSettingsStore();
 
-                    //stops cyclic init
-                    
-                }
+                //stops cyclic init
                 return _instance;
             }
         }
@@ -335,72 +325,71 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         private readonly Dictionary<string, string> defaultGlobalSettings = new Dictionary<string, string>()
         {
-            {GlobalSettingsKeys.AutoConnect.ToString(), "true"},
-            {GlobalSettingsKeys.AutoConnectPrompt.ToString(), "false"},
-            {GlobalSettingsKeys.AutoConnectMismatchPrompt.ToString(), "true"},
-            {GlobalSettingsKeys.RadioOverlayTaskbarHide.ToString(), "false"},
-            {GlobalSettingsKeys.ExpandControls.ToString(), "false"},
+            { GlobalSettingsKeys.AutoConnect.ToString(), "true" },
+            { GlobalSettingsKeys.AutoConnectPrompt.ToString(), "false" },
+            { GlobalSettingsKeys.AutoConnectMismatchPrompt.ToString(), "true" },
+            { GlobalSettingsKeys.RadioOverlayTaskbarHide.ToString(), "false" },
+            { GlobalSettingsKeys.ExpandControls.ToString(), "false" },
 
-            {GlobalSettingsKeys.MinimiseToTray.ToString(), "false"},
-            {GlobalSettingsKeys.StartMinimised.ToString(), "false"},
+            { GlobalSettingsKeys.MinimiseToTray.ToString(), "false" },
+            { GlobalSettingsKeys.StartMinimised.ToString(), "false" },
 
 
-            {GlobalSettingsKeys.AudioInputDeviceId.ToString(), ""},
-            {GlobalSettingsKeys.AudioOutputDeviceId.ToString(), ""},
-            {GlobalSettingsKeys.MicAudioOutputDeviceId.ToString(), ""},
+            { GlobalSettingsKeys.AudioInputDeviceId.ToString(), "" },
+            { GlobalSettingsKeys.AudioOutputDeviceId.ToString(), "" },
+            { GlobalSettingsKeys.MicAudioOutputDeviceId.ToString(), "" },
 
-            {GlobalSettingsKeys.LastServer.ToString(), "127.0.0.1"},
+            { GlobalSettingsKeys.LastServer.ToString(), "127.0.0.1" },
 
-            {GlobalSettingsKeys.MicBoost.ToString(), "0.514"},
-            {GlobalSettingsKeys.SpeakerBoost.ToString(), "0.514"},
+            { GlobalSettingsKeys.MicBoost.ToString(), "0.514" },
+            { GlobalSettingsKeys.SpeakerBoost.ToString(), "0.514" },
 
-            {GlobalSettingsKeys.RadioX.ToString(), "300"},
-            {GlobalSettingsKeys.RadioY.ToString(), "300"},
-            {GlobalSettingsKeys.RadioSize.ToString(), "1.0"},
-            {GlobalSettingsKeys.RadioOpacity.ToString(), "1.0"},
+            { GlobalSettingsKeys.RadioX.ToString(), "300" },
+            { GlobalSettingsKeys.RadioY.ToString(), "300" },
+            { GlobalSettingsKeys.RadioSize.ToString(), "1.0" },
+            { GlobalSettingsKeys.RadioOpacity.ToString(), "1.0" },
 
-            {GlobalSettingsKeys.RadioWidth.ToString(), "122"},
-            {GlobalSettingsKeys.RadioHeight.ToString(), "270"},
+            { GlobalSettingsKeys.RadioWidth.ToString(), "122" },
+            { GlobalSettingsKeys.RadioHeight.ToString(), "270" },
 
-            {GlobalSettingsKeys.ClientX.ToString(), "200"},
-            {GlobalSettingsKeys.ClientY.ToString(), "200"},
+            { GlobalSettingsKeys.ClientX.ToString(), "200" },
+            { GlobalSettingsKeys.ClientY.ToString(), "200" },
 
-            {GlobalSettingsKeys.AwacsX.ToString(), "300"},
-            {GlobalSettingsKeys.AwacsY.ToString(), "300"},
+            { GlobalSettingsKeys.AwacsX.ToString(), "300" },
+            { GlobalSettingsKeys.AwacsY.ToString(), "300" },
 
-        //    {GlobalSettingsKeys.CliendIdShort.ToString(), ShortGuid.NewGuid().ToString()},
-            {GlobalSettingsKeys.ClientIdLong.ToString(), Guid.NewGuid().ToString()},
+            //    {GlobalSettingsKeys.CliendIdShort.ToString(), ShortGuid.NewGuid().ToString()},
+            { GlobalSettingsKeys.ClientIdLong.ToString(), Guid.NewGuid().ToString() },
 
-            {GlobalSettingsKeys.AGC.ToString(), "true"},
-            {GlobalSettingsKeys.AGCTarget.ToString(), "30000"},
-            {GlobalSettingsKeys.AGCDecrement.ToString(), "-60"},
-            {GlobalSettingsKeys.AGCLevelMax.ToString(),"68" },
+            { GlobalSettingsKeys.AGC.ToString(), "true" },
+            { GlobalSettingsKeys.AGCTarget.ToString(), "30000" },
+            { GlobalSettingsKeys.AGCDecrement.ToString(), "-60" },
+            { GlobalSettingsKeys.AGCLevelMax.ToString(), "68" },
 
-            {GlobalSettingsKeys.Denoise.ToString(),"true" },
-            {GlobalSettingsKeys.DenoiseAttenuation.ToString(),"-30" },
+            { GlobalSettingsKeys.Denoise.ToString(), "true" },
+            { GlobalSettingsKeys.DenoiseAttenuation.ToString(), "-30" },
 
-            {GlobalSettingsKeys.LastSeenName.ToString(), ""},
+            { GlobalSettingsKeys.LastSeenName.ToString(), "" },
 
-            {GlobalSettingsKeys.CheckForBetaUpdates.ToString(), "false"},
+            { GlobalSettingsKeys.CheckForBetaUpdates.ToString(), "false" },
 
-            {GlobalSettingsKeys.AllowMultipleInstances.ToString(), "false"},
+            { GlobalSettingsKeys.AllowMultipleInstances.ToString(), "false" },
 
-            {GlobalSettingsKeys.DisableWindowVisibilityCheck.ToString(), "false"},
-            {GlobalSettingsKeys.PlayConnectionSounds.ToString(), "true"},
+            { GlobalSettingsKeys.DisableWindowVisibilityCheck.ToString(), "false" },
+            { GlobalSettingsKeys.PlayConnectionSounds.ToString(), "true" },
 
-            {GlobalSettingsKeys.RequireAdmin.ToString(),"true" },
+            { GlobalSettingsKeys.RequireAdmin.ToString(), "true" },
 
-            {GlobalSettingsKeys.AutoSelectSettingsProfile.ToString(),"false" },
+            { GlobalSettingsKeys.AutoSelectSettingsProfile.ToString(), "false" },
 
-            {GlobalSettingsKeys.ShowTransmitterName.ToString(), "true"},
+            { GlobalSettingsKeys.ShowTransmitterName.ToString(), "true" },
 
-            {GlobalSettingsKeys.IdleTimeOut.ToString(), "600"}, // 10 mins
-
+            { GlobalSettingsKeys.IdleTimeOut.ToString(), "600" } // 10 mins
         };
 
         private readonly Dictionary<string, string[]> defaultArraySettings = new Dictionary<string, string[]>()
         {
-            {GlobalSettingsKeys.SettingsProfiles.ToString(), new string[]{"default.cfg"} }
+            { GlobalSettingsKeys.SettingsProfiles.ToString(), new string[] { "default.cfg" } }
         };
 
         public Setting GetPositionSetting(GlobalSettingsKeys key)
@@ -416,10 +405,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         public bool GetClientSettingBool(GlobalSettingsKeys key)
         {
             var setting = GetSetting("Client Settings", key.ToString());
-            if (setting.RawValue.Length == 0)
-            {
-                return false;
-            }
+            if (setting.RawValue.Length == 0) return false;
 
             return setting.BoolValue;
         }
@@ -445,7 +431,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
             if (networkSetting == null || networkSetting.RawValue.Length == 0)
             {
-                var defaultSetting  = defaultGlobalSettings[key.ToString()];
+                var defaultSetting = defaultGlobalSettings[key.ToString()];
                 networkSetting.IntValue = int.Parse(defaultSetting, CultureInfo.InvariantCulture);
             }
 
@@ -459,10 +445,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         private Setting GetSetting(string section, string setting)
         {
-            if (!_configuration.Contains(section))
-            {
-                _configuration.Add(section);
-            }
+            if (!_configuration.Contains(section)) _configuration.Add(section);
 
             if (!_configuration[section].Contains(setting))
             {
@@ -474,7 +457,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
                     Save();
                 }
-                else if(defaultArraySettings.ContainsKey(setting))
+                else if (defaultArraySettings.ContainsKey(setting))
                 {
                     //save
                     _configuration[section]
@@ -495,14 +478,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         private void SetSetting(string section, string key, object setting)
         {
-            if (setting == null)
-            {
-                setting = "";
-            }
-            if (!_configuration.Contains(section))
-            {
-                _configuration.Add(section);
-            }
+            if (setting == null) setting = "";
+            if (!_configuration.Contains(section)) _configuration.Add(section);
 
             if (!_configuration[section].Contains(key))
             {
@@ -510,24 +487,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             }
             else
             {
-                
                 if (setting is bool)
-                {
-                    _configuration[section][key].BoolValue = (bool) setting ;
-                }
+                    _configuration[section][key].BoolValue = (bool)setting;
                 else if (setting.GetType() == typeof(string))
-                {
                     _configuration[section][key].StringValue = setting as string;
-                }
-                else if(setting is string[])
-                {
+                else if (setting is string[])
                     _configuration[section][key].StringValueArray = setting as string[];
-                }
                 else
-                {
                     Logger.Error("Unknown Setting Type - Not Saved ");
-                }
-                
             }
 
             Save();
@@ -549,6 +516,5 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                 }
             }
         }
-
     }
 }

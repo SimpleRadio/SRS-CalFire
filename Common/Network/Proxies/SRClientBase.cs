@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Ciribob.SRS.Common.Network.Proxies
+namespace Ciribob.SRS.Common.Network.Models
 {
-    class TransponderProxy
+    class SRClientBase
     {
     }
 }

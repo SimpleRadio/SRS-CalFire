@@ -8,7 +8,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
     /// </summary>
     public partial class BackgroundEffectVolumeControl : UserControl
     {
-
         public BackgroundEffectVolumeControl()
         {
             InitializeComponent();
@@ -21,16 +20,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
 
         public float VolumeValue
         {
-            set
-            {
-                SetValue(VolumeSliderDependencyProperty, value);
-            }
+            set => SetValue(VolumeSliderDependencyProperty, value);
             get
             {
-                float val = (float)GetValue(VolumeSliderDependencyProperty);
+                var val = (float)GetValue(VolumeSliderDependencyProperty);
                 return val;
             }
         }
-
     }
 }

@@ -21,15 +21,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
             DependencyProperty.Register("VolumeValue", typeof(float), typeof(RadioChannelConfigUi),
                 new FrameworkPropertyMetadata((float)0)
             );
+
         public float VolumeValue
         {
-            set
-            {
-                SetValue(VolumeSliderDependencyProperty, value);
-            }
+            set => SetValue(VolumeSliderDependencyProperty, value);
             get
             {
-                float val = (float)GetValue(VolumeSliderDependencyProperty);
+                var val = (float)GetValue(VolumeSliderDependencyProperty);
                 return val;
             }
         }

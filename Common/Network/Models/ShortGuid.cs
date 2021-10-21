@@ -63,7 +63,7 @@ namespace Ciribob.SRS.Common.Network.Models
         /// </summary>
         public Guid Guid
         {
-            get { return _guid; }
+            get => _guid;
             set
             {
                 if (value != _guid)
@@ -79,7 +79,7 @@ namespace Ciribob.SRS.Common.Network.Models
         /// </summary>
         public string Value
         {
-            get { return _value; }
+            get => _value;
             set
             {
                 if (value != _value)
@@ -116,11 +116,11 @@ namespace Ciribob.SRS.Common.Network.Models
         public override bool Equals(object obj)
         {
             if (obj is ShortGuid)
-                return _guid.Equals(((ShortGuid) obj)._guid);
+                return _guid.Equals(((ShortGuid)obj)._guid);
             if (obj is Guid)
-                return _guid.Equals((Guid) obj);
+                return _guid.Equals((Guid)obj);
             if (obj is string)
-                return _guid.Equals(((ShortGuid) obj)._guid);
+                return _guid.Equals(((ShortGuid)obj)._guid);
             return false;
         }
 
@@ -212,7 +212,7 @@ namespace Ciribob.SRS.Common.Network.Models
         /// <returns></returns>
         public static bool operator ==(ShortGuid x, ShortGuid y)
         {
-            if ((object) x == null) return (object) y == null;
+            if ((object)x == null) return (object)y == null;
             return x._guid == y._guid;
         }
 

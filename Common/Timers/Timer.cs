@@ -33,10 +33,7 @@ namespace Cabhishek.Timers
         {
             StartUnmanagedTimer();
 
-            if (timerId == 0)
-            {
-                throw new Exception("TimeSet Event Error");
-            }
+            if (timerId == 0) throw new Exception("TimeSet Event Error");
         }
 
         public void Stop()
@@ -54,7 +51,7 @@ namespace Cabhishek.Timers
 
         private void StartUnmanagedTimer()
         {
-            timerId = timeSetEvent((uint) interval.TotalMilliseconds, 0, callbackFunction, 0, 1);
+            timerId = timeSetEvent((uint)interval.TotalMilliseconds, 0, callbackFunction, 0, 1);
         }
 
         private void StopUnmanagedTimer()

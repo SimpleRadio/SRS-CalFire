@@ -47,7 +47,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         RadioSwitchIsPTTOnlyWhenValid,
 
         MIDSRadioEffect, //if on and Radio TX effects are on the MIDS tone is used
-        
+
         PTTReleaseDelay,
 
         RadioTransmissionStartSelection,
@@ -82,63 +82,62 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                 _settingsCache.Clear();
                 _currentProfileName = value;
                 //TODO trigger from here the change
-
             }
         }
 
         public string Path { get; }
 
-        public static readonly Dictionary<string, string> DefaultSettingsProfileSettings = new Dictionary<string, string>()
-        {
-            {ProfileSettingsKeys.RadioEffects.ToString(), "true"},
-            {ProfileSettingsKeys.RadioEffectsClipping.ToString(), "false"},
-
-            {ProfileSettingsKeys.RadioEncryptionEffects.ToString(), "true"},
-            {ProfileSettingsKeys.NATOTone.ToString(), "false"},
-            {ProfileSettingsKeys.HAVEQUICKTone.ToString(), "true"},
-
-            {ProfileSettingsKeys.RadioRxEffects_Start.ToString(), "true"},
-            {ProfileSettingsKeys.RadioRxEffects_End.ToString(), "true"},
-
-            {ProfileSettingsKeys.RadioTransmissionStartSelection.ToString(), CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START+".wav"},
-            {ProfileSettingsKeys.RadioTransmissionEndSelection.ToString(), CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END+".wav"},
-
-
-            {ProfileSettingsKeys.RadioTxEffects_Start.ToString(), "true"},
-            {ProfileSettingsKeys.RadioTxEffects_End.ToString(), "true"},
-            {ProfileSettingsKeys.MIDSRadioEffect.ToString(), "true"},
-
-            {ProfileSettingsKeys.AutoSelectPresetChannel.ToString(), "true"},
-
-            {ProfileSettingsKeys.AlwaysAllowHotasControls.ToString(),"false" },
-            {ProfileSettingsKeys.RadioSwitchIsPTT.ToString(), "false"},
-            {ProfileSettingsKeys.RadioSwitchIsPTTOnlyWhenValid.ToString(), "false"},
-            {ProfileSettingsKeys.AlwaysAllowTransponderOverlay.ToString(), "false"},
-            {ProfileSettingsKeys.HotIntercomMic.ToString(), "false"},
-
-            {ProfileSettingsKeys.PTTReleaseDelay.ToString(), "0"},
-            {ProfileSettingsKeys.PTTStartDelay.ToString(), "0"},
-
-            {ProfileSettingsKeys.RadioBackgroundNoiseEffect.ToString(), "true"},
-
-            {ProfileSettingsKeys.NATOToneVolume.ToString(), "1.2"},
-            {ProfileSettingsKeys.HQToneVolume.ToString(), "0.3"},
-
-            {ProfileSettingsKeys.VHFNoiseVolume.ToString(), "0.15"},
-            {ProfileSettingsKeys.HFNoiseVolume.ToString(), "0.15"},
-            {ProfileSettingsKeys.UHFNoiseVolume.ToString(), "0.15"},
-            {ProfileSettingsKeys.FMNoiseVolume.ToString(), "0.4"},
-        };
-
-
-        public List<string> ProfileNames
-        {
-            get
+        public static readonly Dictionary<string, string> DefaultSettingsProfileSettings =
+            new Dictionary<string, string>()
             {
-                return new List<string>(InputProfiles.Keys);
-            }
-            
-        }
+                { ProfileSettingsKeys.RadioEffects.ToString(), "true" },
+                { ProfileSettingsKeys.RadioEffectsClipping.ToString(), "false" },
+
+                { ProfileSettingsKeys.RadioEncryptionEffects.ToString(), "true" },
+                { ProfileSettingsKeys.NATOTone.ToString(), "false" },
+                { ProfileSettingsKeys.HAVEQUICKTone.ToString(), "true" },
+
+                { ProfileSettingsKeys.RadioRxEffects_Start.ToString(), "true" },
+                { ProfileSettingsKeys.RadioRxEffects_End.ToString(), "true" },
+
+                {
+                    ProfileSettingsKeys.RadioTransmissionStartSelection.ToString(),
+                    CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START + ".wav"
+                },
+                {
+                    ProfileSettingsKeys.RadioTransmissionEndSelection.ToString(),
+                    CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END + ".wav"
+                },
+
+
+                { ProfileSettingsKeys.RadioTxEffects_Start.ToString(), "true" },
+                { ProfileSettingsKeys.RadioTxEffects_End.ToString(), "true" },
+                { ProfileSettingsKeys.MIDSRadioEffect.ToString(), "true" },
+
+                { ProfileSettingsKeys.AutoSelectPresetChannel.ToString(), "true" },
+
+                { ProfileSettingsKeys.AlwaysAllowHotasControls.ToString(), "false" },
+                { ProfileSettingsKeys.RadioSwitchIsPTT.ToString(), "false" },
+                { ProfileSettingsKeys.RadioSwitchIsPTTOnlyWhenValid.ToString(), "false" },
+                { ProfileSettingsKeys.AlwaysAllowTransponderOverlay.ToString(), "false" },
+                { ProfileSettingsKeys.HotIntercomMic.ToString(), "false" },
+
+                { ProfileSettingsKeys.PTTReleaseDelay.ToString(), "0" },
+                { ProfileSettingsKeys.PTTStartDelay.ToString(), "0" },
+
+                { ProfileSettingsKeys.RadioBackgroundNoiseEffect.ToString(), "true" },
+
+                { ProfileSettingsKeys.NATOToneVolume.ToString(), "1.2" },
+                { ProfileSettingsKeys.HQToneVolume.ToString(), "0.3" },
+
+                { ProfileSettingsKeys.VHFNoiseVolume.ToString(), "0.15" },
+                { ProfileSettingsKeys.HFNoiseVolume.ToString(), "0.15" },
+                { ProfileSettingsKeys.UHFNoiseVolume.ToString(), "0.15" },
+                { ProfileSettingsKeys.FMNoiseVolume.ToString(), "0.4" }
+            };
+
+
+        public List<string> ProfileNames => new List<string>(InputProfiles.Keys);
 
         public Dictionary<InputBinding, InputDevice> GetCurrentInputProfile()
         {
@@ -149,7 +148,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         {
             return InputConfigs[GetProfileCfgFileName(CurrentProfileName)];
         }
-        public Dictionary<string, Dictionary<InputBinding, InputDevice>> InputProfiles { get; set; } = new Dictionary<string, Dictionary<InputBinding, InputDevice>>();
+
+        public Dictionary<string, Dictionary<InputBinding, InputDevice>> InputProfiles { get; set; } =
+            new Dictionary<string, Dictionary<InputBinding, InputDevice>>();
 
         private Dictionary<string, Configuration> InputConfigs = new Dictionary<string, Configuration>();
 
@@ -158,8 +159,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         public ProfileSettingsStore(GlobalSettingsStore globalSettingsStore)
         {
-            this._globalSettings = globalSettingsStore;
-            this.Path = _globalSettings.Path;
+            _globalSettings = globalSettingsStore;
+            Path = _globalSettings.Path;
 
             MigrateOldSettings();
 
@@ -169,13 +170,15 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                 Configuration _configuration = null;
                 try
                 {
-                    int count = 0;
-                    while (GlobalSettingsStore.IsFileLocked(new FileInfo(Path + GetProfileCfgFileName(profile))) && count <10)
+                    var count = 0;
+                    while (GlobalSettingsStore.IsFileLocked(new FileInfo(Path + GetProfileCfgFileName(profile))) &&
+                           count < 10)
                     {
                         Thread.Sleep(200);
                         count++;
                     }
-                    _configuration = Configuration.LoadFromFile(Path+GetProfileCfgFileName(profile));
+
+                    _configuration = Configuration.LoadFromFile(Path + GetProfileCfgFileName(profile));
                     InputConfigs[GetProfileCfgFileName(profile)] = _configuration;
 
                     var inputProfile = new Dictionary<InputBinding, InputDevice>();
@@ -185,14 +188,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                     {
                         var device = GetControlSetting(bind, _configuration);
 
-                        if (device != null)
-                        {
-                            inputProfile[bind] = device;
-                        }
+                        if (device != null) inputProfile[bind] = device;
                     }
 
-                    _configuration.SaveToFile(Path+GetProfileCfgFileName(profile), Encoding.UTF8);
-                
+                    _configuration.SaveToFile(Path + GetProfileCfgFileName(profile), Encoding.UTF8);
                 }
                 catch (FileNotFoundException ex)
                 {
@@ -211,8 +210,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                     var inputProfile = new Dictionary<InputBinding, InputDevice>();
                     InputProfiles[GetProfileName(profile)] = inputProfile;
                     InputConfigs[GetProfileCfgFileName(profile)] = new Configuration();
-                    _configuration.SaveToFile(Path+GetProfileCfgFileName(profile), Encoding.UTF8);
-
+                    _configuration.SaveToFile(Path + GetProfileCfgFileName(profile), Encoding.UTF8);
                 }
             }
 
@@ -233,7 +231,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             try
             {
                 //combine global.cfg and input-default.cfg
-                if (File.Exists(Path+"input-default.cfg") && File.Exists(Path + "global.cfg") && !File.Exists("default.cfg"))
+                if (File.Exists(Path + "input-default.cfg") && File.Exists(Path + "global.cfg") &&
+                    !File.Exists("default.cfg"))
                 {
                     //Copy the current GLOBAL settings - not all relevant but will be ignored
                     File.Copy(Path + "global.cfg", Path + "default.cfg");
@@ -253,9 +252,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             }
             catch (Exception ex)
             {
-                Logger.Error(ex,"Error migrating input profiles");
+                Logger.Error(ex, "Error migrating input profiles");
             }
-          
         }
 
         public List<string> GetProfiles()
@@ -288,30 +286,21 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         private string GetProfileCfgFileName(string prof)
         {
-            if (prof.Contains(".cfg"))
-            {
-                return prof;
-            }
+            if (prof.Contains(".cfg")) return prof;
 
-            return  prof + ".cfg";
+            return prof + ".cfg";
         }
 
         private string GetProfileName(string cfg)
         {
-            if (cfg.Contains(".cfg"))
-            {
-                return cfg.Replace(".cfg","");
-            }
+            if (cfg.Contains(".cfg")) return cfg.Replace(".cfg", "");
 
             return cfg;
         }
 
         public InputDevice GetControlSetting(InputBinding key, Configuration configuration)
         {
-            if (!configuration.Contains(key.ToString()))
-            {
-                return null;
-            }
+            if (!configuration.Contains(key.ToString())) return null;
 
             try
             {
@@ -335,6 +324,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
             return null;
         }
+
         public void SetControlSetting(InputDevice device)
         {
             RemoveControlSetting(device.InputBind);
@@ -362,10 +352,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         {
             var configuration = GetCurrentProfile();
 
-            if (configuration.Contains(binding.ToString()))
-            {
-                configuration.Remove(binding.ToString());
-            }
+            if (configuration.Contains(binding.ToString())) configuration.Remove(binding.ToString());
 
             var inputDevices = GetCurrentInputProfile();
             inputDevices.Remove(binding);
@@ -377,10 +364,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         {
             var _configuration = GetCurrentProfile();
 
-            if (!_configuration.Contains(section))
-            {
-                _configuration.Add(section);
-            }
+            if (!_configuration.Contains(section)) _configuration.Add(section);
 
             if (!_configuration[section].Contains(setting))
             {
@@ -413,11 +397,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         public bool GetClientSettingBool(ProfileSettingsKeys key)
         {
-
-            if (_settingsCache.TryGetValue(key.ToString(), out var val))
-            {
-                return (bool)val;
-            }
+            if (_settingsCache.TryGetValue(key.ToString(), out var val)) return (bool)val;
 
             var setting = GetSetting("Client Settings", key.ToString());
             if (setting.RawValue.Length == 0)
@@ -433,16 +413,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         public float GetClientSettingFloat(ProfileSettingsKeys key)
         {
-            if (_settingsCache.TryGetValue(key.ToString(),out var val))
+            if (_settingsCache.TryGetValue(key.ToString(), out var val))
             {
-                if (val == null)
-                {
-                    return 0f;
-                }
-                return (float) val;
+                if (val == null) return 0f;
+                return (float)val;
             }
 
-            var setting =  GetSetting("Client Settings", key.ToString()).FloatValue;
+            var setting = GetSetting("Client Settings", key.ToString()).FloatValue;
 
             _settingsCache[key.ToString()] = setting;
 
@@ -451,10 +428,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         public string GetClientSettingString(ProfileSettingsKeys key)
         {
-            if (_settingsCache.TryGetValue(key.ToString(), out var val))
-            {
-                return (string)val;
-            }
+            if (_settingsCache.TryGetValue(key.ToString(), out var val)) return (string)val;
 
             var setting = GetSetting("Client Settings", key.ToString()).RawValue;
 
@@ -477,6 +451,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
             _settingsCache.TryRemove(key.ToString(), out var res);
         }
+
         public void SetClientSettingString(ProfileSettingsKeys key, string value)
         {
             SetSetting("Client Settings", key.ToString(), value);
@@ -487,14 +462,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         {
             var _configuration = GetCurrentProfile();
 
-            if (setting == null)
-            {
-                setting = "";
-            }
-            if (!_configuration.Contains(section))
-            {
-                _configuration.Add(section);
-            }
+            if (setting == null) setting = "";
+            if (!_configuration.Contains(section)) _configuration.Add(section);
 
             if (!_configuration[section].Contains(key))
             {
@@ -503,34 +472,19 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             else
             {
                 if (setting is bool)
-                {
                     _configuration[section][key].BoolValue = (bool)setting;
-                }
                 else if (setting is float)
-                {
                     _configuration[section][key].FloatValue = (float)setting;
-                }
                 else if (setting is double)
-                {
                     _configuration[section][key].DoubleValue = (double)setting;
-                }
                 else if (setting is int)
-                {
                     _configuration[section][key].DoubleValue = (int)setting;
-                }
                 else if (setting.GetType() == typeof(string))
-                {
                     _configuration[section][key].StringValue = setting as string;
-                }
                 else if (setting is string[])
-                {
                     _configuration[section][key].StringValueArray = setting as string[];
-                }
                 else
-                {
                     Logger.Error("Unknown Setting Type - Not Saved ");
-                }
-
             }
 
             Save();
@@ -543,7 +497,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                 try
                 {
                     var configuration = GetCurrentProfile();
-                    configuration.SaveToFile(Path+GetProfileCfgFileName(CurrentProfileName));
+                    configuration.SaveToFile(Path + GetProfileCfgFileName(CurrentProfileName));
                 }
                 catch (Exception ex)
                 {
@@ -562,18 +516,19 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
             try
             {
-                File.Delete(Path+GetProfileCfgFileName(profile));
+                File.Delete(Path + GetProfileCfgFileName(profile));
             }
             catch
-            { }
+            {
+            }
 
             CurrentProfileName = "default";
         }
 
-        public void RenameProfile(string oldName,string newName)
+        public void RenameProfile(string oldName, string newName)
         {
             InputConfigs[GetProfileCfgFileName(newName)] = InputConfigs[GetProfileCfgFileName(oldName)];
-            InputProfiles[GetProfileName(newName)]= InputProfiles[GetProfileName(oldName)];
+            InputProfiles[GetProfileName(newName)] = InputProfiles[GetProfileName(oldName)];
 
             InputConfigs.Remove(GetProfileCfgFileName(oldName));
             InputProfiles.Remove(GetProfileName(oldName));
@@ -587,15 +542,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
             try
             {
-                File.Delete(Path+GetProfileCfgFileName(oldName));
+                File.Delete(Path + GetProfileCfgFileName(oldName));
             }
             catch
-            { }
+            {
+            }
         }
 
         public void CopyProfile(string profileToCopy, string profileName)
         {
-            var config = Configuration.LoadFromFile(Path+GetProfileCfgFileName(profileToCopy));
+            var config = Configuration.LoadFromFile(Path + GetProfileCfgFileName(profileToCopy));
             InputConfigs[GetProfileCfgFileName(profileName)] = config;
 
             var inputProfile = new Dictionary<InputBinding, InputDevice>();
@@ -605,10 +561,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             {
                 var device = GetControlSetting(bind, config);
 
-                if (device != null)
-                {
-                    inputProfile[bind] = device;
-                }
+                if (device != null) inputProfile[bind] = device;
             }
 
             var profiles = InputProfiles.Keys.ToList();
@@ -616,11 +569,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
             CurrentProfileName = "default";
 
-            InputConfigs[GetProfileCfgFileName(profileName)].SaveToFile(Path+GetProfileCfgFileName(profileName));
-
+            InputConfigs[GetProfileCfgFileName(profileName)].SaveToFile(Path + GetProfileCfgFileName(profileName));
         }
-
-
-
     }
 }

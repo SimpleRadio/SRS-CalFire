@@ -19,30 +19,24 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels
         {
             var file = FindRadioFile(NormaliseString(radioName));
 
-            if (file != null)
-            {
-                return ReadFrequenciesFromFile(file);
-            }
+            if (file != null) return ReadFrequenciesFromFile(file);
 
             return new List<PresetChannel>();
         }
 
         private List<PresetChannel> ReadFrequenciesFromFile(string filePath)
         {
-            List<PresetChannel> channels = new List<PresetChannel>();
-            string[] lines = File.ReadAllLines(filePath);
+            var channels = new List<PresetChannel>();
+            var lines = File.ReadAllLines(filePath);
 
             const double MHz = 1000000;
             if (lines?.Length > 0)
-            {
                 foreach (var line in lines)
                 {
                     var trimmed = line.Trim();
                     if (trimmed.Length > 0)
-                    {
                         try
                         {
-                            
                             var frequencyText = "";
                             string channelName = null;
                             //spilt on | 
@@ -52,21 +46,19 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels
                                 frequencyText = spilt[1].Trim();
                                 channelName = spilt[0].Trim();
                             }
-                            
-                            var frequency = Double.Parse(frequencyText, CultureInfo.InvariantCulture);
+
+                            var frequency = double.Parse(frequencyText, CultureInfo.InvariantCulture);
                             channels.Add(new PresetChannel()
                             {
                                 Text = channelName ?? frequencyText, //use channel name if not null
-                                Value = frequency * MHz,
+                                Value = frequency * MHz
                             });
                         }
                         catch (Exception ex)
                         {
                             Logger.Log(LogLevel.Info, "Error parsing frequency  ");
                         }
-                    }
                 }
-            }
 
             return channels;
         }
@@ -79,11 +71,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels
             {
                 var name = Path.GetFileNameWithoutExtension(fileAndPath);
 
-                if (NormaliseString(name) == radioName)
-                {
-                    return fileAndPath;
-                }
+                if (NormaliseString(name) == radioName) return fileAndPath;
             }
+
             return null;
         }
 

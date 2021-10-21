@@ -27,15 +27,15 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
 
         private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
 
-        private Settings.GlobalSettingsStore _globalSettings = Settings.GlobalSettingsStore.Instance;
+        private GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
 
         public RadioOverlayWindow()
         {
             InitializeComponent();
 
-            this.WindowStartupLocation = WindowStartupLocation.Manual;
-            this.Left = _globalSettings.GetPositionSetting(GlobalSettingsKeys.AwacsX).DoubleValue;
-            this.Top = _globalSettings.GetPositionSetting(GlobalSettingsKeys.AwacsY).DoubleValue;
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Left = _globalSettings.GetPositionSetting(GlobalSettingsKeys.AwacsX).DoubleValue;
+            Top = _globalSettings.GetPositionSetting(GlobalSettingsKeys.AwacsY).DoubleValue;
 
             _aspectRatio = MinWidth / MinHeight;
 
@@ -73,7 +73,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
             RadioRefresh(null, null);
 
             //init radio refresh
-            _updateTimer = new DispatcherTimer {Interval = TimeSpan.FromMilliseconds(80)};
+            _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(80) };
             _updateTimer.Tick += RadioRefresh;
             _updateTimer.Start();
 
@@ -102,14 +102,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
 
             var playerRadioInfo = _clientStateSingleton.PlayerUnitState;
             if (playerRadioInfo != null)
-            {
                 if (_clientStateSingleton.IsConnected)
-                {
                     ToggleGlobalSimultaneousTransmissionButton.IsEnabled = true;
-
-                }
-                
-            }
         }
 
         private void WrapPanel_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -119,8 +113,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
 
         protected override void OnClosing(CancelEventArgs e)
         {
-            _globalSettings.SetPositionSetting(GlobalSettingsKeys.AwacsX,this.Left);
-            _globalSettings.SetPositionSetting(GlobalSettingsKeys.AwacsY, this.Top);
+            _globalSettings.SetPositionSetting(GlobalSettingsKeys.AwacsX, Left);
+            _globalSettings.SetPositionSetting(GlobalSettingsKeys.AwacsY, Top);
 
             base.OnClosing(e);
 
@@ -132,13 +126,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
             // Minimising a window without a taskbar icon leads to the window's menu bar still showing up in the bottom of screen
             // Since controls are unusable, but a very small portion of the always-on-top window still showing, we're closing it instead, similar to toggling the overlay
             if (_globalSettings.GetClientSettingBool(GlobalSettingsKeys.RadioOverlayTaskbarHide))
-            {
                 Close();
-            }
             else
-            {
                 WindowState = WindowState.Minimized;
-            }
         }
 
 
@@ -168,7 +158,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
             var yScale = ActualHeight / RadioOverlayWin.MinWidth;
             var xScale = ActualWidth / RadioOverlayWin.MinWidth;
             var value = Math.Max(xScale, yScale);
-            ScaleValue = (double) OnCoerceScaleValue(RadioOverlayWin, value);
+            ScaleValue = (double)OnCoerceScaleValue(RadioOverlayWin, value);
         }
 
         protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
@@ -195,7 +185,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
         {
             var mainWindow = o as RadioOverlayWindow;
             if (mainWindow != null)
-                return mainWindow.OnCoerceScaleValue((double) value);
+                return mainWindow.OnCoerceScaleValue((double)value);
             return value;
         }
 
@@ -203,7 +193,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
         {
             var mainWindow = o as RadioOverlayWindow;
             if (mainWindow != null)
-                mainWindow.OnScaleValueChanged((double) e.OldValue, (double) e.NewValue);
+                mainWindow.OnScaleValueChanged((double)e.OldValue, (double)e.NewValue);
         }
 
         protected virtual double OnCoerceScaleValue(double value)
@@ -221,40 +211,40 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
 
         public double ScaleValue
         {
-            get { return (double) GetValue(ScaleValueProperty); }
-            set { SetValue(ScaleValueProperty, value); }
+            get => (double)GetValue(ScaleValueProperty);
+            set => SetValue(ScaleValueProperty, value);
         }
 
         #endregion
 
         private void ToggleGlobalSimultaneousTransmissionButton_Click(object sender, RoutedEventArgs e)
         {
-            var dcsPlayerRadioInfo = _clientStateSingleton.PlayerUnitState;
-            if (dcsPlayerRadioInfo != null)
-            {
-                dcsPlayerRadioInfo.simultaneousTransmission = !dcsPlayerRadioInfo.simultaneousTransmission;
-
-                if (!dcsPlayerRadioInfo.simultaneousTransmission)
-                {
-                    foreach (var radio in dcsPlayerRadioInfo.Radios)
-                    {
-                        radio.SimultaneousTransmission = false;
-                    }
-                }
-
-                ToggleGlobalSimultaneousTransmissionButton.Content = _clientStateSingleton.PlayerUnitState.simultaneousTransmission ? "Simul. Transmission ON" : "Simul. Transmission OFF";
-                ToggleGlobalSimultaneousTransmissionButton.Foreground = _clientStateSingleton.PlayerUnitState.simultaneousTransmission ? new SolidColorBrush(Colors.Orange) : new SolidColorBrush(Colors.White);
-
-                foreach (var radio in radioControlGroup)
-                {
-                    if (!dcsPlayerRadioInfo.simultaneousTransmission)
-                    {
-                        radio.ToggleSimultaneousTransmissionButton.Foreground = new SolidColorBrush(Colors.White);
-                    }
-
-                    radio.RepaintRadioStatus();
-                }
-            }
+            // var dcsPlayerRadioInfo = _clientStateSingleton.PlayerUnitState;
+            // if (dcsPlayerRadioInfo != null)
+            // {
+            //     dcsPlayerRadioInfo.simultaneousTransmission = !dcsPlayerRadioInfo.simultaneousTransmission;
+            //
+            //     if (!dcsPlayerRadioInfo.simultaneousTransmission)
+            //         foreach (var radio in dcsPlayerRadioInfo.Radios)
+            //             radio.SimultaneousTransmission = false;
+            //
+            //     ToggleGlobalSimultaneousTransmissionButton.Content =
+            //         _clientStateSingleton.PlayerUnitState.simultaneousTransmission
+            //             ? "Simul. Transmission ON"
+            //             : "Simul. Transmission OFF";
+            //     ToggleGlobalSimultaneousTransmissionButton.Foreground =
+            //         _clientStateSingleton.PlayerUnitState.simultaneousTransmission
+            //             ? new SolidColorBrush(Colors.Orange)
+            //             : new SolidColorBrush(Colors.White);
+            //
+            //     foreach (var radio in radioControlGroup)
+            //     {
+            //         if (!dcsPlayerRadioInfo.simultaneousTransmission)
+            //             radio.ToggleSimultaneousTransmissionButton.Foreground = new SolidColorBrush(Colors.White);
+            //
+            //         radio.RepaintRadioStatus();
+            //     }
+            // }
         }
     }
 }

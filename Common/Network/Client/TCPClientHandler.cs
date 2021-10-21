@@ -19,7 +19,6 @@ namespace Ciribob.SRS.Common.Network.Client
 {
     public class TCPClientHandler
     {
-
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         private volatile bool _stop = false;
@@ -45,7 +44,7 @@ namespace Ciribob.SRS.Common.Network.Client
         public TCPClientHandler()
         {
             _clients.Clear();
-            this._guid = ClientStateSingleton.Instance.GUID;
+            _guid = ClientStateSingleton.Instance.GUID;
         }
 
         public void TryConnect(IPEndPoint endpoint)
@@ -55,13 +54,11 @@ namespace Ciribob.SRS.Common.Network.Client
             var tcpThread = new Thread(Connect);
             tcpThread.Start();
         }
-
-
         private void Connect()
         {
             _lastSent = DateTime.Now.Ticks;
 
-            bool connectionError = false;
+            var connectionError = false;
 
             using (_tcpClient = new TcpClient())
             {
@@ -71,11 +68,11 @@ namespace Ciribob.SRS.Common.Network.Client
                     _tcpClient.NoDelay = true;
 
                     // Wait for 10 seconds before aborting connection attempt - no SRS server running/port opened in that case
-                    _tcpClient.ConnectAsync(_serverEndpoint.Address, _serverEndpoint.Port).Wait(TimeSpan.FromSeconds(10));
+                    _tcpClient.ConnectAsync(_serverEndpoint.Address, _serverEndpoint.Port)
+                        .Wait(TimeSpan.FromSeconds(10));
 
                     if (_tcpClient.Connected)
                     {
-                       
                         _tcpClient.NoDelay = true;
 
                         ClientSyncLoop();
@@ -102,9 +99,8 @@ namespace Ciribob.SRS.Common.Network.Client
             MessageHubSingleton.Instance.Publish(new TCPClientStatusMessage(false));
         }
 
-        private void ClientRadioUpdated(PlayerUnitState state)
+        private void ClientRadioUpdated(PlayerUnitStateBase unitState)
         {
-           
             Logger.Debug("Sending Full Update to Server");
 
             var message = new NetworkMessage
@@ -112,47 +108,40 @@ namespace Ciribob.SRS.Common.Network.Client
                 Client = new SRClient
                 {
                     ClientGuid = _guid,
-                    UnitState = state
+                    UnitState = unitState
                 },
                 MsgType = NetworkMessage.MessageType.FULL_UPDATE
             };
 
-            var needValidPosition = _serverSettings.GetSettingAsBool(ServerSettingsKeys.DISTANCE_ENABLED) || _serverSettings.GetSettingAsBool(ServerSettingsKeys.LOS_ENABLED);
+            var needValidPosition = _serverSettings.GetSettingAsBool(ServerSettingsKeys.DISTANCE_ENABLED) ||
+                                    _serverSettings.GetSettingAsBool(ServerSettingsKeys.LOS_ENABLED);
             //TODO come back too
-            if (!needValidPosition)
-            {
-                message.Client.UnitState.LatLng = new LatLngPosition();
-            }
+            if (!needValidPosition) message.Client.UnitState.LatLng = new LatLngPosition();
 
             SendToServer(message);
-
-           
         }
 
-        private void ClientCoalitionUpdate(PlayerUnitState state)
+        private void ClientCoalitionUpdate(PlayerUnitStateBase unitState)
         {
-         
-            var message =  new NetworkMessage
+            var message = new NetworkMessage
             {
                 Client = new SRClient
                 {
                     ClientGuid = _guid,
-                    UnitState = state
+                    UnitState = unitState
                 },
                 MsgType = NetworkMessage.MessageType.PARTIAL_UPDATE
             };
 
-            var needValidPosition = _serverSettings.GetSettingAsBool(ServerSettingsKeys.DISTANCE_ENABLED) || _serverSettings.GetSettingAsBool(ServerSettingsKeys.LOS_ENABLED);
+            var needValidPosition = _serverSettings.GetSettingAsBool(ServerSettingsKeys.DISTANCE_ENABLED) ||
+                                    _serverSettings.GetSettingAsBool(ServerSettingsKeys.LOS_ENABLED);
             //TODO come back too
-            if (!needValidPosition)
-            {
-                message.Client.UnitState.LatLng = new LatLngPosition();
-            }
+            if (!needValidPosition) message.Client.UnitState.LatLng = new LatLngPosition();
 
             SendToServer(message);
         }
 
-    
+
         private void ClientSyncLoop()
         {
             //subscribe to disconnect
@@ -160,12 +149,15 @@ namespace Ciribob.SRS.Common.Network.Client
 
             //clear the clients list
             _clients.Clear();
-            int decodeErrors = 0; //if the JSON is unreadable - new version likely
+            var decodeErrors = 0; //if the JSON is unreadable - new version likely
 
             using (var reader = new StreamReader(_tcpClient.GetStream(), Encoding.UTF8))
             {
                 try
                 {
+                    //TODO switch to proxy for everything
+                    //TODO remove _clientstate and just pass in the initial state
+                    //then use broadcasts / events for the rest
                     var sideInfo = _clientState.PlayerUnitState;
                     //start the loop off by sending a SYNC Request
                     SendToServer(new NetworkMessage
@@ -175,20 +167,18 @@ namespace Ciribob.SRS.Common.Network.Client
                             ClientGuid = _guid,
                             UnitState = sideInfo
                         },
-                        MsgType = NetworkMessage.MessageType.SYNC,
+                        MsgType = NetworkMessage.MessageType.SYNC
                     });
 
                     var udpHandler = new UDPVoiceHandler(_guid, _serverEndpoint);
 
                     string line;
                     while ((line = reader.ReadLine()) != null)
-                    {
                         try
                         {
                             var serverMessage = JsonConvert.DeserializeObject<NetworkMessage>(line);
                             decodeErrors = 0; //reset counter
                             if (serverMessage != null)
-                            {
                                 //Logger.Debug("Received "+serverMessage.MsgType);
                                 switch (serverMessage.MsgType)
                                 {
@@ -199,21 +189,18 @@ namespace Ciribob.SRS.Common.Network.Client
                                     case NetworkMessage.MessageType.PARTIAL_UPDATE:
 
                                         if (serverMessage.ServerSettings != null)
-                                        {
                                             _serverSettings.Decode(serverMessage.ServerSettings);
-                                        }
 
                                         SRClient srClient;
                                         if (_clients.TryGetValue(serverMessage.Client.ClientGuid, out srClient))
                                         {
-                                            if(serverMessage.MsgType == NetworkMessage.MessageType.FULL_UPDATE)
-                                                HandleFullUpdate(serverMessage,srClient);
+                                            if (serverMessage.MsgType == NetworkMessage.MessageType.FULL_UPDATE)
+                                                HandleFullUpdate(serverMessage, srClient);
                                             else if (serverMessage.MsgType == NetworkMessage.MessageType.PARTIAL_UPDATE)
                                                 HandlePartialUpdate(serverMessage, srClient);
                                         }
                                         else
                                         {
-                                            
                                             var connectedClient = serverMessage.Client;
                                             connectedClient.LastUpdate = DateTime.Now.Ticks;
 
@@ -230,7 +217,6 @@ namespace Ciribob.SRS.Common.Network.Client
                                             //             " From: " +
                                             //             serverMessage.Client.Name + " Coalition: " +
                                             //             serverMessage.Client.Coalition);
-
                                         }
 
                                         srClient.LastUpdate = DateTime.Now.Ticks;
@@ -255,7 +241,8 @@ namespace Ciribob.SRS.Common.Network.Client
 
                                         if (serverVersion < protocolVersion)
                                         {
-                                            Logger.Error($"Server version ({serverMessage.Version}) older than minimum procotol version ({UpdaterChecker.MINIMUM_PROTOCOL_VERSION}) - disconnecting");
+                                            Logger.Error(
+                                                $"Server version ({serverMessage.Version}) older than minimum procotol version ({UpdaterChecker.MINIMUM_PROTOCOL_VERSION}) - disconnecting");
 
                                             ShowVersionMistmatchWarning(serverMessage.Version);
 
@@ -264,7 +251,6 @@ namespace Ciribob.SRS.Common.Network.Client
                                         }
 
                                         if (serverMessage.Clients != null)
-                                        {
                                             foreach (var client in serverMessage.Clients)
                                             {
                                                 client.LastUpdate = DateTime.Now.Ticks;
@@ -276,7 +262,7 @@ namespace Ciribob.SRS.Common.Network.Client
 
                                                 MessageHubSingleton.Instance.Publish(new SRClientUpdateMessage(client));
                                             }
-                                        }
+
                                         //add server settings
                                         _serverSettings.Decode(serverMessage.ServerSettings);
 
@@ -294,34 +280,30 @@ namespace Ciribob.SRS.Common.Network.Client
                                         _clients.TryRemove(serverMessage.Client.ClientGuid, out outClient);
 
                                         if (outClient != null)
-                                        {
-                                            MessageHubSingleton.Instance.Publish(new SRClientUpdateMessage(outClient,false));
-                                        }
+                                            MessageHubSingleton.Instance.Publish(
+                                                new SRClientUpdateMessage(outClient, false));
 
                                         break;
                                     case NetworkMessage.MessageType.VERSION_MISMATCH:
-                                        Logger.Error($"Version Mismatch Between Client ({UpdaterChecker.VERSION}) & Server ({serverMessage.Version}) - Disconnecting");
+                                        Logger.Error(
+                                            $"Version Mismatch Between Client ({UpdaterChecker.VERSION}) & Server ({serverMessage.Version}) - Disconnecting");
 
                                         ShowVersionMistmatchWarning(serverMessage.Version);
 
                                         Disconnect();
                                         break;
                                     case NetworkMessage.MessageType.EXTERNAL_AWACS_MODE_PASSWORD:
-                                       
+
                                         break;
                                     default:
                                         Logger.Error("Recevied unknown " + line);
                                         break;
                                 }
-                            }
                         }
                         catch (Exception ex)
                         {
                             decodeErrors++;
-                            if (!_stop)
-                            {
-                                Logger.Error(ex, "Client exception reading from socket ");
-                            }
+                            if (!_stop) Logger.Error(ex, "Client exception reading from socket ");
 
                             if (decodeErrors > MAX_DECODE_ERRORS)
                             {
@@ -331,15 +313,11 @@ namespace Ciribob.SRS.Common.Network.Client
                             }
                         }
 
-                        // do something with line
-                    }
+                    // do something with line
                 }
                 catch (Exception ex)
                 {
-                    if (!_stop)
-                    {
-                        Logger.Error(ex, "Client exception reading - Disconnecting ");
-                    }
+                    if (!_stop) Logger.Error(ex, "Client exception reading - Disconnecting ");
                 }
             }
 
@@ -360,7 +338,6 @@ namespace Ciribob.SRS.Common.Network.Client
             client.UnitState.Coalition = client.UnitState.Coalition;
             client.UnitState.LatLng = client.UnitState.LatLng;
             client.UnitState.Name = client.UnitState.Name;
-
         }
 
         private void HandleFullUpdate(NetworkMessage networkMessage, SRClient client)
@@ -368,7 +345,6 @@ namespace Ciribob.SRS.Common.Network.Client
             var updatedSrClient = networkMessage.Client;
             //TODO change to internal proxy
             client.UnitState = updatedSrClient.UnitState;
-
         }
 
         private void ShowVersionMistmatchWarning(string serverVersion)
@@ -393,9 +369,7 @@ namespace Ciribob.SRS.Common.Network.Client
                 var json = message.Encode();
 
                 if (message.MsgType == NetworkMessage.MessageType.FULL_UPDATE)
-                {
-                    Logger.Debug("Sending Radio Update To Server: "+ (json));
-                }
+                    Logger.Debug("Sending Radio Update To Server: " + json);
 
                 var bytes = Encoding.UTF8.GetBytes(json);
                 _tcpClient.GetStream().Write(bytes, 0, bytes.Length);
@@ -403,10 +377,7 @@ namespace Ciribob.SRS.Common.Network.Client
             }
             catch (Exception ex)
             {
-                if (!_stop)
-                {
-                    Logger.Error(ex, "Client exception sending to server");
-                }
+                if (!_stop) Logger.Error(ex, "Client exception sending to server");
 
                 Disconnect();
             }
@@ -415,11 +386,8 @@ namespace Ciribob.SRS.Common.Network.Client
         //implement IDispose? To close stuff properly?
         public void Disconnect()
         {
-            foreach (var token in _subscriptions)
-            {
-                MessageHubSingleton.Instance.Unsubscribe(token);
-            }
-          
+            foreach (var token in _subscriptions) MessageHubSingleton.Instance.Unsubscribe(token);
+
             _stop = true;
 
             _lastSent = DateTime.Now.Ticks;

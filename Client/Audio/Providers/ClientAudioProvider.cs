@@ -34,9 +34,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         //used for comparison
-        public static readonly short FM = Convert.ToInt16((int)RadioConfig.Modulation.FM);
-        public static readonly short HQ = Convert.ToInt16((int)RadioConfig.Modulation.HAVEQUICK);
-        public static readonly short AM = Convert.ToInt16((int)RadioConfig.Modulation.AM);
+        public static readonly short FM = Convert.ToInt16((int)Modulation.FM);
+        public static readonly short HQ = Convert.ToInt16((int)Modulation.HAVEQUICK);
+        public static readonly short AM = Convert.ToInt16((int)Modulation.AM);
 
         private static readonly double HQ_RESET_CHANCE = 0.8;
 
@@ -88,7 +88,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
 
             _highPassFilter = BiQuadFilter.HighPassFilter(AudioManager.OUTPUT_SAMPLE_RATE, 520, 0.97f);
             _lowPassFilter = BiQuadFilter.LowPassFilter(AudioManager.OUTPUT_SAMPLE_RATE, 4130, 2.0f);
-
         }
 
         public JitterBufferProviderInterface JitterBufferProviderInterface { get; }
@@ -99,17 +98,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
         //is it a new transmission?
         public bool LikelyNewTransmission()
         {
-            if (passThrough)
-            {
-                return false;
-            }
+            if (passThrough) return false;
 
             //400 ms since last update
-            long now = DateTime.Now.Ticks;
-            if ((now - LastUpdate) > 4000000) //400 ms since last update
-            {
+            var now = DateTime.Now.Ticks;
+            if (now - LastUpdate > 4000000) //400 ms since last update
                 return true;
-            }
 
             return false;
         }
@@ -120,7 +114,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
             //            var timer = new Stopwatch();
             //            timer.Start();
 
-            bool newTransmission = LikelyNewTransmission();
+            var newTransmission = LikelyNewTransmission();
 
             var decoded = _decoder.Decode(audio.EncodedAudio,
                 audio.EncodedAudio.Length, out var decodedLength, newTransmission);
@@ -140,7 +134,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
             audio.PcmAudioShort = ConversionHelpers.ByteArrayToShortArray(tmp);
 
             //only get settings every 3 seconds - and cache them - issues with performance
-            long now = DateTime.Now.Ticks;
+            var now = DateTime.Now.Ticks;
 
             if (TimeSpan.FromTicks(now - lastRefresh).TotalSeconds > 3) //3 seconds since last refresh
             {
@@ -159,17 +153,15 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
                 vhfVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.VHFNoiseVolume);
             }
 
-        
+
             //adjust for LOS + Distance + Volume
             AdjustVolumeForLoss(audio);
 
             if (audio.ReceivedRadio == 0
-                || audio.Modulation == (short)RadioConfig.Modulation.MIDS)
+                || audio.Modulation == (short)Modulation.MIDS)
             {
                 if (profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects))
-                {
                     AddRadioEffectIntercom(audio);
-                }
             }
             else
             {
@@ -183,7 +175,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
             {
                 // System.Diagnostics.Debug.WriteLine(audio.ClientGuid+"ADDED");
                 //append ms of silence - this functions as our jitter buffer??
-                var silencePad = (AudioManager.OUTPUT_SAMPLE_RATE / 1000) * SILENCE_PAD;
+                var silencePad = AudioManager.OUTPUT_SAMPLE_RATE / 1000 * SILENCE_PAD;
 
                 var newAudio = new short[audio.PcmAudioShort.Length + silencePad];
 
@@ -218,7 +210,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
 
         private void AdjustVolume(ClientAudio clientAudio)
         {
-
             var audio = clientAudio.PcmAudioShort;
             for (var i = 0; i < audio.Length; i++)
             {
@@ -254,15 +245,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
                     mixedAudio[i] = (short)(audio * 32767);
                 }
             }
-
         }
 
         private void AdjustVolumeForLoss(ClientAudio clientAudio)
         {
-            if (clientAudio.Modulation == (short)RadioConfig.Modulation.MIDS || clientAudio.Modulation == (short)RadioConfig.Modulation.SATCOM)
-            {
-                return;
-            }
+            if (clientAudio.Modulation == (short)Modulation.MIDS ||
+                clientAudio.Modulation == (short)Modulation.SATCOM) return;
 
             var audio = clientAudio.PcmAudioShort;
             for (var i = 0; i < audio.Length; i++)
@@ -272,16 +260,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
                 //add in radio loss
                 //if less than loss reduce volume
                 if (clientAudio.RecevingPower > 0.85) // less than 20% or lower left
-                {
                     //gives linear signal loss from 15% down to 0%
                     speaker1Short = (short)(speaker1Short * (1.0f - clientAudio.RecevingPower));
-                }
 
                 //0 is no loss so if more than 0 reduce volume
                 if (clientAudio.LineOfSightLoss > 0)
-                {
                     speaker1Short = (short)(speaker1Short * (1.0f - clientAudio.LineOfSightLoss));
-                }
 
                 audio[i] = speaker1Short;
             }
@@ -300,24 +284,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
                     if (clippingEnabled)
                     {
                         if (audio > RadioFilter.CLIPPING_MAX)
-                        {
                             audio = RadioFilter.CLIPPING_MAX;
-                        }
-                        else if (audio < RadioFilter.CLIPPING_MIN)
-                        {
-                            audio = RadioFilter.CLIPPING_MIN;
-                        }
+                        else if (audio < RadioFilter.CLIPPING_MIN) audio = RadioFilter.CLIPPING_MIN;
                     }
 
                     //high and low pass filter
-                    for (int j = 0; j < _filters.Length; j++)
+                    for (var j = 0; j < _filters.Length; j++)
                     {
                         var filter = _filters[j];
                         audio = filter.ProcessSample(audio);
-                        if (double.IsNaN(audio))
-                        {
-                            audio = (double)mixedAudio[i] / 32768f;
-                        }
+                        if (double.IsNaN(audio)) audio = (double)mixedAudio[i] / 32768f;
 
                         audio *= RadioFilter.BOOST;
                     }
@@ -328,22 +304,19 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
                     && natoToneEnabled)
                 {
                     var natoTone = effectProvider.NATOTone.AudioEffectDouble;
-                    audio += ((double)(natoTone[natoPosition]) * natoToneVolume);
+                    audio += (double)natoTone[natoPosition] * natoToneVolume;
                     natoPosition++;
 
-                    if (natoPosition == natoTone.Length)
-                    {
-                        natoPosition = 0;
-                    }
+                    if (natoPosition == natoTone.Length) natoPosition = 0;
                 }
 
                 if (clientAudio.Modulation == HQ
-                     && effectProvider.HAVEQUICKTone.Loaded
-                     && hqToneEnabled)
+                    && effectProvider.HAVEQUICKTone.Loaded
+                    && hqToneEnabled)
                 {
                     var hqTone = effectProvider.HAVEQUICKTone.AudioEffectDouble;
 
-                    audio += ((double)(hqTone[hqTonePosition]) * hqToneVolume);
+                    audio += (double)hqTone[hqTonePosition] * hqToneVolume;
                     hqTonePosition++;
 
                     if (hqTonePosition == hqTone.Length)
@@ -351,14 +324,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
                         var reset = _random.NextDouble();
 
                         if (reset > HQ_RESET_CHANCE)
-                        {
                             hqTonePosition = 0;
-                        }
                         else
-                        {
                             //one back to try again
                             hqTonePosition += -1;
-                        }
                     }
                 }
 
@@ -387,13 +356,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
                         {
                             var noise = effectProvider.UHFNoise.AudioEffectDouble;
                             //UHF Band?
-                            audio += ((noise[uhfNoisePosition]) * uhfVol);
+                            audio += noise[uhfNoisePosition] * uhfVol;
                             uhfNoisePosition++;
 
-                            if (uhfNoisePosition == noise.Length)
-                            {
-                                uhfNoisePosition = 0;
-                            }
+                            if (uhfNoisePosition == noise.Length) uhfNoisePosition = 0;
                         }
                     }
                     else if (clientAudio.Frequency > 80d * 1000000)
@@ -402,13 +368,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
                         {
                             //VHF Band? - Very rough
                             var noise = effectProvider.VHFNoise.AudioEffectDouble;
-                            audio += ((double)(noise[vhfNoisePosition]) * vhfVol);
+                            audio += (double)noise[vhfNoisePosition] * vhfVol;
                             vhfNoisePosition++;
 
-                            if (vhfNoisePosition == noise.Length)
-                            {
-                                vhfNoisePosition = 0;
-                            }
+                            if (vhfNoisePosition == noise.Length) vhfNoisePosition = 0;
                         }
                     }
                     else
@@ -417,13 +380,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
                         {
                             //HF!
                             var noise = effectProvider.HFNoise.AudioEffectDouble;
-                            audio += ((double)(noise[hfNoisePosition]) * hfVol);
+                            audio += (double)noise[hfNoisePosition] * hfVol;
                             hfNoisePosition++;
 
-                            if (hfNoisePosition == noise.Length)
-                            {
-                                hfNoisePosition = 0;
-                            }
+                            if (hfNoisePosition == noise.Length) hfNoisePosition = 0;
                         }
                     }
                 }
@@ -431,18 +391,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
                 {
                     if (effectProvider.FMNoise.Loaded)
                     {
-
                         //FM picks up most of the 20-60 ish range + has a different effect
                         //HF!
                         var noise = effectProvider.FMNoise.AudioEffectDouble;
                         //UHF Band?
-                        audio += ((double)(noise[fmNoisePosition]) * fmVol);
+                        audio += (double)noise[fmNoisePosition] * fmVol;
                         fmNoisePosition++;
 
-                        if (fmNoisePosition == noise.Length)
-                        {
-                            fmNoisePosition = 0;
-                        }
+                        if (fmNoisePosition == noise.Length) fmNoisePosition = 0;
                     }
                 }
             }
@@ -455,10 +411,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
         {
             var mixedAudio = clientAudio.PcmAudioShort;
 
-            for (var i = 0; i < mixedAudio.Length; i++)
-            {
-                mixedAudio[i] = RandomShort();
-            }
+            for (var i = 0; i < mixedAudio.Length; i++) mixedAudio[i] = RandomShort();
         }
 
         private short RandomShort()
@@ -473,6 +426,5 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
             _decoder.Dispose();
             _decoder = null;
         }
-
     }
 }

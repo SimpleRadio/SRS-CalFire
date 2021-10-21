@@ -11,15 +11,16 @@
             INVALID_SERVER,
             USER_DISCONNECTED
         }
+
         public TCPClientStatusMessage(bool connected)
         {
-            this.Connected = connected;
+            Connected = connected;
         }
 
         public TCPClientStatusMessage(bool connected, ErrorCode error)
         {
             Error = error;
-            this.Connected = connected;
+            Connected = connected;
         }
 
         public bool Connected { get; }

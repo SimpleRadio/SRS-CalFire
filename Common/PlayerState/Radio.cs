@@ -2,22 +2,18 @@
 using System.Collections.Generic;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels;
 using Ciribob.SRS.Common.Helpers;
+using Ciribob.SRS.Common.Network.Proxies;
 using Ciribob.SRS.Common.PlayerState;
 using Newtonsoft.Json;
 
 namespace Ciribob.SRS.Common
 {
-    public class Radio
+    public class Radio:RadioBase
     {
         public RadioConfig Config { get; set; } = new RadioConfig();
 
         public bool Encrypted { get; set; } = false;
         public byte EncryptionKey { get; set; } = 0;
-
-        public double Frequency { get; set; } = 1;
-        public RadioConfig.Modulation Modulation { get; set; } = RadioConfig.Modulation.DISABLED;
-        public string Name { get; set; } = "";
-        public double SecondaryFrequency { get; set; } = 1;
 
         //should the radio restransmit?
         public bool Retransmit { get; set; } = false;
@@ -33,56 +29,28 @@ namespace Ciribob.SRS.Common
          * We only need to do that if something that would stop us Receiving happens which
          * is frequencies and modulation
          */
-
         public bool Available()
         {
-            return Modulation != RadioConfig.Modulation.DISABLED;
+            return Modulation != Modulation.DISABLED;
         }
 
         public override bool Equals(object obj)
         {
-            if ((obj == null) || (GetType() != obj.GetType()))
+            if (obj == null || GetType() != obj.GetType())
                 return false;
 
-            var compare = (Radio) obj;
+            var compare = (Radio)obj;
 
-            if (!Name.Equals(compare.Name))
-            {
-                return false;
-            }
-            if (!PlayerUnitState.FreqCloseEnough(Frequency , compare.Frequency))
-            {
-                return false;
-            }
-            if (Modulation != compare.Modulation)
-            {
-                return false;
-            }
-            if (Encrypted != compare.Encrypted)
-            {
-                return false;
-            }
-            if (EncryptionKey != compare.EncryptionKey)
-            {
-                return false;
-            }
-            if (Retransmit != compare.Retransmit)
-            {
-                return false;
-            }
-            if (!PlayerUnitState.FreqCloseEnough(SecondaryFrequency, compare.SecondaryFrequency))
-            {
-                return false;
-            }
+            if (!Name.Equals(compare.Name)) return false;
+            if (!PlayerUnitState.FreqCloseEnough(Frequency, compare.Frequency)) return false;
+            if (Modulation != compare.Modulation) return false;
+            if (Encrypted != compare.Encrypted) return false;
+            if (EncryptionKey != compare.EncryptionKey) return false;
+            if (Retransmit != compare.Retransmit) return false;
+            if (!PlayerUnitState.FreqCloseEnough(SecondaryFrequency, compare.SecondaryFrequency)) return false;
 
-            if (Config != null && compare.Config == null)
-            {
-                return false;
-            }
-            if (Config == null && compare.Config != null)
-            {
-                return false;
-            }
+            if (Config != null && compare.Config == null) return false;
+            if (Config == null && compare.Config != null) return false;
 
             return Config.Equals(compare.Config);
         }
@@ -92,18 +60,17 @@ namespace Ciribob.SRS.Common
             //probably can use memberswise clone
             return new Radio()
             {
-                CurrentChannel = this.CurrentChannel,
-                Encrypted = this.Encrypted,
-                EncryptionKey = this.EncryptionKey,
-                Frequency = this.Frequency,
-                Modulation = this.Modulation,
-                SecondaryFrequency = this.SecondaryFrequency,
-                Name = this.Name,
-                SimultaneousTransmission = this.SimultaneousTransmission,
-                Volume = this.Volume,
-                Retransmit = this.Retransmit,
-                Config = this.Config?.DeepCopy()
-
+                CurrentChannel = CurrentChannel,
+                Encrypted = Encrypted,
+                EncryptionKey = EncryptionKey,
+                Frequency = Frequency,
+                Modulation = Modulation,
+                SecondaryFrequency = SecondaryFrequency,
+                Name = Name,
+                SimultaneousTransmission = SimultaneousTransmission,
+                Volume = Volume,
+                Retransmit = Retransmit,
+                Config = Config?.DeepCopy()
             };
         }
 
@@ -111,7 +78,7 @@ namespace Ciribob.SRS.Common
         {
             unchecked
             {
-                var hashCode = (Config != null ? Config.GetHashCode() : 0);
+                var hashCode = Config != null ? Config.GetHashCode() : 0;
                 hashCode = (hashCode * 397) ^ Encrypted.GetHashCode();
                 hashCode = (hashCode * 397) ^ EncryptionKey.GetHashCode();
                 hashCode = (hashCode * 397) ^ Frequency.GetHashCode();

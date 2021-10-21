@@ -11,7 +11,7 @@ using NAudio.Wave;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
 {
-    public class CachedLoopingNatoToneAudioProvider:IWaveProvider
+    public class CachedLoopingNatoToneAudioProvider : IWaveProvider
     {
         private int _position = 0;
 
@@ -20,36 +20,31 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
 
         public CachedLoopingNatoToneAudioProvider(IWaveProvider source, WaveFormat waveFormat)
         {
-
-            this.WaveFormat = waveFormat;
+            WaveFormat = waveFormat;
             var effectDouble = CachedAudioEffectProvider.Instance.NATOTone.AudioEffectDouble;
 
             _audioEffectShort = new short[effectDouble.Length];
-            for (int i = 0; i < effectDouble.Length; i++)
-            {
-                _audioEffectShort[i] = (short) (effectDouble[i] * 32768f);
-            }
+            for (var i = 0; i < effectDouble.Length; i++) _audioEffectShort[i] = (short)(effectDouble[i] * 32768f);
 
 
             this.source = source;
         }
 
         public WaveFormat WaveFormat { get; }
+
         public int Read(byte[] buffer, int offset, int count)
         {
-            int read = source.Read(buffer, offset, count);
+            var read = source.Read(buffer, offset, count);
 
-            if (!GlobalSettingsStore.Instance.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.NATOTone) || _audioEffectShort == null)
-            {
-                return read;
-            }
+            if (!GlobalSettingsStore.Instance.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.NATOTone) ||
+                _audioEffectShort == null) return read;
 
             var effectBytes = GetEffect(read / 2);
 
             //mix together
-            for (int i = 0; i < read / 2; i++)
+            for (var i = 0; i < read / 2; i++)
             {
-                short audio = ConversionHelpers.ToShort(buffer[(offset + i) * 2], buffer[((i + offset) * 2) + 1]);
+                var audio = ConversionHelpers.ToShort(buffer[(offset + i) * 2], buffer[(i + offset) * 2 + 1]);
 
                 audio = (short)(audio + effectBytes[i]);
 
@@ -60,7 +55,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
                 ConversionHelpers.FromShort(audio, out byte1, out byte2);
 
                 buffer[(offset + i) * 2] = byte1;
-                buffer[((i + offset) * 2) + 1] = byte2;
+                buffer[(i + offset) * 2 + 1] = byte2;
             }
 
             return read;
@@ -68,7 +63,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
 
         private short[] GetEffect(int count)
         {
-            short[] loopedEffect = new short[count];
+            var loopedEffect = new short[count];
 
             var i = 0;
             while (i < count)
@@ -76,10 +71,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
                 loopedEffect[i] = _audioEffectShort[_position];
                 _position++;
 
-                if (_position == _audioEffectShort.Length)
-                {
-                    _position = 0;
-                }
+                if (_position == _audioEffectShort.Length) _position = 0;
 
                 i++;
             }

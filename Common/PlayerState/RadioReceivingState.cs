@@ -8,8 +8,7 @@ namespace Ciribob.SRS.Common
 {
     public class RadioReceivingState
     {
-        [JsonIgnore]
-        public long LastReceviedAt { get; set; }
+        [JsonIgnore] public long LastReceviedAt { get; set; }
 
         public bool IsSecondary { get; set; }
         public bool IsSimultaneous { get; set; }
@@ -19,12 +18,6 @@ namespace Ciribob.SRS.Common
 
         public string SentBy { get; set; }
 
-        public bool IsReceiving
-        {
-            get
-            {
-                return (DateTime.Now.Ticks - LastReceviedAt) < 3500000;
-            }
-        }
+        public bool IsReceiving => DateTime.Now.Ticks - LastReceviedAt < 3500000;
     }
 }

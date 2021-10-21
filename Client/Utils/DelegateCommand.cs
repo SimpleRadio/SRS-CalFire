@@ -10,38 +10,24 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 
         public DelegateCommand(Action action, Func<bool> canExecute = null)
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
+            if (action == null) throw new ArgumentNullException(nameof(action));
             _action = _ => action();
 
             if (canExecute == null)
-            {
                 _canExecute = _ => true;
-            }
             else
-            {
                 _canExecute = _ => canExecute();
-            }
         }
 
         public DelegateCommand(Action<object> action, Func<object, bool> canExecute = null)
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
+            if (action == null) throw new ArgumentNullException(nameof(action));
             _action = action;
 
             if (canExecute == null)
-            {
                 _canExecute = _ => true;
-            }
             else
-            {
                 _canExecute = canExecute;
-            }
         }
 
         public bool CanExecute(object parameter)

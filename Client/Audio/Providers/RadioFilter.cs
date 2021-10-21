@@ -14,7 +14,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.DSP
         private OnlineFilter[] _filters;
         //    private Stopwatch _stopwatch;
 
-        private Settings.GlobalSettingsStore _globalSettings = Settings.GlobalSettingsStore.Instance;
+        private GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
 
         public RadioFilter(ISampleProvider sampleProvider)
         {
@@ -40,45 +40,32 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.DSP
                 4500);
         }
 
-        public WaveFormat WaveFormat
-        {
-            get { return _source.WaveFormat; }
-        }
+        public WaveFormat WaveFormat => _source.WaveFormat;
 
         public static readonly float BOOST = 1.5f;
         public static readonly float CLIPPING_MAX = 4000 / 32768f;
-        public static readonly float CLIPPING_MIN = (4000 / 32768f)*-1;
+        public static readonly float CLIPPING_MIN = 4000 / 32768f * -1;
 
         public int Read(float[] buffer, int offset, int sampleCount)
         {
             var samplesRead = _source.Read(buffer, offset, sampleCount);
-            if (!_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEffects) || samplesRead <= 0)
-            {
-                return samplesRead;
-            }
+            if (!_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEffects) ||
+                samplesRead <= 0) return samplesRead;
 
             for (var n = 0; n < sampleCount; n++)
             {
-                var audio = (double) buffer[offset + n];
-                if (audio == 0)
-                {
-                    continue;
-                }
+                var audio = (double)buffer[offset + n];
+                if (audio == 0) continue;
                 // because we have silence in one channel (if a user picks radio left or right ear) we don't want to transform it or it'll play in both
 
                 if (_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping))
                 {
                     if (audio > CLIPPING_MAX)
-                    {
                         audio = CLIPPING_MAX;
-                    }
-                    else if (audio < CLIPPING_MIN)
-                    {
-                        audio = CLIPPING_MIN;
-                    }
+                    else if (audio < CLIPPING_MIN) audio = CLIPPING_MIN;
                 }
 
-                for (int i = 0; i < _filters.Length; i++)
+                for (var i = 0; i < _filters.Length; i++)
                 {
                     var filter = _filters[i];
                     audio = filter.ProcessSample(audio);
@@ -86,7 +73,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.DSP
                     if (double.IsNaN(audio))
                         audio = buffer[offset + n];
                 }
-                buffer[offset + n] = (float) audio * BOOST;
+
+                buffer[offset + n] = (float)audio * BOOST;
             }
 
             //   Console.WriteLine("Read:"+samplesRead+" Time - " + _stopwatch.ElapsedMilliseconds);

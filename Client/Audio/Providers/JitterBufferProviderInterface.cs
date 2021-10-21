@@ -39,7 +39,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
 
         public int Read(byte[] buffer, int offset, int count)
         {
-            int now = Environment.TickCount;
+            var now = Environment.TickCount;
 
             //other implementation of waiting
 //            if(_delayedUntil > now)
@@ -83,7 +83,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
                             _bufferedAudio.RemoveFirst();
 
                             if (_lastRead == 0)
+                            {
                                 _lastRead = audio.PacketNumber;
+                            }
                             else
                             {
                                 //TODO deal with looping packet number
@@ -100,11 +102,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
                                         var fill = Math.Min(missing, 4);
 
                                         for (var i = 0; i < (int)fill; i++)
-                                        {
                                             _circularBuffer.Write(_silence, 0, _silence.Length);
-                                        }
                                     }
-                                  
                                 }
 
                                 _lastRead = audio.PacketNumber;
@@ -137,8 +136,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
                     _bufferedAudio.AddFirst(jitterBufferAudio);
                 }
                 else if (jitterBufferAudio.PacketNumber > _lastRead)
-                { 
-                    var time = _bufferedAudio.Count * AudioManager.OUTPUT_AUDIO_LENGTH_MS; // this isnt quite true as there can be padding audio but good enough
+                {
+                    var time = _bufferedAudio.Count *
+                               AudioManager
+                                   .OUTPUT_AUDIO_LENGTH_MS; // this isnt quite true as there can be padding audio but good enough
 
                     if (time > MAXIMUM_BUFFER_SIZE_MS)
                     {
@@ -161,10 +162,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
                         var next = it.Next;
 
                         if (it.Value.PacketNumber == jitterBufferAudio.PacketNumber)
-                        {
                             //discard! Duplicate packet
                             return;
-                        }
 
                         if (jitterBufferAudio.PacketNumber < it.Value.PacketNumber)
                         {
@@ -172,8 +171,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
                             return;
                         }
 
-                        if ((jitterBufferAudio.PacketNumber > it.Value.PacketNumber) &&
-                            ((next == null) || (jitterBufferAudio.PacketNumber < next.Value.PacketNumber)))
+                        if (jitterBufferAudio.PacketNumber > it.Value.PacketNumber &&
+                            (next == null || jitterBufferAudio.PacketNumber < next.Value.PacketNumber))
                         {
                             _bufferedAudio.AddAfter(it, jitterBufferAudio);
                             return;

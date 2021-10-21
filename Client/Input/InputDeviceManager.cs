@@ -46,24 +46,22 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             new Guid("204303eb-0000-0000-0000-504944564944"), // VPC Stick
             new Guid("205403eb-0000-0000-0000-504944564944"), // VPC Throttle
             new Guid("205603eb-0000-0000-0000-504944564944"), // VPC Throttle
-            new Guid("205503eb-0000-0000-0000-504944564944")  // VPC Throttle
-
+            new Guid("205503eb-0000-0000-0000-504944564944") // VPC Throttle
         };
 
         private readonly DirectInput _directInput;
         private readonly Dictionary<Guid, Device> _inputDevices = new Dictionary<Guid, Device>();
-        private readonly MainWindow.ToggleOverlayCallback _toggleOverlayCallback;
 
         private volatile bool _detectPtt;
 
         //used to trigger the update to a frequency
-        private InputBinding _lastActiveBinding = InputBinding.ModifierIntercom
-            ; //intercom used to represent null as we cant
+        private InputBinding
+            _lastActiveBinding = InputBinding.ModifierIntercom; //intercom used to represent null as we cant
 
-        private Settings.GlobalSettingsStore _globalSettings = Settings.GlobalSettingsStore.Instance;
+        private GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
 
 
-        public InputDeviceManager(Window window, MainWindow.ToggleOverlayCallback _toggleOverlayCallback)
+        public InputDeviceManager(Window window)
         {
             _directInput = new DirectInput();
 
@@ -71,21 +69,18 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             WindowHelper =
                 new WindowInteropHelper(window);
 
-            this._toggleOverlayCallback = _toggleOverlayCallback;
 
             LoadWhiteList();
 
             LoadBlackList();
 
             InitDevices();
-
-
         }
 
         public void InitDevices()
         {
             Logger.Info("Starting Device Search. Expand Search: " +
-            (_globalSettings.GetClientSettingBool(GlobalSettingsKeys.ExpandControls)));
+                        _globalSettings.GetClientSettingBool(GlobalSettingsKeys.ExpandControls));
 
             var deviceInstances = _directInput.GetDevices();
 
@@ -95,8 +90,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                 if (IsBlackListed(deviceInstance.ProductGuid))
                 {
                     Logger.Info("Found but ignoring blacklist device  " + deviceInstance.ProductGuid + " Instance: " +
-                        deviceInstance.InstanceGuid + " " +
-                        deviceInstance.ProductName.Trim().Replace("\0", "") + " Type: " + deviceInstance.Type);
+                                deviceInstance.InstanceGuid + " " +
+                                deviceInstance.ProductName.Trim().Replace("\0", "") + " Type: " + deviceInstance.Type);
                     continue;
                 }
 
@@ -116,7 +111,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
                 if (deviceInstance.Type == DeviceType.Keyboard)
                 {
-
                     Logger.Info("Adding Device ID:" + deviceInstance.ProductGuid +
                                 " " +
                                 deviceInstance.ProductName.Trim().Replace("\0", ""));
@@ -140,9 +134,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
                     _inputDevices.Add(deviceInstance.InstanceGuid, device);
                 }
-                else if (((deviceInstance.Type >= DeviceType.Joystick) &&
-                            (deviceInstance.Type <= DeviceType.FirstPerson)) ||
-                            IsWhiteListed(deviceInstance.ProductGuid))
+                else if (deviceInstance.Type >= DeviceType.Joystick &&
+                         deviceInstance.Type <= DeviceType.FirstPerson ||
+                         IsWhiteListed(deviceInstance.ProductGuid))
                 {
                     var device = new Joystick(_directInput, deviceInstance.InstanceGuid);
 
@@ -198,18 +192,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                 return;
             }
 
-            string[] lines = File.ReadAllLines(path);
-            if (lines?.Length <= 0)
-            {
-                return;
-
-            }
+            var lines = File.ReadAllLines(path);
+            if (lines?.Length <= 0) return;
 
             foreach (var line in lines)
             {
                 var trimmed = line.Trim();
                 if (trimmed.Length > 0)
-                {
                     try
                     {
                         _hashSet.Add(new Guid(trimmed));
@@ -218,7 +207,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                     catch (Exception ex)
                     {
                     }
-                }
             }
         }
 
@@ -229,13 +217,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         {
             StopPtt();
             foreach (var kpDevice in _inputDevices)
-            {
                 if (kpDevice.Value != null)
                 {
                     kpDevice.Value.Unacquire();
                     kpDevice.Value.Dispose();
                 }
-            }
         }
 
         public bool IsBlackListed(Guid device)
@@ -259,10 +245,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
                 for (var i = 0; i < deviceList.Count; i++)
                 {
-                    if (deviceList[i] == null || deviceList[i].IsDisposed)
-                    {
-                        continue;
-                    }
+                    if (deviceList[i] == null || deviceList[i].IsDisposed) continue;
 
                     try
                     {
@@ -272,16 +255,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
                             var state = (deviceList[i] as Joystick).GetCurrentState();
 
-                            for (var j = 0; j < state.Buttons.Length; j++)
-                            {
-                                initial[i, j] = state.Buttons[j] ? 1 : 0;
-                            }
+                            for (var j = 0; j < state.Buttons.Length; j++) initial[i, j] = state.Buttons[j] ? 1 : 0;
                             var pov = state.PointOfViewControllers;
 
-                            for (var j = 0; j < pov.Length; j++)
-                            {
-                                initial[i, j + 128] = pov[j];
-                            }
+                            for (var j = 0; j < pov.Length; j++) initial[i, j + 128] = pov[j];
                         }
                         else if (deviceList[i] is Keyboard)
                         {
@@ -289,10 +266,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                             keyboard.Poll();
                             var state = keyboard.GetCurrentState();
 
-                            for (var j = 0; j < 128; j++)
-                            {
-                                initial[i, j] = state.IsPressed(state.AllKeys[j]) ? 1 : 0;
-                            }
+                            for (var j = 0; j < 128; j++) initial[i, j] = state.IsPressed(state.AllKeys[j]) ? 1 : 0;
                         }
                         else if (deviceList[i] is Mouse)
                         {
@@ -301,15 +275,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
                             var state = mouse.GetCurrentState();
 
-                            for (var j = 0; j < state.Buttons.Length; j++)
-                            {
-                                initial[i, j] = state.Buttons[j] ? 1 : 0;
-                            }
+                            for (var j = 0; j < state.Buttons.Length; j++) initial[i, j] = state.Buttons[j] ? 1 : 0;
                         }
                     }
                     catch (Exception e)
                     {
-                        Logger.Error(e, $"Failed to get current state of input device {deviceList[i].Information.ProductName.Trim().Replace("\0", "")} " +
+                        Logger.Error(e,
+                            $"Failed to get current state of input device {deviceList[i].Information.ProductName.Trim().Replace("\0", "")} " +
                             $"(ID: {deviceList[i].Information.ProductGuid}) while assigning button, ignoring until next restart/rediscovery");
 
                         deviceList[i].Unacquire();
@@ -330,10 +302,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
                     for (var i = 0; i < _inputDevices.Count; i++)
                     {
-                        if (deviceList[i] == null || deviceList[i].IsDisposed)
-                        {
-                            continue;
-                        }
+                        if (deviceList[i] == null || deviceList[i].IsDisposed) continue;
 
                         try
                         {
@@ -344,7 +313,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                                 var state = (deviceList[i] as Joystick).GetCurrentState();
 
                                 for (var j = 0; j < 128 + 4; j++)
-                                {
                                     if (j >= 128)
                                     {
                                         //handle POV
@@ -391,7 +359,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                                             return;
                                         }
                                     }
-                                }
                             }
                             else if (deviceList[i] is Keyboard)
                             {
@@ -400,7 +367,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                                 var state = keyboard.GetCurrentState();
 
                                 for (var j = 0; j < 128; j++)
-                                {
                                     if (initial[i, j] != (state.IsPressed(state.AllKeys[j]) ? 1 : 0))
                                     {
                                         found = true;
@@ -421,12 +387,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                                         return;
                                     }
 
-                                    //                                if (initial[i, j] == 1)
-                                    //                                {
-                                    //                                    Console.WriteLine("Pressed: "+j);
-                                    //                                    MessageBox.Show("Keyboard!");
-                                    //                                }
-                                }
+                                //                                if (initial[i, j] == 1)
+                                //                                {
+                                //                                    Console.WriteLine("Pressed: "+j);
+                                //                                    MessageBox.Show("Keyboard!");
+                                //                                }
                             }
                             else if (deviceList[i] is Mouse)
                             {
@@ -461,7 +426,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                         }
                         catch (Exception e)
                         {
-                            Logger.Error(e, $"Failed to get current state of input device {deviceList[i].Information.ProductName.Trim().Replace("\0", "")} " +
+                            Logger.Error(e,
+                                $"Failed to get current state of input device {deviceList[i].Information.ProductName.Trim().Replace("\0", "")} " +
                                 $"(ID: {deviceList[i].Information.ProductGuid}) while discovering button press while assigning, ignoring until next restart/rediscovery");
 
                             deviceList[i].Unacquire();
@@ -505,16 +471,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                         //now check this is the best binding and no previous ones are better
                         //Means you can have better binds like PTT  = Space and Radio 1 is Space +1 - holding space +1 will actually trigger radio 1 not PTT
                         if (bindState.IsActive)
-                        {
-                            for (int j = 0; j < i; j++)
+                            for (var j = 0; j < i; j++)
                             {
                                 //check previous bindings
                                 var previousBind = bindStates[j];
 
-                                if (!previousBind.IsActive)
-                                {
-                                    continue;
-                                }
+                                if (!previousBind.IsActive) continue;
 
                                 if (previousBind.ModifierDevice == null && bindState.ModifierDevice != null)
                                 {
@@ -524,6 +486,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                                         previousBind.IsActive = false;
                                         break;
                                     }
+
                                     if (previousBind.MainDevice.IsSameBind(bindState.ModifierDevice))
                                     {
                                         previousBind.IsActive = false;
@@ -537,6 +500,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                                         bindState.IsActive = false;
                                         break;
                                     }
+
                                     if (previousBind.ModifierDevice.IsSameBind(bindState.MainDevice))
                                     {
                                         bindState.IsActive = false;
@@ -544,39 +508,35 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                                     }
                                 }
                             }
-                        }
                     }
 
                     callback(bindStates);
                     //handle overlay
 
                     foreach (var bindState in bindStates)
-                    {
                         if (bindState.IsActive && bindState.MainDevice.InputBind == InputBinding.OverlayToggle)
                         {
                             //run on main
-                            Application.Current.Dispatcher.Invoke(
-                                () => { _toggleOverlayCallback(false); });
+                            //TODO fix this
+                            // Application.Current.Dispatcher.Invoke(
+                            //     () => { _toggleOverlayCallback(false); });
                             break;
                         }
                         else if ((int)bindState.MainDevice.InputBind >= (int)InputBinding.Up100 &&
                                  (int)bindState.MainDevice.InputBind <= (int)InputBinding.TransponderIDENT)
                         {
                             if (bindState.MainDevice.InputBind == _lastActiveBinding && !bindState.IsActive)
-                            {
                                 //Assign to a totally different binding to mark as unassign
                                 _lastActiveBinding = InputBinding.ModifierIntercom;
-                            }
 
                             //key repeat
-                            if (bindState.IsActive && (bindState.MainDevice.InputBind != _lastActiveBinding))
+                            if (bindState.IsActive && bindState.MainDevice.InputBind != _lastActiveBinding)
                             {
                                 _lastActiveBinding = bindState.MainDevice.InputBind;
 
                                 var playerRadioInfo = ClientStateSingleton.Instance.PlayerUnitState;
 
                                 if (playerRadioInfo != null && playerRadioInfo.IsCurrent())
-                                {
                                     switch (bindState.MainDevice.InputBind)
                                     {
                                         case InputBinding.Up100:
@@ -620,7 +580,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                                             RadioHelper.ToggleGuard(playerRadioInfo.SelectedRadio);
                                             break;
                                         case InputBinding.ToggleEncryption:
-                                           
+
                                             break;
                                         case InputBinding.NextRadio:
                                             RadioHelper.SelectNextRadio();
@@ -629,10 +589,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                                             RadioHelper.SelectPreviousRadio();
                                             break;
                                         case InputBinding.EncryptionKeyIncrease:
-                                      
+
                                             break;
                                         case InputBinding.EncryptionKeyDecrease:
-                                           
+
                                             break;
                                         case InputBinding.RadioChannelUp:
                                             RadioHelper.RadioChannelUp(playerRadioInfo.SelectedRadio);
@@ -648,13 +608,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                                         default:
                                             break;
                                     }
-                                }
 
 
                                 break;
                             }
                         }
-                    }
 
                     Thread.Sleep(40);
                 }
@@ -676,9 +634,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                 if (device == null ||
                     device.IsDisposed ||
                     !device.Information.InstanceGuid.Equals(inputDeviceBinding.InstanceGuid))
-                {
                     continue;
-                }
 
                 try
                 {
@@ -713,14 +669,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
                         //just incase mouse changes number of buttons, like logitech can?
                         if (inputDeviceBinding.Button < state.Buttons.Length)
-                        {
                             return state.Buttons[inputDeviceBinding.Button];
-                        }
                     }
                 }
                 catch (Exception e)
                 {
-                    Logger.Error(e, $"Failed to get current state of input device {device.Information.ProductName.Trim().Replace("\0", "")} " +
+                    Logger.Error(e,
+                        $"Failed to get current state of input device {device.Information.ProductName.Trim().Replace("\0", "")} " +
                         $"(ID: {device.Information.ProductGuid}) while retrieving button state, ignoring until next restart/rediscovery");
 
                     MessageBox.Show(
@@ -733,8 +688,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                     device.Unacquire();
                     device.Dispose();
                 }
-
             }
+
             return false;
         }
 
@@ -745,12 +700,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
             //REMEMBER TO UPDATE THIS WHEN NEW BINDINGS ARE ADDED
             //MIN + MAX bind numbers
-            for (int i = (int)InputBinding.Intercom; i <= (int)InputBinding.TransponderIDENT; i++)
+            for (var i = (int)InputBinding.Intercom; i <= (int)InputBinding.TransponderIDENT; i++)
             {
-                if (!currentInputProfile.ContainsKey((InputBinding)i))
-                {
-                    continue;
-                }
+                if (!currentInputProfile.ContainsKey((InputBinding)i)) continue;
 
                 var input = currentInputProfile[(InputBinding)i];
                 //construct InputBindState
@@ -765,9 +717,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                 };
 
                 if (currentInputProfile.ContainsKey((InputBinding)i + 100))
-                {
                     bindState.ModifierDevice = currentInputProfile[(InputBinding)i + 100];
-                }
 
                 bindStates.Add(bindState);
             }

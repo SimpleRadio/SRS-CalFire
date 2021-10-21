@@ -188,11 +188,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
 
             var modulationStr = opts.Modulations.Split(',');
 
-            List<RadioConfig.Modulation> modulation = new List<RadioConfig.Modulation>();
+            List<Modulation> modulation = new List<Modulation>();
             foreach (var s in modulationStr)
             {
-                RadioConfig.Modulation mod;
-                if (RadioConfig.Modulation.TryParse(s.Trim().ToUpper(), out mod))
+                Modulation mod;
+                if (Modulation.TryParse(s.Trim().ToUpper(), out mod))
                 {
                     modulation.Add(mod);
                 }

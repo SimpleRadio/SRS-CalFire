@@ -9,9 +9,10 @@ namespace Ciribob.SRS.Common.Network.Models
     {
         private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
         {
-            ContractResolver = new JsonNetworkPropertiesResolver(),// strip out things not required for the TCP sync
+            ContractResolver = new JsonNetworkPropertiesResolver(), // strip out things not required for the TCP sync
             NullValueHandling = NullValueHandling.Ignore // same some network bandwidth
         };
+
         public enum MessageType
         {
             PING,
@@ -41,7 +42,6 @@ namespace Ciribob.SRS.Common.Network.Models
         {
             Version = UpdaterChecker.VERSION;
             return JsonConvert.SerializeObject(this, JsonSerializerSettings) + "\n";
-
         }
     }
 }

@@ -9,7 +9,7 @@ using Ciribob.SRS.Common;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 {
-    class CachedAudioEffectProvider
+    internal class CachedAudioEffectProvider
     {
         public List<CachedAudioEffect> RadioTransmissionStart { get; }
         public List<CachedAudioEffect> RadioTransmissionEnd { get; }
@@ -21,12 +21,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             get
             {
                 if (_instance == null)
-                {
                     _instance = new CachedAudioEffectProvider();
 
-                    //stops cyclic init
-
-                }
+                //stops cyclic init
                 return _instance;
             }
         }
@@ -39,12 +36,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                     .GetClientSettingString(ProfileSettingsKeys.RadioTransmissionStartSelection).ToLowerInvariant();
 
                 foreach (var startEffect in RadioTransmissionStart)
-                {
                     if (startEffect.FileName.ToLowerInvariant().Equals(selectedTone))
-                    {
                         return startEffect;
-                    }
-                }
 
                 return RadioTransmissionStart[0];
             }
@@ -58,12 +51,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                     .GetClientSettingString(ProfileSettingsKeys.RadioTransmissionEndSelection).ToLowerInvariant();
 
                 foreach (var endEffect in RadioTransmissionEnd)
-                {
                     if (endEffect.FileName.ToLowerInvariant().Equals(selectedTone))
-                    {
                         return endEffect;
-                    }
-                }
 
                 return RadioTransmissionEnd[0];
             }
@@ -87,7 +76,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         private CachedAudioEffectProvider()
         {
             sourceFolder = AppDomain.CurrentDomain.BaseDirectory + "\\AudioEffects\\";
-            
+
             //init lists
             RadioTransmissionStart = new List<CachedAudioEffect>();
             RadioTransmissionEnd = new List<CachedAudioEffect>();
@@ -96,9 +85,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
             KY58EncryptionTransmitTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.KY_58_TX);
             KY58EncryptionEndTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.KY_58_RX);
-            
+
             NATOTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.NATO_TONE);
-            
+
             MIDSTransmitTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.MIDS_TX);
             MIDSEndTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.MIDS_TX_END);
 
@@ -120,21 +109,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
         private void CreateAudioEffectDouble(CachedAudioEffect effect)
         {
-
             if (effect.Loaded)
             {
-
                 var effectShort = ConversionHelpers.ByteArrayToShortArray(effect.AudioEffectBytes);
                 var effectDouble = new double[effectShort.Length];
 
-                for (int i = 0; i < effectShort.Length; i++)
-                {
-                    effectDouble[i] = ((effectShort[i]/ 32768f));
-                }
+                for (var i = 0; i < effectShort.Length; i++) effectDouble[i] = effectShort[i] / 32768f;
                 effect.AudioEffectDouble = effectDouble;
-
             }
-
         }
 
         private void LoadRadioStartAndEndEffects()
@@ -144,42 +126,31 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             //might need to split the path - we'll see
             foreach (var effectPath in audioEffectsList)
             {
-                var effect =  effectPath.Split(Path.DirectorySeparatorChar).Last();
+                var effect = effectPath.Split(Path.DirectorySeparatorChar).Last();
 
                 if (effect.ToLowerInvariant().StartsWith(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START
                     .ToString().ToLowerInvariant()))
                 {
-                    var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START, effect, effectPath);
+                    var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START,
+                        effect, effectPath);
 
-                    if (audioEffect.AudioEffectBytes != null)
-                    {
-                        RadioTransmissionStart.Add(audioEffect);
-                    }
-
+                    if (audioEffect.AudioEffectBytes != null) RadioTransmissionStart.Add(audioEffect);
                 }
                 else if (effect.ToLowerInvariant().StartsWith(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END
                     .ToString().ToLowerInvariant()))
                 {
-                    var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END, effect,effectPath);
+                    var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END, effect,
+                        effectPath);
 
-                    if (audioEffect.AudioEffectBytes != null)
-                    {
-                        RadioTransmissionEnd.Add(audioEffect);
-                    }
+                    if (audioEffect.AudioEffectBytes != null) RadioTransmissionEnd.Add(audioEffect);
                 }
             }
 
             //IF the audio folder is missing - to avoid a crash, init with a blank one
             if (RadioTransmissionStart.Count == 0)
-            {
                 RadioTransmissionStart.Add(new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START));
-            }
             if (RadioTransmissionEnd.Count == 0)
-            {
                 RadioTransmissionEnd.Add(new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END));
-            }
-
         }
-
     }
 }

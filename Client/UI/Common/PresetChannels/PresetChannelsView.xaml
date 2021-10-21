@@ -6,7 +6,6 @@
     xmlns:local="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common.PresetChannels"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:mvvmEventBinding="clr-namespace:MvvmEventBinding;assembly=MvvmEventBinding"
-    xmlns:presetChannels="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common.PresetChannels"
     d:DataContext="{d:DesignInstance local:PresetChannelsViewModel,
                                               IsDesignTimeCreatable=False}"
     d:DesignHeight="100"
@@ -19,7 +18,7 @@
                   Width="135"
                   HorizontalAlignment="Center"
                   VerticalAlignment="Top"
-                  DropDownClosed="{mvvmEventBinding:EventBinding DropDownClosedCommand}"
+                  DropDownClosed="{Binding DropDownClosedCommand}"
                   ItemsSource="{Binding Path=PresetChannels}"
                   SelectedItem="{Binding Path=SelectedPresetChannel}" />
 

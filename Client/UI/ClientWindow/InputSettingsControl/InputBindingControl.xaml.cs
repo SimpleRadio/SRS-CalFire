@@ -18,7 +18,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
 
         public InputDeviceManager InputDeviceManager
         {
-            get { return _inputDeviceManager; }
+            get => _inputDeviceManager;
             set
             {
                 _inputDeviceManager = value;
@@ -34,7 +34,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
         {
             DeviceLabel.Content = InputName;
             ModifierLabel.Content = InputName + " Modifier";
-            ModifierBinding = (InputBinding) ((int) ControlInputBinding) + 100; //add 100 gets the enum of the modifier
+            ModifierBinding = (InputBinding)(int)ControlInputBinding + 100; //add 100 gets the enum of the modifier
 
             var currentInputProfile = GlobalSettingsStore.Instance.ProfileSettingsStore.GetCurrentInputProfile();
 
@@ -44,7 +44,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
                 if (currentInputProfile.ContainsKey(ControlInputBinding))
                 {
                     var button = devices[ControlInputBinding].Button;
-                    DeviceText.Text = button < 128 ? (button+1).ToString() : "POV " + (button - 127); //output POV info
+                    DeviceText.Text =
+                        button < 128 ? (button + 1).ToString() : "POV " + (button - 127); //output POV info
                     Device.Text = devices[ControlInputBinding].DeviceName;
                 }
                 else
@@ -56,7 +57,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
                 if (currentInputProfile.ContainsKey(ModifierBinding))
                 {
                     var button = devices[ModifierBinding].Button;
-                    ModifierText.Text = button < 128 ? (button + 1).ToString() : "POV " + (button - 127); //output POV info
+                    ModifierText.Text =
+                        button < 128 ? (button + 1).ToString() : "POV " + (button - 127); //output POV info
                     ModifierDevice.Text = devices[ModifierBinding].DeviceName;
                 }
                 else
@@ -79,7 +81,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
                 DeviceButton.IsEnabled = true;
 
                 Device.Text = device.DeviceName;
-                DeviceText.Text = device.Button < 128 ? (device.Button+1).ToString() : "POV " + (device.Button - 127);
+                DeviceText.Text = device.Button < 128 ? (device.Button + 1).ToString() : "POV " + (device.Button - 127);
                 //output POV info;
 
                 device.InputBind = ControlInputBinding;
@@ -108,7 +110,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
                 ModifierButton.IsEnabled = true;
 
                 ModifierDevice.Text = device.DeviceName;
-                ModifierText.Text = device.Button < 128 ? (device.Button + 1).ToString() : "POV " + (device.Button - 127);
+                ModifierText.Text =
+                    device.Button < 128 ? (device.Button + 1).ToString() : "POV " + (device.Button - 127);
                 //output POV info;
 
                 device.InputBind = ModifierBinding;

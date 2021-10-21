@@ -209,8 +209,8 @@ namespace Ciribob.SRS.Server.Network
                                             // Only trigger transmitting frequency update for "proper" packets (excluding invalid frequencies and magic ping packets with modulation 4)
                                             if (mainFrequency > 0)
                                             {
-                                                RadioConfig.Modulation mainModulation = (RadioConfig.Modulation)udpVoicePacket.Modulations[0];
-                                                if (mainModulation == RadioConfig.Modulation.INTERCOM)
+                                                Modulation mainModulation = (Modulation)udpVoicePacket.Modulations[0];
+                                                if (mainModulation == Modulation.INTERCOM)
                                                 {
                                                     client.TransmittingFrequency = "INTERCOM";
                                                 }
@@ -326,7 +326,7 @@ namespace Ciribob.SRS.Server.Network
                                     RadioReceivingState radioReceivingState = null;
                                     bool decryptable;
                                     var receivingRadio = radioInfo.CanHearTransmission(udpVoice.Frequencies[i],
-                                        (RadioConfig.Modulation)udpVoice.Modulations[i],
+                                        (Modulation)udpVoice.Modulations[i],
                                         udpVoice.Encryptions[i],
                                         udpVoice.UnitId,
                                         _emptyBlockedRadios,

@@ -13,7 +13,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
     public sealed class ClientStateSingleton : INotifyPropertyChanged
     {
         private static volatile ClientStateSingleton _instance;
-        private static object _lock = new Object();
+        private static object _lock = new object();
 
         public delegate bool RadioUpdatedCallback();
 
@@ -35,15 +35,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
         private static readonly DispatcherTimer _timer = new DispatcherTimer();
 
         public RadioSendingState RadioSendingState { get; set; }
-        public  RadioReceivingState[] RadioReceivingState { get; }
+        public RadioReceivingState[] RadioReceivingState { get; }
 
         private bool isConnected;
+
         public bool IsConnected
         {
-            get
-            {
-                return isConnected;
-            }
+            get => isConnected;
             set
             {
                 isConnected = value;
@@ -52,12 +50,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
         }
 
         private bool isVoipConnected;
+
         public bool IsVoipConnected
         {
-            get
-            {
-                return isVoipConnected;
-            }
+            get => isVoipConnected;
             set
             {
                 isVoipConnected = value;
@@ -70,10 +66,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
 
         public bool IsConnectionErrored
         {
-            get
-            {
-                return isConnectionErrored;
-            }
+            get => isConnectionErrored;
             set
             {
                 isConnectionErrored = value;
@@ -99,7 +92,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
 
             IsConnected = false;
 
-            LastSeenName = Settings.GlobalSettingsStore.Instance.GetClientSetting(Settings.GlobalSettingsKeys.LastSeenName).RawValue;
+            LastSeenName = Settings.GlobalSettingsStore.Instance
+                .GetClientSetting(Settings.GlobalSettingsKeys.LastSeenName).RawValue;
         }
 
         public static ClientStateSingleton Instance
@@ -107,13 +101,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
             get
             {
                 if (_instance == null)
-                {
                     lock (_lock)
                     {
                         if (_instance == null)
                             _instance = new ClientStateSingleton();
                     }
-                }
 
                 return _instance;
             }
@@ -125,6 +117,5 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
     }
 }

@@ -21,7 +21,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common.PresetChannels
 
         public ObservableCollection<PresetChannel> PresetChannels
         {
-            get { return _presetChannels; }
+            get => _presetChannels;
             set
             {
                 _presetChannels = value;
@@ -54,11 +54,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common.PresetChannels
         private void DropDownClosed(object args)
         {
             if (SelectedPresetChannel != null
-                && SelectedPresetChannel.Value is Double
-                && (Double) SelectedPresetChannel.Value > 0 && RadioId > 0)
-            {
+                && SelectedPresetChannel.Value is double
+                && (double)SelectedPresetChannel.Value > 0 && RadioId > 0)
                 RadioHelper.SelectRadioChannel(SelectedPresetChannel, RadioId);
-            }
         }
 
         public PresetChannel SelectedPresetChannel { get; set; }
@@ -74,16 +72,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common.PresetChannels
 
             var radio = radios[_radioId];
 
-            int i = 1;
+            var i = 1;
             foreach (var channel in _channelsStore.LoadFromStore(radio.Name))
-            {
-                if (((double) channel.Value) < Max
-                    && ((double) channel.Value) > Min)
+                if ((double)channel.Value < Max
+                    && (double)channel.Value > Min)
                 {
                     channel.Channel = i++;
                     PresetChannels.Add(channel);
                 }
-            }
         }
 
         private void OnReload()

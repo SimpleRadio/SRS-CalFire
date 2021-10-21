@@ -9,19 +9,18 @@ using System.Windows.Input;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
+using Ciribob.SRS.Common.Helpers;
 using Microsoft.Win32;
 using NLog;
 using InputBinding = Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.InputBinding;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSettingsControl
 {
-    public class ClientSettingsViewModel: INotifyPropertyChanged
+    public class ClientSettingsViewModel : PropertyChangedBase
     {
         private readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         public ICommand ResetOverlayCommand { get; set; }
 
@@ -29,11 +28,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
         public ICommand CopyProfileCommand { get; set; }
         public ICommand RenameProfileCommand { get; set; }
         public ICommand DeleteProfileCommand { get; set; }
-
-        public void NotifyPropertyChanged([CallerMemberName] string caller = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
-        }
 
         public ClientSettingsViewModel()
         {
@@ -83,7 +77,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
                 inputProfileWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
                 inputProfileWindow.Owner = Application.Current.MainWindow;
                 inputProfileWindow.ShowDialog();
-                
             });
 
             RenameProfileCommand = new DelegateCommand(() =>
@@ -114,13 +107,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
                     inputProfileWindow.Owner = Application.Current.MainWindow;
                     inputProfileWindow.ShowDialog();
                 }
-
             });
 
             DeleteProfileCommand = new DelegateCommand(() =>
             {
                 var current = _globalSettings.ProfileSettingsStore.CurrentProfileName;
-                
+
                 if (current.Equals("default"))
                 {
                     MessageBox.Show(Application.Current.MainWindow,
@@ -136,24 +128,58 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
                         "Confirmation",
                         MessageBoxButton.YesNo,
                         MessageBoxImage.Warning);
-                
-                    if (result == MessageBoxResult.Yes)
-                    { 
-                        _globalSettings.ProfileSettingsStore.RemoveProfile(current);
 
-                      
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        _globalSettings.ProfileSettingsStore.RemoveProfile(current);
                         SelectedProfile = _globalSettings.ProfileSettingsStore.CurrentProfileName;
                         NotifyPropertyChanged("AvailableProfiles");
                         ReloadSettings();
                     }
-                
                 }
             });
-
         }
 
         private void ReloadSettings()
         {
+            NotifyPropertyChanged(this.MinimiseToTray.ToString());
+            // NotifyPropertyChanged([StartMinimised]);
+            // NotifyPropertyChanged([MicAGC]);
+            // NotifyPropertyChanged([MicDenoise]);
+            // NotifyPropertyChanged([PlayConnectionSounds]);
+            // NotifyPropertyChanged([RadioSwitchIsPTT]);
+            // NotifyPropertyChanged([AutoSelectChannel]);
+            // NotifyPropertyChanged([PTTReleaseDelay]);
+            // NotifyPropertyChanged([PTTStartDelay]);
+            // NotifyPropertyChanged([HotIntercomMicToggle]);
+            // NotifyPropertyChanged([RadioRxStartToggle]);
+            // NotifyPropertyChanged([RadioRxEndToggle]);
+            // NotifyPropertyChanged([RadioTxStartToggle]);
+            // NotifyPropertyChanged([RadioTxEndToggle]);
+            // NotifyPropertyChanged([SelectedRadioTransmissionStartEffect]);
+            // NotifyPropertyChanged([SelectedRadioTransmissionEndEffect]);
+            // NotifyPropertyChanged([RadioSoundEffectsToggle]);
+            // NotifyPropertyChanged([RadioEffectsClippingToggle]);
+            // NotifyPropertyChanged([FMRadioToneToggle]);
+            // NotifyPropertyChanged([FMRadioToneVolume]);
+            // NotifyPropertyChanged([BackgroundRadioNoiseToggle]);
+            // NotifyPropertyChanged([UHFEffectVolume]);
+            // NotifyPropertyChanged([VHFEffectVolume]);
+            // NotifyPropertyChanged([HFEffectVolume]);
+            // NotifyPropertyChanged([FMEffectVolume]);
+            // NotifyPropertyChanged([RadioChannel1]);
+            // NotifyPropertyChanged([RadioChannel2]);
+            // NotifyPropertyChanged([RadioChannel3]);
+            // NotifyPropertyChanged([RadioChannel4]);
+            // NotifyPropertyChanged([RadioChannel5]);
+            // NotifyPropertyChanged([RadioChannel6]);
+            // NotifyPropertyChanged([RadioChannel7]);
+            // NotifyPropertyChanged([RadioChannel8]);
+            // NotifyPropertyChanged([RadioChannel9);
+            // NotifyPropertyChanged([RadioChannel10]);
+            // NotifyPropertyChanged([Intercom]);
+            // NotifyPropertyChanged([SelectedProfile]);
+            // NotifyPropertyChanged([AvailableProfiles]);
             NotifyPropertyChanged("MinimiseToTray");
             NotifyPropertyChanged("StartMinimised");
             NotifyPropertyChanged("MicAGC");
@@ -191,7 +217,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
             NotifyPropertyChanged("RadioChannel10");
             NotifyPropertyChanged("Intercom");
             NotifyPropertyChanged("SelectedProfile");
-            
         }
 
         /**
@@ -203,7 +228,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
             set
             {
                 _globalSettings.SetClientSetting(GlobalSettingsKeys.RadioOverlayTaskbarHide, value);
-                
+
                 //TODO trigger event on messagehub
                 NotifyPropertyChanged();
 
@@ -221,10 +246,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
                 _globalSettings.SetClientSetting(GlobalSettingsKeys.ExpandControls, value);
                 NotifyPropertyChanged();
                 MessageBox.Show(
-                "You must restart SRS for this setting to take effect.\n\nTurning this on will allow almost any DirectX device to be used as input expect a Mouse but may cause issues with other devices being detected. \n\nUse device white listing instead",
-                "Restart SRS", MessageBoxButton.OK,
-                MessageBoxImage.Warning);
-                
+                    "You must restart SRS for this setting to take effect.\n\nTurning this on will allow almost any DirectX device to be used as input expect a Mouse but may cause issues with other devices being detected. \n\nUse device white listing instead",
+                    "Restart SRS", MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
             }
         }
 
@@ -233,7 +257,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
             get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.MinimiseToTray);
             set
             {
-              
                 _globalSettings.SetClientSetting(GlobalSettingsKeys.MinimiseToTray, value);
                 NotifyPropertyChanged();
             }
@@ -244,7 +267,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
             get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.StartMinimised);
             set
             {
-               
                 _globalSettings.SetClientSetting(GlobalSettingsKeys.StartMinimised, value);
                 NotifyPropertyChanged();
             }
@@ -289,17 +311,19 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
             get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioSwitchIsPTT);
             set
             {
-                _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioSwitchIsPTT,value);
+                _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioSwitchIsPTT, value);
                 NotifyPropertyChanged();
             }
         }
 
         public bool AutoSelectChannel
         {
-            get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.AutoSelectPresetChannel);
+            get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(
+                ProfileSettingsKeys.AutoSelectPresetChannel);
             set
             {
-                _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.AutoSelectPresetChannel, value);
+                _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.AutoSelectPresetChannel,
+                    value);
                 NotifyPropertyChanged();
             }
         }
@@ -339,7 +363,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
             get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_Start);
             set
             {
-                _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_Start, value);
+                _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_Start,
+                    value);
                 NotifyPropertyChanged();
             }
         }
@@ -349,7 +374,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
             get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_End);
             set
             {
-                _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_End, value);
+                _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_End,
+                    value);
                 NotifyPropertyChanged();
             }
         }
@@ -359,7 +385,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
             get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_Start);
             set
             {
-                _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_Start, value);
+                _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_Start,
+                    value);
                 NotifyPropertyChanged();
             }
         }
@@ -369,18 +396,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
             get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_End);
             set
             {
-                _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_End, value);
+                _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_End,
+                    value);
                 NotifyPropertyChanged();
             }
         }
 
-        public List<CachedAudioEffect> RadioTransmissionStart
-        {
-            get
-            {
-                return CachedAudioEffectProvider.Instance.RadioTransmissionStart;
-            }
-        }
+        public List<CachedAudioEffect> RadioTransmissionStart =>
+            CachedAudioEffectProvider.Instance.RadioTransmissionStart;
 
         public CachedAudioEffect SelectedRadioTransmissionStartEffect
         {
@@ -390,19 +413,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
                     ProfileSettingsKeys.RadioTransmissionStartSelection, ((CachedAudioEffect)value).FileName);
                 NotifyPropertyChanged();
             }
-            get
-            {
-                return CachedAudioEffectProvider.Instance.SelectedRadioTransmissionStartEffect;
-            }
+            get => CachedAudioEffectProvider.Instance.SelectedRadioTransmissionStartEffect;
         }
 
-        public List<CachedAudioEffect> RadioTransmissionEnd
-        {
-            get
-            {
-                return CachedAudioEffectProvider.Instance.RadioTransmissionEnd;
-            }
-        }
+        public List<CachedAudioEffect> RadioTransmissionEnd => CachedAudioEffectProvider.Instance.RadioTransmissionEnd;
 
         public CachedAudioEffect SelectedRadioTransmissionEndEffect
         {
@@ -412,11 +426,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
                     ProfileSettingsKeys.RadioTransmissionEndSelection, ((CachedAudioEffect)value).FileName);
                 NotifyPropertyChanged();
             }
-            get
-            {
-                return CachedAudioEffectProvider.Instance.SelectedRadioTransmissionEndEffect;
-            }
-
+            get => CachedAudioEffectProvider.Instance.SelectedRadioTransmissionEndEffect;
         }
 
         public bool RadioSoundEffectsToggle
@@ -434,7 +444,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
             get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping);
             set
             {
-                _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping, value);
+                _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping,
+                    value);
                 NotifyPropertyChanged();
             }
         }
@@ -451,80 +462,107 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
 
         public double FMRadioToneVolume
         {
-            get => ( _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.NATOToneVolume)
-                    / double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.NATOToneVolume.ToString()], CultureInfo.InvariantCulture)) *100;
+            get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.NATOToneVolume)
+                / double.Parse(
+                    ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.NATOToneVolume.ToString()],
+                    CultureInfo.InvariantCulture) * 100;
             set
             {
-                var orig = double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.NATOToneVolume.ToString()], CultureInfo.InvariantCulture);
+                var orig = double.Parse(
+                    ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.NATOToneVolume.ToString()],
+                    CultureInfo.InvariantCulture);
                 var vol = orig * (value / 100);
 
-                _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.NATOToneVolume,(float) vol);
+                _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.NATOToneVolume,
+                    (float)vol);
                 NotifyPropertyChanged();
             }
         }
 
         public bool BackgroundRadioNoiseToggle
         {
-            get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioBackgroundNoiseEffect);
+            get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys
+                .RadioBackgroundNoiseEffect);
             set
             {
-                _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioBackgroundNoiseEffect, value);
+                _globalSettings.ProfileSettingsStore.SetClientSettingBool(
+                    ProfileSettingsKeys.RadioBackgroundNoiseEffect, value);
                 NotifyPropertyChanged();
             }
         }
 
         public double UHFEffectVolume
         {
-            get => (_globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.UHFNoiseVolume)
-                    / double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.UHFNoiseVolume.ToString()], CultureInfo.InvariantCulture)) * 100;
+            get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.UHFNoiseVolume)
+                / double.Parse(
+                    ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.UHFNoiseVolume.ToString()],
+                    CultureInfo.InvariantCulture) * 100;
             set
             {
-                var orig = double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.UHFNoiseVolume.ToString()], CultureInfo.InvariantCulture);
+                var orig = double.Parse(
+                    ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.UHFNoiseVolume.ToString()],
+                    CultureInfo.InvariantCulture);
                 var vol = orig * (value / 100);
 
-                _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.UHFNoiseVolume, (float)vol);
+                _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.UHFNoiseVolume,
+                    (float)vol);
                 NotifyPropertyChanged();
             }
         }
 
         public double VHFEffectVolume
         {
-            get => (_globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.VHFNoiseVolume)
-                    / double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.VHFNoiseVolume.ToString()], CultureInfo.InvariantCulture)) * 100;
+            get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.VHFNoiseVolume)
+                / double.Parse(
+                    ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.VHFNoiseVolume.ToString()],
+                    CultureInfo.InvariantCulture) * 100;
             set
             {
-                var orig = double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.VHFNoiseVolume.ToString()], CultureInfo.InvariantCulture);
+                var orig = double.Parse(
+                    ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.VHFNoiseVolume.ToString()],
+                    CultureInfo.InvariantCulture);
                 var vol = orig * (value / 100);
 
-                _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.VHFNoiseVolume, (float)vol);
+                _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.VHFNoiseVolume,
+                    (float)vol);
                 NotifyPropertyChanged();
             }
         }
 
         public double HFEffectVolume
         {
-            get => (_globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.HFNoiseVolume)
-                    / double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.HFNoiseVolume.ToString()], CultureInfo.InvariantCulture)) * 100;
+            get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.HFNoiseVolume)
+                / double.Parse(
+                    ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.HFNoiseVolume.ToString()],
+                    CultureInfo.InvariantCulture) * 100;
             set
             {
-                var orig = double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.HFNoiseVolume.ToString()], CultureInfo.InvariantCulture);
+                var orig = double.Parse(
+                    ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.HFNoiseVolume.ToString()],
+                    CultureInfo.InvariantCulture);
                 var vol = orig * (value / 100);
 
-                _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.HFNoiseVolume, (float)vol);
+                _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.HFNoiseVolume,
+                    (float)vol);
                 NotifyPropertyChanged();
             }
         }
 
         public double FMEffectVolume
         {
-            get => (_globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.FMNoiseVolume)
-                    / double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.FMNoiseVolume.ToString()], CultureInfo.InvariantCulture)) * 100;
+            get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.FMNoiseVolume)
+                / double.Parse(
+                    ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.FMNoiseVolume.ToString()],
+                    CultureInfo.InvariantCulture) * 100;
             set
             {
-                var orig = double.Parse(ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.FMNoiseVolume.ToString()], CultureInfo.InvariantCulture);
+                var orig = double.Parse(
+                    ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.FMNoiseVolume.ToString()],
+                    CultureInfo.InvariantCulture);
                 var vol = orig * (value / 100);
 
-                _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.FMNoiseVolume, (float)vol);
+                _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.FMNoiseVolume,
+                    (float)vol);
                 NotifyPropertyChanged();
             }
         }
@@ -656,10 +694,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
 
                 NotifyPropertyChanged();
             }
-            get
-            {
-                return _globalSettings.ProfileSettingsStore.CurrentProfileName;
-            }
+            get => _globalSettings.ProfileSettingsStore.CurrentProfileName;
         }
 
         public List<string> AvailableProfiles
@@ -668,13 +703,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
             {
                 //do nothing
             }
-            get
-            {
-                return _globalSettings.ProfileSettingsStore.ProfileNames;
-            }
+            get => _globalSettings.ProfileSettingsStore.ProfileNames;
         }
 
-      
+
         //
         // private void RenameProfile(object sender, RoutedEventArgs e)
         // {
@@ -707,7 +739,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
         // }
         //
         //
- 
+
         //
         //
         // private void RescanInputDevices(object sender, RoutedEventArgs e)
@@ -720,10 +752,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
         //         MessageBoxImage.Information);
         // }
         //
-   
+
         //
 
-        
+
         //
         //
         // private void ReloadInputBindings()
@@ -912,7 +944,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
         //     TransponderIDENT.ControlInputBinding = InputBinding.TransponderIDENT;
         //     TransponderIDENT.InputDeviceManager = InputManager;
         // }
-      
+
         // private void OnRadioStartTransmitEffectChanged(object sender, SelectionChangedEventArgs e)
         // {
         //     if (RadioStartTransmitEffect.IsEnabled)
@@ -959,7 +991,5 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
         //     CurrentProfile.Content = _globalSettings.ProfileSettingsStore.CurrentProfileName;
         //
         // }
-
-
     }
 }

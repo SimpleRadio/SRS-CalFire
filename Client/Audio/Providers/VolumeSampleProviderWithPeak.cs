@@ -25,16 +25,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
         {
             this.source = source;
             _samplePeak = samplePeak;
-            this.volume = 1.0f;
+            volume = 1.0f;
         }
 
         /// <summary>
         /// WaveFormat
         /// </summary>
-        public WaveFormat WaveFormat
-        {
-            get { return source.WaveFormat; }
-        }
+        public WaveFormat WaveFormat => source.WaveFormat;
 
         private int count = 0;
         private float lastPeak = 0;
@@ -48,29 +45,21 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
         /// <returns>Number of samples read</returns>
         public int Read(float[] buffer, int offset, int sampleCount)
         {
-            int samplesRead = source.Read(buffer, offset, sampleCount);
+            var samplesRead = source.Read(buffer, offset, sampleCount);
 
-            for (int n = 0; n < sampleCount; n++)
+            for (var n = 0; n < sampleCount; n++)
             {
                 var sample = buffer[offset + n];
                 sample *= volume;
 
                 //stop over boosting
                 if (sample > 1.0F)
-                {
                     sample = 1.0F;
-                }
-                else if (sample < -1.0F)
-                {
-                    sample = -1.0F;
-                }
+                else if (sample < -1.0F) sample = -1.0F;
 
                 buffer[offset + n] = sample;
 
-                if (sample > lastPeak)
-                {
-                    lastPeak = sample;
-                }
+                if (sample > lastPeak) lastPeak = sample;
             }
 
             if (count > 8)
@@ -93,8 +82,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
         /// </summary>
         public float Volume
         {
-            get { return volume; }
-            set { volume = value; }
+            get => volume;
+            set => volume = value;
         }
     }
 }

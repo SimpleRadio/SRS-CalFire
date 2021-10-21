@@ -4,29 +4,31 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
+using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.DCSState;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 {
     public static class TransponderHelper
     {
-
         public static Transponder GetTransponder(bool onlyIfOverlayControls = false)
         {
-            var dcsPlayerRadioInfo = ClientStateSingleton.Instance.PlayerUnitState;
+            var dcsPlayerRadioInfo = (PlayerUnitState) ClientStateSingleton.Instance.PlayerUnitState;
 
-            if ((dcsPlayerRadioInfo != null) && dcsPlayerRadioInfo.IsCurrent() && dcsPlayerRadioInfo.Transponder !=null && dcsPlayerRadioInfo.Transponder.control != Transponder.IFFControlMode.DISABLED)
+            var transponder = (Transponder)dcsPlayerRadioInfo.Transponder;
+
+            if (dcsPlayerRadioInfo != null && dcsPlayerRadioInfo.IsCurrent() &&
+                transponder != null &&
+                transponder.Control != Transponder.IFFControlMode.DISABLED)
             {
                 if (onlyIfOverlayControls)
                 {
-                    if (dcsPlayerRadioInfo.Transponder.control == Transponder.IFFControlMode.OVERLAY)
-                    {
-                        return dcsPlayerRadioInfo.Transponder;
-                    }
+                    if (transponder.Control == Transponder.IFFControlMode.OVERLAY)
+                        return transponder;
                 }
                 else
                 {
-                    return dcsPlayerRadioInfo.Transponder;
+                    return transponder;
                 }
             }
 
@@ -40,190 +42,160 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 
             if (trans != null && trans.status != Transponder.IFFStatus.OFF)
             {
-                if (trans.status == SRS.Common.DCSState.Transponder.IFFStatus.NORMAL)
-                {
-                    trans.status = SRS.Common.DCSState.Transponder.IFFStatus.IDENT;
-                    return true;
-                }
-                else
-                {
-                    trans.status = SRS.Common.DCSState.Transponder.IFFStatus.NORMAL;
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public static bool Mode4Toggle()
-        {
-            ClientStateSingleton.Instance.LastSent = 0;
-            var trans = GetTransponder(true);
-
-            if (trans != null)
-            {
-                trans.mode4 = !trans.mode4;
-            }
-
-            return false;
-        }
-
-        public static bool SetMode3(int mode3)
-        {
-            ClientStateSingleton.Instance.LastSent = 0;
-            var trans = GetTransponder(true);
-
-            if (trans != null)
-            {
-
-                if (mode3 < 0)
-                {
-                    trans.mode3 = -1;
-                }
-                else
-                {
-                    var numberStr = Math.Abs(mode3).ToString().ToCharArray();
-
-                    for (int i = 0; i < numberStr.Length; i++)
-                    {
-                        if (int.Parse(numberStr[i].ToString()) > 7)
-                        {
-                            numberStr[i] = '7';
-                        }
-                    }
-
-                    trans.mode3 = int.Parse(new string(numberStr));
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
-        public static bool SetMode1(int mode1)
-        {
-            ClientStateSingleton.Instance.LastSent = 0;
-            var trans = GetTransponder(true);
-
-            if (trans != null)
-            {
-
-                if (mode1 < 0)
-                {
-                    trans.mode1 = -1;
-                }
-                else
-                {
-                    //first digit 0-7 inc
-                    //second 0-3 inc
-
-                    int first = mode1 / 10;
-
-                    if (first > 7)
-                    {
-                        first = 7;
-                    }
-
-                    if (first < 0)
-                    {
-                        first = 0;
-                    }
-
-                    int second = mode1 % 10;
-
-                    if (second > 3)
-                    {
-                        second = 3;
-                    }
-
-                    trans.mode1 = first * 10 + second;
-                }
-                
-                return true;
-            }
-
-            return false;
-        }
-
-        public static bool TogglePower()
-        {
-            ClientStateSingleton.Instance.LastSent = 0;
-            var trans = GetTransponder(true);
-
-            if (trans != null)
-            {
-                if (trans.status == SRS.Common.DCSState.Transponder.IFFStatus.OFF)
-                {
-                    trans.status = SRS.Common.DCSState.Transponder.IFFStatus.NORMAL;
-                }
-                else
-                {
-                    trans.status = SRS.Common.DCSState.Transponder.IFFStatus.OFF;
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
-        public static bool SetPower(bool on)
-        {
-            ClientStateSingleton.Instance.LastSent = 0;
-            var trans = GetTransponder(true);
-
-            if (trans != null)
-            {
-                if (on)
-                {
-                    trans.status = SRS.Common.DCSState.Transponder.IFFStatus.NORMAL;
-                }
-                else
-                {
-                    trans.status = SRS.Common.DCSState.Transponder.IFFStatus.OFF;
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
-        public static bool SetMode4(bool on)
-        {
-            ClientStateSingleton.Instance.LastSent = 0;
-            var trans = GetTransponder(true);
-
-            if (trans != null)
-            {
-                trans.mode4 = on;
-                return true;
-            }
-
-            return false;
-        }
-
-        public static bool SetIdent(bool on)
-        {
-            ClientStateSingleton.Instance.LastSent = 0;
-            var trans = GetTransponder(true);
-
-            if (trans != null && trans.status != Transponder.IFFStatus.OFF)
-            {
-                if (on)
+                if (trans.status == Transponder.IFFStatus.NORMAL)
                 {
                     trans.status = Transponder.IFFStatus.IDENT;
+                    return true;
                 }
                 else
                 {
                     trans.status = Transponder.IFFStatus.NORMAL;
+                    return true;
                 }
-
-                return true;
             }
 
             return false;
         }
+
+        // public static bool Mode4Toggle()
+        // {
+        //     ClientStateSingleton.Instance.LastSent = 0;
+        //     var trans = GetTransponder(true);
+        //
+        //     if (trans != null) trans.mode4 = !trans.mode4;
+        //
+        //     return false;
+        // }
+        //
+        // public static bool SetMode3(int mode3)
+        // {
+        //     ClientStateSingleton.Instance.LastSent = 0;
+        //     var trans = GetTransponder(true);
+        //
+        //     if (trans != null)
+        //     {
+        //         if (mode3 < 0)
+        //         {
+        //             trans.mode3 = -1;
+        //         }
+        //         else
+        //         {
+        //             var numberStr = Math.Abs(mode3).ToString().ToCharArray();
+        //
+        //             for (var i = 0; i < numberStr.Length; i++)
+        //                 if (int.Parse(numberStr[i].ToString()) > 7)
+        //                     numberStr[i] = '7';
+        //
+        //             trans.mode3 = int.Parse(new string(numberStr));
+        //         }
+        //
+        //         return true;
+        //     }
+        //
+        //     return false;
+        // }
+        //
+        // public static bool SetMode1(int mode1)
+        // {
+        //     ClientStateSingleton.Instance.LastSent = 0;
+        //     var trans = GetTransponder(true);
+        //
+        //     if (trans != null)
+        //     {
+        //         if (mode1 < 0)
+        //         {
+        //             trans.mode1 = -1;
+        //         }
+        //         else
+        //         {
+        //             //first digit 0-7 inc
+        //             //second 0-3 inc
+        //
+        //             var first = mode1 / 10;
+        //
+        //             if (first > 7) first = 7;
+        //
+        //             if (first < 0) first = 0;
+        //
+        //             var second = mode1 % 10;
+        //
+        //             if (second > 3) second = 3;
+        //
+        //             trans.mode1 = first * 10 + second;
+        //         }
+        //
+        //         return true;
+        //     }
+        //
+        //     return false;
+        // }
+        //
+        // public static bool TogglePower()
+        // {
+        //     ClientStateSingleton.Instance.LastSent = 0;
+        //     var trans = GetTransponder(true);
+        //
+        //     if (trans != null)
+        //     {
+        //         if (trans.status == Transponder.IFFStatus.OFF)
+        //             trans.status = Transponder.IFFStatus.NORMAL;
+        //         else
+        //             trans.status = Transponder.IFFStatus.OFF;
+        //
+        //         return true;
+        //     }
+        //
+        //     return false;
+        // }
+        //
+        // public static bool SetPower(bool on)
+        // {
+        //     ClientStateSingleton.Instance.LastSent = 0;
+        //     var trans = GetTransponder(true);
+        //
+        //     if (trans != null)
+        //     {
+        //         if (on)
+        //             trans.status = Transponder.IFFStatus.NORMAL;
+        //         else
+        //             trans.status = Transponder.IFFStatus.OFF;
+        //
+        //         return true;
+        //     }
+        //
+        //     return false;
+        // }
+        //
+        // public static bool SetMode4(bool on)
+        // {
+        //     ClientStateSingleton.Instance.LastSent = 0;
+        //     var trans = GetTransponder(true);
+        //
+        //     if (trans != null)
+        //     {
+        //         trans.mode4 = on;
+        //         return true;
+        //     }
+        //
+        //     return false;
+        // }
+        //
+        // public static bool SetIdent(bool on)
+        // {
+        //     ClientStateSingleton.Instance.LastSent = 0;
+        //     var trans = GetTransponder(true);
+        //
+        //     if (trans != null && trans.status != Transponder.IFFStatus.OFF)
+        //     {
+        //         if (on)
+        //             trans.status = Transponder.IFFStatus.IDENT;
+        //         else
+        //             trans.status = Transponder.IFFStatus.NORMAL;
+        //
+        //         return true;
+        //     }
+        //
+        //     return false;
+        // }
     }
 }

@@ -24,7 +24,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
         {
             InitializeComponent();
 
-            _updateTimer = new DispatcherTimer {Interval = TimeSpan.FromSeconds(1)};
+            _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _updateTimer.Tick += UpdateUI;
             _updateTimer.Start();
 
@@ -40,7 +40,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
                 RealRadio.Content = settings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_TX) ? "ON" : "OFF";
 
                 //TODO
-               // ServerVersion.Content = SRSClientSyncHandler.ServerVersion;
+                // ServerVersion.Content = SRSClientSyncHandler.ServerVersion;
 
                 NodeLimit.Content = settings.RetransmitNodeLimit;
             }

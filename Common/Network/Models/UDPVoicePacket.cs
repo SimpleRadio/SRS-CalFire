@@ -24,7 +24,6 @@ namespace Ciribob.SRS.Common.Network.Models
        * Bytes / ASCII String TRANSMISSION GUID - 22 bytes used for transmission relay
        * Bytes / ASCII String CLIENT GUID - 22 bytes
        */
-
     public class UDPVoicePacket
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -45,7 +44,7 @@ namespace Ciribob.SRS.Common.Network.Models
             sizeof(uint) // UInt UnitId - 4 bytes
             + sizeof(ulong) // UInt64 PacketId - 8 bytes
             + sizeof(byte) // Byte indicating number of hops for this message // default is 0
-            + GuidLength  // Bytes / ASCII String Transmission GUID - 22 bytes
+            + GuidLength // Bytes / ASCII String Transmission GUID - 22 bytes
             + GuidLength; // Bytes / ASCII String GUID - 22 bytes
 
         // HEADER SEGMENT
@@ -67,7 +66,7 @@ namespace Ciribob.SRS.Common.Network.Models
         SATCOM = 5,
         MIDS = 6,*/
         public byte[] Modulations { get; set; }
-    
+
         public byte[] Encryptions { get; set; }
 
         // FIXED SEGMENT
@@ -91,7 +90,7 @@ namespace Ciribob.SRS.Common.Network.Models
             var staticSegmentLength = PacketHeaderLength + FixedPacketLength;
             var totalPacketLength = staticSegmentLength + dynamicSegmentLength;
 
-            PacketLength = (ushort) totalPacketLength;
+            PacketLength = (ushort)totalPacketLength;
 
             // Allocate memory for all combined packet segments
             var combinedBytes = new byte[totalPacketLength];
@@ -184,7 +183,8 @@ namespace Ciribob.SRS.Common.Network.Models
             combinedBytes[totalPacketLength - (GuidLength + GuidLength + 1)] = RetransmissionCount;
 
             //Copy Transmission nearly at the end - just before the clientGUID
-            Buffer.BlockCopy(OriginalClientGuidBytes, 0, combinedBytes, totalPacketLength - (GuidLength + GuidLength), GuidLength);
+            Buffer.BlockCopy(OriginalClientGuidBytes, 0, combinedBytes, totalPacketLength - (GuidLength + GuidLength),
+                GuidLength);
 
             // Copy client GUID to end of packet
             Buffer.BlockCopy(GuidBytes, 0, combinedBytes, totalPacketLength - GuidLength, GuidLength);
@@ -259,13 +259,13 @@ namespace Ciribob.SRS.Common.Network.Models
                     PacketNumber = packetNumber,
                     PacketLength = packetLength,
                     OriginalClientGuid = transmissionGuid,
-                    OriginalClientGuidBytes =  transmissionBytes,
+                    OriginalClientGuidBytes = transmissionBytes,
                     RetransmissionCount = retransmissionCount
                 };
             }
             catch (Exception ex)
             {
-                Logger.Error(ex,"Unable to decode UDP Voice Packet");
+                Logger.Error(ex, "Unable to decode UDP Voice Packet");
             }
 
             return null;

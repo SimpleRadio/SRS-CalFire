@@ -6,36 +6,25 @@ using System.Threading.Tasks;
 
 namespace Ciribob.SRS.Common.PlayerState
 {
-    public class RadioConfig
+    public partial class RadioConfig
     {
         public enum VolumeMode
         {
             COCKPIT = 0,
-            OVERLAY = 1,
+            OVERLAY = 1
         }
 
         public enum FreqMode
         {
             COCKPIT = 0,
-            OVERLAY = 1,
+            OVERLAY = 1
         }
 
         public enum RetransmitMode
         {
             COCKPIT = 0,
             OVERLAY = 1,
-            DISABLED = 2,
-        }
-
-        public enum Modulation
-        {
-            AM = 0,
-            FM = 1,
-            INTERCOM = 2,
-            DISABLED = 3,
-            HAVEQUICK = 4,
-            SATCOM = 5,
-            MIDS = 6,
+            DISABLED = 2
         }
 
         public enum EncryptionMode
@@ -52,46 +41,44 @@ namespace Ciribob.SRS.Common.PlayerState
         }
 
 
-        public RetransmitMode RetransmitControl { get; set; } = RadioConfig.RetransmitMode.DISABLED;
-        public FreqMode FrequencyControl { get; set; } = RadioConfig.FreqMode.COCKPIT;
-        public FreqMode GuardFrequencyControl { get; set; } = RadioConfig.FreqMode.COCKPIT;
-        public VolumeMode VolumeControl { get; set; } = RadioConfig.VolumeMode.COCKPIT;
+        public RetransmitMode RetransmitControl { get; set; } = RetransmitMode.DISABLED;
+        public FreqMode FrequencyControl { get; set; } = FreqMode.COCKPIT;
+        public FreqMode GuardFrequencyControl { get; set; } = FreqMode.COCKPIT;
+        public VolumeMode VolumeControl { get; set; } = VolumeMode.COCKPIT;
 
-        public EncryptionMode EncryptionControl { get; set; } = RadioConfig.EncryptionMode.NO_ENCRYPTION;
+        public EncryptionMode EncryptionControl { get; set; } = EncryptionMode.NO_ENCRYPTION;
 
         public double MaxFrequency { get; set; } = 1;
         public double MinimumFrequency { get; set; } = 1;
 
         internal RadioConfig DeepCopy()
         {
-
             return new RadioConfig()
             {
-                MaxFrequency = this.MaxFrequency,
-                MinimumFrequency = this.MinimumFrequency,
-                VolumeControl = this.VolumeControl,
-                GuardFrequencyControl = this.GuardFrequencyControl,
-                FrequencyControl = this.FrequencyControl,
-                RetransmitControl = this.RetransmitControl,
-                EncryptionControl = this.EncryptionControl
-
+                MaxFrequency = MaxFrequency,
+                MinimumFrequency = MinimumFrequency,
+                VolumeControl = VolumeControl,
+                GuardFrequencyControl = GuardFrequencyControl,
+                FrequencyControl = FrequencyControl,
+                RetransmitControl = RetransmitControl,
+                EncryptionControl = EncryptionControl
             };
         }
 
         protected bool Equals(RadioConfig other)
         {
-            return RetransmitControl == other.RetransmitControl 
-                   && FrequencyControl == other.FrequencyControl 
-                   && GuardFrequencyControl == other.GuardFrequencyControl 
-                   && VolumeControl == other.VolumeControl 
-                   && EncryptionControl == other.EncryptionControl 
-                   && MaxFrequency.Equals(other.MaxFrequency) 
+            return RetransmitControl == other.RetransmitControl
+                   && FrequencyControl == other.FrequencyControl
+                   && GuardFrequencyControl == other.GuardFrequencyControl
+                   && VolumeControl == other.VolumeControl
+                   && EncryptionControl == other.EncryptionControl
+                   && MaxFrequency.Equals(other.MaxFrequency)
                    && MinimumFrequency.Equals(other.MinimumFrequency);
         }
 
         public override bool Equals(object obj)
         {
-            if ((obj == null) || (GetType() != obj.GetType()))
+            if (obj == null || GetType() != obj.GetType())
                 return false;
 
             return Equals((RadioConfig)obj);

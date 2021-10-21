@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
@@ -17,7 +16,7 @@ using Ciribob.SRS.Common.Setting;
 using Easy.MessageHub;
 using NLog;
 
-namespace  Ciribob.SRS.Common.Network.Client
+namespace Ciribob.SRS.Common.Network.Client
 {
     public class UDPVoiceHandler
     {
@@ -48,7 +47,6 @@ namespace  Ciribob.SRS.Common.Network.Client
 
         public UDPVoiceHandler(string guid, IPEndPoint endPoint)
         {
-           
             _guidAsciiBytes = Encoding.ASCII.GetBytes(guid);
 
             _serverEndpoint = endPoint;
@@ -60,16 +58,15 @@ namespace  Ciribob.SRS.Common.Network.Client
 
         private void UpdateVOIPStatus(object sender, EventArgs e)
         {
-            TimeSpan diff = TimeSpan.FromTicks(DateTime.Now.Ticks - _udpLastReceived);
+            var diff = TimeSpan.FromTicks(DateTime.Now.Ticks - _udpLastReceived);
 
             //ping every 10 so after 40 seconds VoIP UDP issue
             if (diff.TotalSeconds > UDP_VOIP_TIMEOUT)
             {
                 //TODO emit event / callback
-                
+
                 ConnectionStateDelegate?.Invoke(false);
                 _hubSingleton.Publish(new VOIPStatusMessage(false));
-
             }
             else
             {
@@ -88,16 +85,16 @@ namespace  Ciribob.SRS.Common.Network.Client
             {
                 _listener.AllowNatTraversal(true);
             }
-            catch { }
+            catch
+            {
+            }
 
             StartPing();
 
             _packetNumber = 1; //reset packet number
 
             while (!_stop)
-            {
                 if (Ready)
-                {
                     try
                     {
                         var groupEp = new IPEndPoint(IPAddress.Any, _serverEndpoint.Port);
@@ -119,8 +116,6 @@ namespace  Ciribob.SRS.Common.Network.Client
                     {
                         //  logger.Error(e, "error listening for UDP Voip");
                     }
-                }
-            }
 
             Ready = false;
 
@@ -148,7 +143,10 @@ namespace  Ciribob.SRS.Common.Network.Client
             try
             {
                 _pingStop.Cancel();
-            }catch(Exception ex){}
+            }
+            catch (Exception ex)
+            {
+            }
 
             ConnectionStateDelegate?.Invoke(false);
             _hubSingleton.Publish(new VOIPStatusMessage(false));
@@ -158,8 +156,7 @@ namespace  Ciribob.SRS.Common.Network.Client
         {
             if (Ready
                 && _listener != null
-                && (udpVoicePacket != null))
-            {
+                && udpVoicePacket != null)
                 try
                 {
                     //TODO check this
@@ -169,14 +166,12 @@ namespace  Ciribob.SRS.Common.Network.Client
                     _listener.Send(encodedUdpVoicePacket, encodedUdpVoicePacket.Length, _serverEndpoint);
 
                     return true;
-                    
                 }
                 catch (Exception e)
                 {
                     Logger.Error(e, "Exception Sending Audio Message " + e.Message);
                 }
-            }
-           
+
 
             return false;
         }
@@ -185,7 +180,7 @@ namespace  Ciribob.SRS.Common.Network.Client
         {
             Logger.Info("Pinging Server - Starting");
 
-            byte[] message = _guidAsciiBytes;
+            var message = _guidAsciiBytes;
 
             // Force immediate ping once to avoid race condition before starting to listen
             _listener?.Send(message, message.Length, _serverEndpoint);
@@ -193,10 +188,7 @@ namespace  Ciribob.SRS.Common.Network.Client
             var thread = new Thread(() =>
             {
                 //wait for initial sync - then ping
-                if (_pingStop.Token.WaitHandle.WaitOne(TimeSpan.FromSeconds(2)))
-                {
-                    return;
-                }
+                if (_pingStop.Token.WaitHandle.WaitOne(TimeSpan.FromSeconds(2))) return;
 
                 Ready = true;
 
@@ -215,12 +207,9 @@ namespace  Ciribob.SRS.Common.Network.Client
                     //wait for cancel or quit
                     var cancelled = _pingStop.Token.WaitHandle.WaitOne(TimeSpan.FromSeconds(15));
 
-                    if (cancelled)
-                    {
-                        return;
-                    }
+                    if (cancelled) return;
 
-                    TimeSpan diff = TimeSpan.FromTicks(DateTime.Now.Ticks - _udpLastReceived);
+                    var diff = TimeSpan.FromTicks(DateTime.Now.Ticks - _udpLastReceived);
 
                     //reconnect to UDP - port is no good!
                     if (diff.TotalSeconds > UDP_VOIP_TIMEOUT)
@@ -232,7 +221,8 @@ namespace  Ciribob.SRS.Common.Network.Client
                             _listener?.Close();
                         }
                         catch (Exception ex)
-                        { }
+                        {
+                        }
 
                         _listener = null;
 
@@ -243,7 +233,9 @@ namespace  Ciribob.SRS.Common.Network.Client
                         {
                             _listener.AllowNatTraversal(true);
                         }
-                        catch { }
+                        catch
+                        {
+                        }
 
                         try
                         {
@@ -251,16 +243,12 @@ namespace  Ciribob.SRS.Common.Network.Client
                             _listener.Send(message, message.Length, _serverEndpoint);
                             Ready = true;
                             Logger.Error("VoIP Timeout - Success Recreating VoIP Connection");
-
-
                         }
                         catch (Exception e)
                         {
                             Logger.Error(e, "Exception Sending Audio Ping! " + e.Message);
                         }
-
                     }
-
                 }
             });
             thread.Start();

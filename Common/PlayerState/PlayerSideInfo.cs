@@ -13,10 +13,7 @@ namespace Ciribob.SRS.Common
 
         public override bool Equals(object obj)
         {
-            if (obj == null)
-            {
-                return false;
-            }
+            if (obj == null) return false;
 
             return obj is PlayerSideInfo info &&
                    name == info.name &&
@@ -31,8 +28,5 @@ namespace Ciribob.SRS.Common
             seat = 0;
             LngLngPosition = new LatLngPosition();
         }
-
-
-
     }
 }

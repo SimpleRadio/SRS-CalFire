@@ -11,6 +11,7 @@ using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Models;
+using Ciribob.SRS.Common.Network.Singletons;
 using Ciribob.SRS.Common.PlayerState;
 using Easy.MessageHub;
 using FragLabs.Audio.Codecs;
@@ -20,6 +21,7 @@ using NAudio.Wave.SampleProviders;
 using NLog;
 using WPFCustomMessageBox;
 using Application = FragLabs.Audio.Codecs.Opus.Application;
+using ClientStateSingleton = Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.ClientStateSingleton;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 {
@@ -29,13 +31,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
         public static readonly int MIC_INPUT_AUDIO_LENGTH_MS = 40;
 
-        public static readonly int MIC_SEGMENT_FRAMES = (MIC_SAMPLE_RATE / 1000) * MIC_INPUT_AUDIO_LENGTH_MS;
+        public static readonly int MIC_SEGMENT_FRAMES = MIC_SAMPLE_RATE / 1000 * MIC_INPUT_AUDIO_LENGTH_MS;
 
         public static readonly int OUTPUT_SAMPLE_RATE = 48000;
 
         public static readonly int OUTPUT_AUDIO_LENGTH_MS = 40;
 
-        public static readonly int OUTPUT_SEGMENT_FRAMES = (OUTPUT_SAMPLE_RATE / 1000) * OUTPUT_AUDIO_LENGTH_MS;
+        public static readonly int OUTPUT_SEGMENT_FRAMES = OUTPUT_SAMPLE_RATE / 1000 * OUTPUT_AUDIO_LENGTH_MS;
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -89,36 +91,26 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
         public float SpeakerBoost
         {
-            get { return _speakerBoost; }
+            get => _speakerBoost;
             set
             {
                 _speakerBoost = value;
-                if (_volumeSampleProvider != null)
-                {
-                    _volumeSampleProvider.Volume = value;
-                }
+                if (_volumeSampleProvider != null) _volumeSampleProvider.Volume = value;
             }
         }
 
         public void StartEncoding(string guid, InputDeviceManager inputManager,
             IPAddress ipAddress, int port)
         {
-
             MMDevice speakers = null;
             if (_audioOutputSingleton.SelectedAudioOutput.Value == null)
-            {
                 speakers = WasapiOut.GetDefaultAudioEndpoint();
-            }
-            else 
-            {
+            else
                 speakers = (MMDevice)_audioOutputSingleton.SelectedAudioOutput.Value;
-            }
 
             MMDevice micOutput = null;
             if (_audioOutputSingleton.SelectedMicAudioOutput.Value != null)
-            {
                 micOutput = (MMDevice)_audioOutputSingleton.SelectedMicAudioOutput.Value;
-            }
 
             try
             {
@@ -131,37 +123,30 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 //Audio manager should start / stop and cleanup based on connection successfull and disconnect
                 //Should use listeners to synchronise all the state
 
-                _waveOut = new WasapiOut(speakers, AudioClientShareMode.Shared, true, 40,windowsN);
+                _waveOut = new WasapiOut(speakers, AudioClientShareMode.Shared, true, 40, windowsN);
 
                 //add final volume boost to all mixed audio
                 _volumeSampleProvider = new VolumeSampleProviderWithPeak(_clientAudioMixer,
-                    (peak => SpeakerMax = (float) VolumeConversionHelper.ConvertFloatToDB(peak)));
+                    peak => SpeakerMax = (float)VolumeConversionHelper.ConvertFloatToDB(peak));
                 _volumeSampleProvider.Volume = SpeakerBoost;
 
                 if (speakers.AudioClient.MixFormat.Channels == 1)
                 {
                     if (_volumeSampleProvider.WaveFormat.Channels == 2)
-                    {
                         _waveOut.Init(_volumeSampleProvider.ToMono());
-                    }
                     else
-                    {
                         //already mono
                         _waveOut.Init(_volumeSampleProvider);
-                    }
                 }
                 else
                 {
                     if (_volumeSampleProvider.WaveFormat.Channels == 1)
-                    {
                         _waveOut.Init(_volumeSampleProvider.ToStereo());
-                    }
                     else
-                    {
                         //already stereo
                         _waveOut.Init(_volumeSampleProvider);
-                    }
                 }
+
                 _waveOut.Play();
 
                 //opus
@@ -169,7 +154,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 _encoder.ForwardErrorCorrection = false;
 
                 //speex
-                _speex = new Preprocessor(AudioManager.MIC_SEGMENT_FRAMES, AudioManager.MIC_SAMPLE_RATE);
+                _speex = new Preprocessor(MIC_SEGMENT_FRAMES, MIC_SAMPLE_RATE);
             }
             catch (Exception ex)
             {
@@ -183,15 +168,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             }
 
             if (micOutput != null) // && micOutput !=speakers
-            {
                 //TODO handle case when they're the same?
 
                 try
                 {
                     _passThroughAudioProvider = new ClientAudioProvider(true);
-                    _micWaveOut = new WasapiOut(micOutput, AudioClientShareMode.Shared, true, 40,windowsN);
+                    _micWaveOut = new WasapiOut(micOutput, AudioClientShareMode.Shared, true, 40, windowsN);
 
-                    _micWaveOutBuffer = new BufferedWaveProvider(new WaveFormat(AudioManager.OUTPUT_SAMPLE_RATE, 16, 1));
+                    _micWaveOutBuffer = new BufferedWaveProvider(new WaveFormat(OUTPUT_SAMPLE_RATE, 16, 1));
                     _micWaveOutBuffer.ReadFully = true;
                     _micWaveOutBuffer.DiscardOnBufferOverflow = true;
 
@@ -200,26 +184,18 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                     if (micOutput.AudioClient.MixFormat.Channels == 1)
                     {
                         if (sampleProvider.WaveFormat.Channels == 2)
-                        {
                             _micWaveOut.Init(sampleProvider.ToMono());
-                        }
                         else
-                        {
                             //already mono
                             _micWaveOut.Init(sampleProvider);
-                        }
                     }
                     else
                     {
                         if (sampleProvider.WaveFormat.Channels == 1)
-                        {
                             _micWaveOut.Init(sampleProvider.ToStereo());
-                        }
                         else
-                        {
                             //already stereo
                             _micWaveOut.Init(sampleProvider);
-                        }
                     }
 
                     _micWaveOut.Play();
@@ -233,18 +209,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
                     Environment.Exit(1);
                 }
-            }
 
             if (_audioInputSingleton.MicrophoneAvailable)
             {
                 try
                 {
-                    var device = (MMDevice) _audioInputSingleton.SelectedAudioInput.Value;
+                    var device = (MMDevice)_audioInputSingleton.SelectedAudioInput.Value;
 
-                    if (device == null)
-                    {
-                        device = WasapiCapture.GetDefaultCaptureDevice();
-                    }
+                    if (device == null) device = WasapiCapture.GetDefaultCaptureDevice();
 
                     device.AudioEndpointVolume.Mute = false;
 
@@ -254,15 +226,15 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                     _wasapiCapture.RecordingStopped += WasapiCaptureOnRecordingStopped;
 
                     //TODO
-                   // _udpVoiceHandler =
-                   //     new UDPVoiceHandler(guid, ipAddress, port, this, inputManager);
+                    // _udpVoiceHandler =
+                    //     new UDPVoiceHandler(guid, ipAddress, port, this, inputManager);
                     var voiceSenderThread = new Thread(_udpVoiceHandler.Listen);
 
                     voiceSenderThread.Start();
 
                     _wasapiCapture.StartRecording();
 
-                    MessageHub.Instance.Subscribe<SRClient>(RemoveClientBuffer);
+                    MessageHubSingleton.Instance.Subscribe<SRClient>(RemoveClientBuffer);
                 }
                 catch (Exception ex)
                 {
@@ -279,7 +251,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 //no mic....
                 // _udpVoiceHandler =
                 //     new UdpVoiceHandler(guid, ipAddress, port, this, inputManager);
-                 MessageHub.Instance.Subscribe<SRClient>(RemoveClientBuffer);
+                MessageHubSingleton.Instance.Subscribe<SRClient>(RemoveClientBuffer);
                 var voiceSenderThread = new Thread(_udpVoiceHandler.Listen);
                 voiceSenderThread.Start();
             }
@@ -289,62 +261,51 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         {
             Logger.Error("Recording Stopped");
         }
-        Stopwatch _stopwatch = new Stopwatch();
+
+        private Stopwatch _stopwatch = new Stopwatch();
+
         // private WaveFileWriter _beforeWaveFile;
         // private WaveFileWriter _afterFileWriter;
         private void WasapiCaptureOnDataAvailable(object sender, WaveInEventArgs e)
         {
             if (_resampler == null)
-            {
                 //create and use in the same thread or COM issues
-                _resampler = new EventDrivenResampler(windowsN, _wasapiCapture.WaveFormat, new WaveFormat(AudioManager.MIC_SAMPLE_RATE, 16, 1));
-                // _beforeWaveFile = new WaveFileWriter(@"C:\Temp\Test-Preview-Before.wav", new WaveFormat(AudioManager.MIC_SAMPLE_RATE, 16, 1));
-                // _afterFileWriter = new WaveFileWriter(@"C:\Temp\Test-Preview-after.wav", new WaveFormat(AudioManager.OUTPUT_SAMPLE_RATE, 16, 1));
-            }
+                _resampler = new EventDrivenResampler(windowsN, _wasapiCapture.WaveFormat,
+                    new WaveFormat(MIC_SAMPLE_RATE, 16, 1));
+            // _beforeWaveFile = new WaveFileWriter(@"C:\Temp\Test-Preview-Before.wav", new WaveFormat(AudioManager.MIC_SAMPLE_RATE, 16, 1));
+            // _afterFileWriter = new WaveFileWriter(@"C:\Temp\Test-Preview-after.wav", new WaveFormat(AudioManager.OUTPUT_SAMPLE_RATE, 16, 1));
 
             if (e.BytesRecorded > 0)
             {
                 //Logger.Info($"Time: {_stopwatch.ElapsedMilliseconds} - Bytes: {e.BytesRecorded}");
-                short[] resampledPCM16Bit = _resampler.Resample(e.Buffer, e.BytesRecorded);
+                var resampledPCM16Bit = _resampler.Resample(e.Buffer, e.BytesRecorded);
 
                 // Logger.Info($"Time: {_stopwatch.ElapsedMilliseconds} - Bytes: {resampledPCM16Bit.Length}");
                 //fill sound buffer
-                for (var i = 0; i < resampledPCM16Bit.Length; i++)
-                {
-                    _micInputQueue.Enqueue(resampledPCM16Bit[i]);
-                }
+                for (var i = 0; i < resampledPCM16Bit.Length; i++) _micInputQueue.Enqueue(resampledPCM16Bit[i]);
 
                 //read out the queue
-                while (_micInputQueue.Count >= AudioManager.MIC_SEGMENT_FRAMES)
+                while (_micInputQueue.Count >= MIC_SEGMENT_FRAMES)
                 {
-                    short[] pcmShort  = new short[AudioManager.MIC_SEGMENT_FRAMES];
+                    var pcmShort = new short[MIC_SEGMENT_FRAMES];
 
-                    for (var i = 0; i < AudioManager.MIC_SEGMENT_FRAMES; i++)
-                    {
-                        pcmShort[i] = _micInputQueue.Dequeue();
-                    }
+                    for (var i = 0; i < MIC_SEGMENT_FRAMES; i++) pcmShort[i] = _micInputQueue.Dequeue();
 
                     try
                     {
                         //volume boost pre
                         for (var i = 0; i < pcmShort.Length; i++)
-                        {
                             // n.b. no clipping test going on here
                             pcmShort[i] = (short)(pcmShort[i] * MicBoost);
-                        }
 
                         //process with Speex
                         _speex.Process(new ArraySegment<short>(pcmShort));
 
                         float max = 0;
                         for (var i = 0; i < pcmShort.Length; i++)
-                        {
                             //determine peak
                             if (pcmShort[i] > max)
-                            {
                                 max = pcmShort[i];
-                            }
-                        }
                         //convert to dB
                         MicMax = (float)VolumeConversionHelper.ConvertFloatToDB(max / 32768F);
 
@@ -355,7 +316,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                         int len;
                         var buff = _encoder.Encode(pcmBytes, pcmBytes.Length, out len);
 
-                        if ((_udpVoiceHandler != null) && (buff != null) && (len > 0))
+                        if (_udpVoiceHandler != null && buff != null && len > 0)
                         {
                             //create copy with small buffer
                             var encoded = new byte[len];
@@ -385,7 +346,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                         }
                         else
                         {
-                            Logger.Error($"Invalid Bytes for Encoding - {pcmShort.Length} should be {MIC_SEGMENT_FRAMES} ");
+                            Logger.Error(
+                                $"Invalid Bytes for Encoding - {pcmShort.Length} should be {MIC_SEGMENT_FRAMES} ");
                         }
 
                         _errorCount = 0;
@@ -394,14 +356,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                     {
                         _errorCount++;
                         if (_errorCount < 10)
-                        {
                             Logger.Error(ex, "Error encoding Opus! " + ex.Message);
-                        }
-                        else if (_errorCount == 10)
-                        {
-                            Logger.Error(ex, "Final Log of Error encoding Opus! " + ex.Message);
-                        }
-
+                        else if (_errorCount == 10) Logger.Error(ex, "Final Log of Error encoding Opus! " + ex.Message);
                     }
                 }
             }
@@ -422,13 +378,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                     MessageBoxImage.Error);
 
                 if (messageBoxResult == MessageBoxResult.Yes)
-                {
                     Process.Start("ms-settings:privacy-microphone");
-                }
-                else if (messageBoxResult == MessageBoxResult.No)
-                {
-                    Process.Start("https://discord.gg/baw7g3t");
-                }
+                else if (messageBoxResult == MessageBoxResult.No) Process.Start("https://discord.gg/baw7g3t");
             }
             else
             {
@@ -440,10 +391,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                     "CLOSE",
                     MessageBoxImage.Error);
 
-                if (messageBoxResult == MessageBoxResult.Yes)
-                {
-                    Process.Start("https://discord.gg/baw7g3t");
-                }
+                if (messageBoxResult == MessageBoxResult.Yes) Process.Start("https://discord.gg/baw7g3t");
             }
         }
 
@@ -457,10 +405,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 "CLOSE",
                 MessageBoxImage.Error);
 
-            if (messageBoxResult == MessageBoxResult.Yes)
-            {
-                Process.Start("https://discord.gg/baw7g3t");
-            }
+            if (messageBoxResult == MessageBoxResult.Yes) Process.Start("https://discord.gg/baw7g3t");
         }
 
         private void InitMixers()
@@ -481,34 +426,31 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         }
 
 
-        public void PlaySoundEffectStartReceive(int transmitOnRadio, bool encrypted, float volume, RadioConfig.Modulation modulation)
+        public void PlaySoundEffectStartReceive(int transmitOnRadio, bool encrypted, float volume,
+            Modulation modulation)
         {
             if (!_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_Start))
-            {
                 return;
-            }
 
-            bool midsTone = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
+            var midsTone =
+                _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
 
-            if (modulation == RadioConfig.Modulation.MIDS && midsTone)
-            {
+            if (modulation == Modulation.MIDS && midsTone)
                 //no tone for MIDS
                 return;
-            }
 
             var _effectsBuffer = _effectsOutputBuffer[transmitOnRadio];
 
-            if (encrypted && (_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects)))
+            if (encrypted &&
+                _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects))
             {
                 _effectsBuffer.VolumeSampleProvider.Volume = volume;
 
                 var effect = _cachedAudioEffectsProvider.KY58EncryptionEndTone;
                 if (effect.Loaded)
-                {
                     _effectsBuffer.AddAudioSamples(
                         effect.AudioEffectBytes,
                         transmitOnRadio);
-                }
             }
             else
             {
@@ -516,72 +458,63 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
                 var effect = _cachedAudioEffectsProvider.SelectedRadioTransmissionStartEffect;
                 if (effect.Loaded)
-                {
                     _effectsBuffer.AddAudioSamples(
                         effect.AudioEffectBytes,
                         transmitOnRadio);
-                }
             }
         }
 
-        public void PlaySoundEffectStartTransmit(int transmitOnRadio, bool encrypted, float volume, RadioConfig.Modulation modulation)
+        public void PlaySoundEffectStartTransmit(int transmitOnRadio, bool encrypted, float volume,
+            Modulation modulation)
         {
             if (!_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_Start))
-            {
                 return;
-            }
 
             var _effectBuffer = _effectsOutputBuffer[transmitOnRadio];
 
-            bool midsTone = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
+            var midsTone =
+                _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
 
-            if (encrypted && (_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects)))
+            if (encrypted &&
+                _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects))
             {
                 _effectBuffer.VolumeSampleProvider.Volume = volume;
                 var effect = _cachedAudioEffectsProvider.KY58EncryptionTransmitTone;
                 if (effect.Loaded)
-                {
                     _effectBuffer.AddAudioSamples(
                         effect.AudioEffectBytes,
                         transmitOnRadio);
-                }
             }
-            else if (modulation == RadioConfig.Modulation.MIDS && midsTone)
+            else if (modulation == Modulation.MIDS && midsTone)
             {
                 _effectBuffer.VolumeSampleProvider.Volume = volume;
                 var effect = _cachedAudioEffectsProvider.MIDSTransmitTone;
                 if (effect.Loaded)
-                {
                     _effectBuffer.AddAudioSamples(
                         effect.AudioEffectBytes,
                         transmitOnRadio);
-                }
             }
             else
             {
                 _effectBuffer.VolumeSampleProvider.Volume = volume;
                 var effect = _cachedAudioEffectsProvider.SelectedRadioTransmissionStartEffect;
                 if (effect.Loaded)
-                {
                     _effectBuffer.AddAudioSamples(
                         effect.AudioEffectBytes,
                         transmitOnRadio);
-                }
             }
         }
 
 
-        public void PlaySoundEffectEndReceive(int transmitOnRadio, float volume, RadioConfig.Modulation modulation)
+        public void PlaySoundEffectEndReceive(int transmitOnRadio, float volume, Modulation modulation)
         {
-            
             if (!_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_End))
-            {
                 return;
-            }
 
-            bool midsTone = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
+            var midsTone =
+                _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
 
-            if (modulation == RadioConfig.Modulation.MIDS && midsTone)
+            if (modulation == Modulation.MIDS && midsTone)
             {
                 //end receive tone for MIDS
                 var effectsBuffer = _effectsOutputBuffer[transmitOnRadio];
@@ -589,11 +522,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 effectsBuffer.VolumeSampleProvider.Volume = volume;
                 var effect = _cachedAudioEffectsProvider.MIDSEndTone;
                 if (effect.Loaded)
-                {
                     effectsBuffer.AddAudioSamples(
                         effect.AudioEffectBytes,
                         transmitOnRadio);
-                }
             }
             else
             {
@@ -602,58 +533,49 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 effectsBuffer.VolumeSampleProvider.Volume = volume;
                 var effect = _cachedAudioEffectsProvider.SelectedRadioTransmissionEndEffect;
                 if (effect.Loaded)
-                {
                     effectsBuffer.AddAudioSamples(
                         effect.AudioEffectBytes,
                         transmitOnRadio);
-                }
             }
-
         }
 
-        public void PlaySoundEffectEndTransmit(int transmitOnRadio, float volume, RadioConfig.Modulation modulation)
+        public void PlaySoundEffectEndTransmit(int transmitOnRadio, float volume, Modulation modulation)
         {
             if (!_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_End))
-            {
                 return;
-            }
 
-            bool midsTone = _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
+            var midsTone =
+                _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
             var _effectBuffer = _effectsOutputBuffer[transmitOnRadio];
 
-            if (modulation == RadioConfig.Modulation.MIDS && midsTone)
+            if (modulation == Modulation.MIDS && midsTone)
             {
                 _effectBuffer.VolumeSampleProvider.Volume = volume;
                 var effect = _cachedAudioEffectsProvider.MIDSEndTone;
                 if (effect.Loaded)
-                {
                     _effectBuffer.AddAudioSamples(
                         effect.AudioEffectBytes,
                         transmitOnRadio);
-                }
             }
-            else{
-
+            else
+            {
                 _effectBuffer.VolumeSampleProvider.Volume = volume;
                 var effect = _cachedAudioEffectsProvider.SelectedRadioTransmissionEndEffect;
                 if (effect.Loaded)
-                {
                     _effectBuffer.AddAudioSamples(
                         effect.AudioEffectBytes,
                         transmitOnRadio);
-                }
             }
-
-         
         }
 
         private int _errorCount = 0;
         //Stopwatch _stopwatch = new Stopwatch();
 
-        object lockObj = new object();
+        private object lockObj = new object();
+
         public void StopEncoding()
         {
-            lock(lockObj)
+            lock (lockObj)
             {
                 _wasapiCapture?.StopRecording();
                 _wasapiCapture?.Dispose();
@@ -698,8 +620,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 MicMax = -100;
 
                 _effectsOutputBuffer = null;
-
-                MessageHub.Instance.ClearSubscriptions();
+                //TODO change this line
+                MessageHubSingleton.Instance.ClearSubscriptions();
             }
         }
 
@@ -731,10 +653,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             ClientAudioProvider clientAudio = null;
             _clientsBufferedAudio.TryRemove(srClient.ClientGuid, out clientAudio);
 
-            if (clientAudio == null)
-            {
-                return;
-            }
+            if (clientAudio == null) return;
 
             try
             {

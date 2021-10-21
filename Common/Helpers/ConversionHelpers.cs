@@ -20,13 +20,13 @@ namespace Ciribob.SRS.Common
 
         public static short ToShort(byte byte1, byte byte2)
         {
-            return (short) ((byte2 << 8) | byte1);
+            return (short)((byte2 << 8) | byte1);
         }
 
         public static void FromShort(short number, out byte byte1, out byte byte2)
         {
-            byte1 = (byte) (number & 0xFF);
-            byte2 = (byte) (number >> 8);
+            byte1 = (byte)(number & 0xFF);
+            byte2 = (byte)(number >> 8);
         }
     }
 }

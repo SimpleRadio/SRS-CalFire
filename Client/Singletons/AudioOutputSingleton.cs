@@ -16,25 +16,25 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         #region Singleton Definition
+
         private static volatile AudioOutputSingleton _instance;
-        private static object _lock = new Object();
+        private static object _lock = new object();
 
         public static AudioOutputSingleton Instance
         {
             get
             {
                 if (_instance == null)
-                {
                     lock (_lock)
                     {
                         if (_instance == null)
                             _instance = new AudioOutputSingleton();
                     }
-                }
 
                 return _instance;
             }
         }
+
         #endregion
 
         #region Instance Definition
@@ -61,7 +61,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
         {
             Logger.Info("Building Normal Audio Outputs");
             Logger.Info("Audio Output - Saved ID " +
-                         GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.AudioOutputDeviceId).RawValue);
+                        GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.AudioOutputDeviceId).RawValue);
 
             return BuildAudioOutputs("Default Speakers", false);
         }
@@ -70,7 +70,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
         {
             Logger.Info("Building Microphone Audio Outputs");
             Logger.Info("Mic Audio Output - Saved ID " +
-                                   GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.MicAudioOutputDeviceId).RawValue);
+                        GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.MicAudioOutputDeviceId)
+                            .RawValue);
 
             return BuildAudioOutputs("NO MIC OUTPUT / PASSTHROUGH", true);
         }
@@ -89,11 +90,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
             string savedDeviceId;
             if (micOutput)
             {
-                savedDeviceId = GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.MicAudioOutputDeviceId).RawValue;
+                savedDeviceId = GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.MicAudioOutputDeviceId)
+                    .RawValue;
                 SelectedMicAudioOutput = outputs[0];
-            } else
+            }
+            else
             {
-                savedDeviceId = GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.AudioOutputDeviceId).RawValue;
+                savedDeviceId = GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.AudioOutputDeviceId)
+                    .RawValue;
                 SelectedAudioOutput = outputs[0];
             }
 
@@ -102,12 +106,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
 
             var i = 1;
             foreach (var device in outputDeviceList)
-            {
                 try
                 {
                     Logger.Info("Audio Output - " + device.DeviceFriendlyName + " " + device.ID + " CHN:" +
-                            device.AudioClient.MixFormat.Channels + " Rate:" +
-                            device.AudioClient.MixFormat.SampleRate.ToString());
+                                device.AudioClient.MixFormat.Channels + " Rate:" +
+                                device.AudioClient.MixFormat.SampleRate.ToString());
 
                     outputs.Add(new AudioDeviceListItem()
                     {
@@ -118,23 +121,17 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
                     if (device.ID == savedDeviceId)
                     {
                         if (micOutput)
-                        {
                             SelectedMicAudioOutput = outputs[i];
-                        }
                         else
-                        {
                             SelectedAudioOutput = outputs[i];
-                        }
                     }
 
                     i++;
-
                 }
                 catch (Exception e)
                 {
                     Logger.Error(e, "Audio Output - Error processing device - device skipped");
                 }
-            }
 
             return outputs;
         }
@@ -153,6 +150,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
                 return true;
             }
         }
+
         #endregion
     }
 }

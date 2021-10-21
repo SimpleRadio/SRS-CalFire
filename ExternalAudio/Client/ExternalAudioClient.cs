@@ -8,8 +8,8 @@ using Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Audio;
 using Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network;
 using Ciribob.SRS.Common.Network.Models;
+using Ciribob.SRS.Common.Network.Singletons;
 using Ciribob.SRS.Common.PlayerState;
-using Easy.MessageHub;
 using NLog;
 using Timer = Cabhishek.Timers.Timer;
 
@@ -20,7 +20,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         private double[] freq;
-        private RadioConfig.Modulation[] modulation;
+        private Modulation[] modulation;
         private byte[] modulationBytes;
 
         private readonly string Guid = ShortGuid.NewGuid();
@@ -30,7 +30,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
         private UdpVoiceHandler udpVoiceHandler;
         private Program.Options opts;
 
-        public ExternalAudioClient(double[] freq, RadioConfig.Modulation[] modulation, Program.Options opts)
+        public ExternalAudioClient(double[] freq, Modulation[] modulation, Program.Options opts)
         {
             this.freq = freq;
             this.modulation = modulation;
@@ -45,8 +45,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
         public void Start()
         {
 
-            MessageHub.Instance.Subscribe<ReadyMessage>(ReadyToSend);
-            MessageHub.Instance.Subscribe<DisconnectedMessage>(Disconnected);
+            MessageHubSingleton.Instance.Subscribe<ReadyMessage>(ReadyToSend);
+            MessageHubSingleton.Instance.Subscribe<DisconnectedMessage>(Disconnected);
 
             gameState = new PlayerUnitState();
             gameState.Radios[1].Modulation = modulation[0];
@@ -77,7 +77,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
             udpVoiceHandler?.RequestStop();
             srsClientSyncHandler?.Disconnect();
 
-            MessageHub.Instance.ClearSubscriptions();
+            MessageHubSingleton.Instance.ClearSubscriptions();
         }
 
         private void ReadyToSend(ReadyMessage ready)

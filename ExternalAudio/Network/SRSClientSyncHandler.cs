@@ -9,6 +9,7 @@ using Ciribob.SRS.Common.DCSState;
 using Ciribob.SRS.Common.Network;
 using Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Models;
 using Ciribob.SRS.Common.Network.Models;
+using Ciribob.SRS.Common.Network.Singletons;
 using Ciribob.SRS.Common.PlayerState;
 using Ciribob.SRS.Common.Setting;
 using Easy.MessageHub;
@@ -87,7 +88,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
 
             //disconnect callback
             //TODO send disconnect
-            MessageHub.Instance.Publish(new DisconnectedMessage());
+            MessageHubSingleton.Instance.Publish(new DisconnectedMessage());
         }
 
         private void ClientSyncLoop()
@@ -144,8 +145,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
                                     case NetworkMessage.MessageType.CLIENT_DISCONNECT:
                                         break;
                                     case NetworkMessage.MessageType.SYNC:
-                                       // response to sync - kick off everything
-                                       MessageHub.Instance.Publish(new ReadyMessage());
+                                        // response to sync - kick off everything
+                                        MessageHubSingleton.Instance.Publish(new ReadyMessage());
 
                                        break;
                                     case NetworkMessage.MessageType.VERSION_MISMATCH:
@@ -229,12 +230,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
                 {
                     _tcpClient.Close(); // this'll stop the socket blocking
 
-                    MessageHub.Instance.Publish(new DisconnectedMessage());
+                    MessageHubSingleton.Instance.Publish(new DisconnectedMessage());
                 }
             }
             catch (Exception ex)
             {
-                MessageHub.Instance.Publish(new DisconnectedMessage());
+                MessageHubSingleton.Instance.Publish(new DisconnectedMessage());
             }
 
             Logger.Info("Disconnecting from server");

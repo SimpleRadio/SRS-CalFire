@@ -24,7 +24,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
         public ClientSettings()
         {
             InitializeComponent();
-            this.DataContext = new ClientSettingsViewModel();
+            DataContext = new ClientSettingsViewModel();
         }
     }
 }
