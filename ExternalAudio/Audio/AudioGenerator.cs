@@ -7,13 +7,10 @@ using System.Speech.Synthesis;
 using System.Threading.Tasks;
 using Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client;
 using FragLabs.Audio.Codecs;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Services;
-using NAudio.Vorbis;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NLog;
-using NVorbis;
+// using NVorbis;
 
 using Google.Cloud.TextToSpeech.V1;
 using Grpc.Core;
@@ -385,37 +382,38 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Audio
         {
             Logger.Info($"Reading Ogg @ {opts.File}");
 
-            var oggReader = new VorbisWaveReader(opts.File);
-            int bytes = (int)oggReader.Length;
-            byte[] buffer = new byte[bytes];
-
-            Logger.Info($"Read Ogg - Sample Rate {oggReader.WaveFormat.SampleRate}");
-
-            if (oggReader.WaveFormat.SampleRate < INPUT_SAMPLE_RATE)
-            {
-                Logger.Error($"Ogg Sample rate must be at least 16000 but is {oggReader.WaveFormat.SampleRate} - Quitting. Use Audacity or another tool to resample as 16000 or Higher");
-                Environment.Exit(1);
-            }
-
-            int read = oggReader.Read(buffer, 0, (int)bytes);
-            BufferedWaveProvider bufferedWaveProvider = new BufferedWaveProvider(oggReader.WaveFormat)
-            {
-                BufferLength = read * 2,
-                ReadFully = false,
-                DiscardOnBufferOverflow = true
-            };
-
-            bufferedWaveProvider.AddSamples(buffer, 0, read);
-            VolumeSampleProvider volumeSample =
-                new VolumeSampleProvider(bufferedWaveProvider.ToSampleProvider()) { Volume = opts.Volume };
-
-            oggReader.Close();
-            oggReader.Dispose();
-
-            Logger.Info($"Convert to Mono 16bit PCM");
-
-            //after this we've got 16 bit PCM Mono  - just need to sort sample rate
-            return volumeSample.ToMono().ToWaveProvider16();
+            return null;
+            // var oggReader = new VorbisWaveReader(opts.File);
+            // int bytes = (int)oggReader.Length;
+            // byte[] buffer = new byte[bytes];
+            //
+            // Logger.Info($"Read Ogg - Sample Rate {oggReader.WaveFormat.SampleRate}");
+            //
+            // if (oggReader.WaveFormat.SampleRate < INPUT_SAMPLE_RATE)
+            // {
+            //     Logger.Error($"Ogg Sample rate must be at least 16000 but is {oggReader.WaveFormat.SampleRate} - Quitting. Use Audacity or another tool to resample as 16000 or Higher");
+            //     Environment.Exit(1);
+            // }
+            //
+            // int read = oggReader.Read(buffer, 0, (int)bytes);
+            // BufferedWaveProvider bufferedWaveProvider = new BufferedWaveProvider(oggReader.WaveFormat)
+            // {
+            //     BufferLength = read * 2,
+            //     ReadFully = false,
+            //     DiscardOnBufferOverflow = true
+            // };
+            //
+            // bufferedWaveProvider.AddSamples(buffer, 0, read);
+            // VolumeSampleProvider volumeSample =
+            //     new VolumeSampleProvider(bufferedWaveProvider.ToSampleProvider()) { Volume = opts.Volume };
+            //
+            // oggReader.Close();
+            // oggReader.Dispose();
+            //
+            // Logger.Info($"Convert to Mono 16bit PCM");
+            //
+            // //after this we've got 16 bit PCM Mono  - just need to sort sample rate
+            // return volumeSample.ToMono().ToWaveProvider16();
         }
     }
 }

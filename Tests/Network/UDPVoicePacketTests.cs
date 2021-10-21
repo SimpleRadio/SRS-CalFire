@@ -1,7 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿
 using System.Text;
 using Ciribob.SRS.Common.Network;
 using Ciribob.SRS.Common.Network.Models;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Ciribob.SRS.Common.Tests
 {

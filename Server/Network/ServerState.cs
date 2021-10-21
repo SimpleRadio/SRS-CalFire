@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Caliburn.Micro;
 using Ciribob.SRS.Common.Network;
 using Ciribob.SRS.Common.Network.Models;
@@ -38,30 +39,29 @@ namespace Ciribob.SRS.Server.Network
             StartServer();
         }
 
-        public void Handle(BanClientMessage message)
+        public async Task HandleAsync(BanClientMessage message,  CancellationToken cancellationToken)
         {
             WriteBanIP(message.Client);
 
             KickClient(message.Client);
         }
 
-        public void Handle(KickClientMessage message)
+        public async Task HandleAsync(KickClientMessage message,  CancellationToken cancellationToken)
         {
             var client = message.Client;
             KickClient(client);
         }
-
-        public void Handle(StartServerMessage message)
+        public async Task HandleAsync(StartServerMessage message, CancellationToken cancellationToken)
         {
             StartServer();
-            _eventAggregator.PublishOnUIThread(new ServerStateMessage(true,
+            _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(true,
                 new List<SRClient>(_connectedClients.Values)));
         }
 
-        public void Handle(StopServerMessage message)
+        public async Task HandleAsync(StopServerMessage message, CancellationToken cancellationToken)
         {
             StopServer();
-            _eventAggregator.PublishOnUIThread(new ServerStateMessage(false,
+            _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(false,
                 new List<SRClient>(_connectedClients.Values)));
         }
 

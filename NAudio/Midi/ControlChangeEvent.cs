@@ -44,7 +44,7 @@ namespace NAudio.Midi
         public ControlChangeEvent(long absoluteTime, int channel, MidiController controller, int controllerValue)
             : base(absoluteTime, channel, MidiCommandCode.ControlChange)
         {
-            this.Controller = controller;
+          //  Microsoft.AspNetCore.Mvc.Controller = controller;
             this.ControllerValue = controllerValue;
         }
 

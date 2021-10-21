@@ -5,7 +5,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common.PresetChannels"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:mvvmEventBinding="clr-namespace:MvvmEventBinding;assembly=MvvmEventBinding"
     d:DataContext="{d:DesignInstance local:PresetChannelsViewModel,
                                               IsDesignTimeCreatable=False}"
     d:DesignHeight="100"

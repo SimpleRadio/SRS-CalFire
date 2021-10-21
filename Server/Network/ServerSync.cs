@@ -3,19 +3,16 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using Caliburn.Micro;
 using Ciribob.SRS.Common;
-using Ciribob.SRS.Common.Network;
 using Ciribob.SRS.Common.Setting;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings;
 using Ciribob.SRS.Common.Network.Models;
 using NetCoreServer;
-using Newtonsoft.Json;
 using NLog;
-using Open.Nat;
 using LogManager = NLog.LogManager;
 
 namespace Ciribob.SRS.Server.Network
@@ -46,7 +43,7 @@ namespace Ciribob.SRS.Server.Network
             
         }
 
-        public void Handle(ServerSettingsChangedMessage message)
+        public async Task HandleAsync(ServerSettingsChangedMessage message, CancellationToken token)
         {
             try
             {
@@ -105,7 +102,7 @@ namespace Ciribob.SRS.Server.Network
 
                 try
                 {
-                    _eventAggregator.PublishOnUIThread(
+                    _eventAggregator.PublishOnUIThreadAsync(
                         new ServerStateMessage(true, new List<SRClient>(_clients.Values)));
                 }
                 catch (Exception ex)
@@ -205,7 +202,7 @@ namespace Ciribob.SRS.Server.Network
                 state.SRSGuid = srClient.ClientGuid;
                 
 
-                _eventAggregator.PublishOnUIThread(new ServerStateMessage(true,
+                _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(true,
                     new List<SRClient>(_clients.Values)));
             }
 
@@ -270,7 +267,7 @@ namespace Ciribob.SRS.Server.Network
                     // Only redraw client admin UI of server if really needed
                     if (redrawClientAdminList)
                     {
-                        _eventAggregator.PublishOnUIThread(new ServerStateMessage(true,
+                        _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(true,
                             new List<SRClient>(_clients.Values)));
                     }
                 }

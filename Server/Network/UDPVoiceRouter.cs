@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Caliburn.Micro;
 using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.Network;
@@ -379,7 +380,7 @@ namespace Ciribob.SRS.Server.Network
             }
         }
 
-        public void Handle(ServerFrequenciesChanged message)
+        public async Task HandleAsync(ServerFrequenciesChanged message, CancellationToken cancellationToken)
         {
             if (message.TestFrequencies != null)
             {

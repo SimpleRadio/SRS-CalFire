@@ -24,7 +24,7 @@ namespace SRSClient
     /// </summary>
     public partial class App : Application
     {
-        private System.Windows.Forms.NotifyIcon _notifyIcon;
+        //private System.Windows.Forms.NotifyIcon _notifyIcon;
         private bool loggingReady = false;
         private static Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -158,32 +158,32 @@ namespace SRSClient
 
         private void InitNotificationIcon()
         {
-            if (_notifyIcon != null) return;
-            var notifyIconContextMenuShow = new System.Windows.Forms.MenuItem
-            {
-                Index = 0,
-                Text = "Show"
-            };
-            notifyIconContextMenuShow.Click += new EventHandler(NotifyIcon_Show);
-
-            var notifyIconContextMenuQuit = new System.Windows.Forms.MenuItem
-            {
-                Index = 1,
-                Text = "Quit"
-            };
-            notifyIconContextMenuQuit.Click += new EventHandler(NotifyIcon_Quit);
-
-            var notifyIconContextMenu = new System.Windows.Forms.ContextMenu();
-            notifyIconContextMenu.MenuItems.AddRange(new System.Windows.Forms.MenuItem[]
-                { notifyIconContextMenuShow, notifyIconContextMenuQuit });
-
-            _notifyIcon = new System.Windows.Forms.NotifyIcon
-            {
-                Icon = Ciribob.FS3D.SimpleRadio.Standalone.Client.Properties.Resources.audio_headset,
-                Visible = true
-            };
-            _notifyIcon.ContextMenu = notifyIconContextMenu;
-            _notifyIcon.DoubleClick += new EventHandler(NotifyIcon_Show);
+            // if (_notifyIcon != null) return;
+            // var notifyIconContextMenuShow = new System.Windows.Forms.MenuItem
+            // {
+            //     Index = 0,
+            //     Text = "Show"
+            // };
+            // notifyIconContextMenuShow.Click += new EventHandler(NotifyIcon_Show);
+            //
+            // var notifyIconContextMenuQuit = new System.Windows.Forms.MenuItem
+            // {
+            //     Index = 1,
+            //     Text = "Quit"
+            // };
+            // notifyIconContextMenuQuit.Click += new EventHandler(NotifyIcon_Quit);
+            //
+            // var notifyIconContextMenu = new System.Windows.Forms.ContextMenu();
+            // notifyIconContextMenu.MenuItems.AddRange(new System.Windows.Forms.MenuItem[]
+            //     { notifyIconContextMenuShow, notifyIconContextMenuQuit });
+            //
+            // _notifyIcon = new System.Windows.Forms.NotifyIcon
+            // {
+            //     Icon = Ciribob.FS3D.SimpleRadio.Standalone.Client.Properties.Resources.audio_headset,
+            //     Visible = true
+            // };
+            // _notifyIcon.ContextMenu = notifyIconContextMenu;
+            // _notifyIcon.DoubleClick += new EventHandler(NotifyIcon_Show);
         }
 
         private void NotifyIcon_Show(object sender, EventArgs args)
@@ -199,8 +199,9 @@ namespace SRSClient
 
         protected override void OnExit(ExitEventArgs e)
         {
-            if (_notifyIcon != null)
-                _notifyIcon.Visible = false;
+            //TODO fix this
+            // if (_notifyIcon != null)
+            //     _notifyIcon.Visible = false;
             base.OnExit(e);
         }
 

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -20,8 +22,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
         private readonly IEventAggregator _eventAggregator;
         private readonly IWindowManager _windowManager;
         private readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-
         public MainViewModel(IWindowManager windowManager, IEventAggregator eventAggregator,
             ClientAdminViewModel clientAdminViewModel)
         {
@@ -46,7 +46,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
             {
                 ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.RETRANSMISSION_NODE_LIMIT,
                     value.ToString());
-                _eventAggregator.PublishOnBackgroundThread(new ServerSettingsChangedMessage());
+                _eventAggregator.PublishOnBackgroundThreadAsync(new ServerSettingsChangedMessage());
             }
         }
 
@@ -91,31 +91,27 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
             }
         }
 
-
-
         public string TunedCountText
             => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.SHOW_TUNED_COUNT).BoolValue ? "ON" : "OFF";
-
-        public string ShowTransmitterNameText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.SHOW_TRANSMITTER_NAME).BoolValue ? "ON" : "OFF";
         public string ListeningPort
             => ServerSettingsStore.Instance.GetServerSetting(ServerSettingsKeys.SERVER_PORT).StringValue;
 
-        public void Handle(ServerStateMessage message)
+        public async Task HandleAsync(ServerStateMessage message, CancellationToken token)
         {
             IsServerRunning = message.IsRunning;
             ClientsCount = message.Count;
+            NotifyOfPropertyChange("ServerButtonText");
         }
 
         public void ServerStartStop()
         {
             if (IsServerRunning)
             {
-                _eventAggregator.PublishOnBackgroundThread(new StopServerMessage());
+                _eventAggregator.PublishOnBackgroundThreadAsync(new StopServerMessage());
             }
             else
             {
-                _eventAggregator.PublishOnBackgroundThread(new StartServerMessage());
+                _eventAggregator.PublishOnBackgroundThreadAsync(new StartServerMessage());
             }
         }
 
@@ -126,7 +122,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
                 {"Icon", new BitmapImage(new Uri("pack://application:,,,/SRS-Server;component/server-10.ico"))},
                 {"ResizeMode", ResizeMode.CanMinimize}
             };
-            _windowManager.ShowWindow(_clientAdminViewModel, null, settings);
+            _windowManager.ShowWindowAsync(_clientAdminViewModel, null, settings);
         }
 
 
@@ -136,7 +132,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.LOS_ENABLED, newSetting);
             NotifyOfPropertyChange(() => LOSText);
 
-            _eventAggregator.PublishOnBackgroundThread(new ServerSettingsChangedMessage());
+            _eventAggregator.PublishOnBackgroundThreadAsync(new ServerSettingsChangedMessage());
         }
 
         public void DistanceLimitToggle()
@@ -145,7 +141,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.DISTANCE_ENABLED, newSetting);
             NotifyOfPropertyChange(() => DistanceLimitText);
 
-            _eventAggregator.PublishOnBackgroundThread(new ServerSettingsChangedMessage());
+            _eventAggregator.PublishOnBackgroundThreadAsync(new ServerSettingsChangedMessage());
         }
 
         public void RealRadioToggle()
@@ -154,7 +150,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.IRL_RADIO_TX, newSetting);
             NotifyOfPropertyChange(() => RealRadioText);
 
-            _eventAggregator.PublishOnBackgroundThread(new ServerSettingsChangedMessage());
+            _eventAggregator.PublishOnBackgroundThreadAsync(new ServerSettingsChangedMessage());
         }
 
         public void IRLRadioRxBehaviourToggle()
@@ -163,7 +159,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE, newSetting);
             NotifyOfPropertyChange(() => IRLRadioRxText);
 
-            _eventAggregator.PublishOnBackgroundThread(new ServerSettingsChangedMessage());
+            _eventAggregator.PublishOnBackgroundThreadAsync(new ServerSettingsChangedMessage());
         }
 
 
@@ -171,7 +167,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
         {
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.TEST_FREQUENCIES, _testFrequencies);
 
-            _eventAggregator.PublishOnBackgroundThread(new ServerFrequenciesChanged()
+            _eventAggregator.PublishOnBackgroundThreadAsync(new ServerFrequenciesChanged()
             {
                 TestFrequencies = _testFrequencies
             });
@@ -188,7 +184,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.SHOW_TUNED_COUNT, newSetting);
             NotifyOfPropertyChange(() => TunedCountText);
 
-            _eventAggregator.PublishOnBackgroundThread(new ServerSettingsChangedMessage());
+            _eventAggregator.PublishOnBackgroundThreadAsync(new ServerSettingsChangedMessage());
         }
 
     }
