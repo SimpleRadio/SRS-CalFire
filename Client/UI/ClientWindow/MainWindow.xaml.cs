@@ -4,6 +4,7 @@ using System.Runtime;
 using System.Windows;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow;
 using Ciribob.SRS.Common.Setting;
 using MahApps.Metro.Controls;
 using NLog;

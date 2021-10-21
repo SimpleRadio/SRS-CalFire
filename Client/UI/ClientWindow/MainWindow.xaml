@@ -7,10 +7,12 @@
                       xmlns:local="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.UI"
                       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                       xmlns:converters="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils.ValueConverters"
+                      xmlns:tb="http://www.hardcodet.net/taskbar"
+                      xmlns:resx="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.Properties"
                       Title="FS3D SRS Client"
                       Width="550"
                       Height="590"
-                      d:DataContext="{d:DesignInstance local:MainWindowViewModel}"
+                      d:DataContext="{d:DesignInstance clientWindow:MainWindowViewModel}"
                       ResizeMode="CanMinimize"
                       mc:Ignorable="d">
     <TabControl x:Name="TabControl">
@@ -483,6 +485,22 @@
         <TabItem Header="Settings">
             <clientWindow:ClientSettings />
         </TabItem>
+
+        <tb:TaskbarIcon
+            Icon="{x:Static resx:Resources.audio_headset}"
+            ToolTipText="FS3D SRS Client"
+            MenuActivation="LeftOrRightClick"
+            DoubleClickCommand="{Binding TrayIconCommand }">
+
+            <!-- Set a simple context menu  -->
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Open" Command="{Binding TrayIconCommand}"/>
+                    <MenuItem Header="Quit" Command="{Binding TrayIconQuitCommand}"/>
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+
+        </tb:TaskbarIcon>
 
     </TabControl>
 </controls:MetroWindow>

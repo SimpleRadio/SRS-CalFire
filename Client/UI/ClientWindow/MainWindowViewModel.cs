@@ -6,7 +6,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Forms.VisualStyles;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio;
@@ -19,9 +18,8 @@ using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Client;
 using NAudio.CoreAudioApi;
 using NLog;
-using SharpDX.Multimedia;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
 {
     public class MainWindowViewModel : INotifyPropertyChanged
     {
@@ -55,6 +53,17 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
                 
             ConnectCommand = new DelegateCommand(Connect,()=>true);
 
+            TrayIconCommand = new DelegateCommand(() =>
+            {
+                Application.Current.MainWindow.Show();
+                Application.Current.MainWindow.WindowState = WindowState.Normal;
+            });
+
+            TrayIconQuitCommand = new DelegateCommand(() =>
+            {
+                Application.Current.MainWindow.Close();
+            });
+
             // InitDefaultAddress();
 
 
@@ -69,6 +78,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
             _updateTimer.Tick += UpdatePlayerCountAndVUMeters;
             _updateTimer.Start();
         }
+
+        public DelegateCommand TrayIconQuitCommand { get; set; }
+
+        public DelegateCommand TrayIconCommand { get; set; }
 
         public DelegateCommand ConnectCommand { get; set; }
 

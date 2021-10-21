@@ -101,6 +101,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
             IsServerRunning = message.IsRunning;
             ClientsCount = message.Count;
             NotifyOfPropertyChange("ServerButtonText");
+            NotifyOfPropertyChange("ClientsCount");
         }
 
         public void ServerStartStop()
