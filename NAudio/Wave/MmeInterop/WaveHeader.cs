@@ -1,23 +1,26 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace NAudio.Wave.MmeInterop
+namespace NAudio.Wave
 {
     /// <summary>
-    ///     WaveHeader interop structure (WAVEHDR)
-    ///     http://msdn.microsoft.com/en-us/library/dd743837%28VS.85%29.aspx
+    /// WaveHeader interop structure (WAVEHDR)
+    /// http://msdn.microsoft.com/en-us/library/dd743837%28VS.85%29.aspx
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal class WaveHeader
+    class WaveHeader
     {
+        /// <summary>pointer to locked data buffer (lpData)</summary>
+        public IntPtr dataBuffer;
+
         /// <summary>length of data buffer (dwBufferLength)</summary>
         public int bufferLength;
 
         /// <summary>used for input only (dwBytesRecorded)</summary>
         public int bytesRecorded;
 
-        /// <summary>pointer to locked data buffer (lpData)</summary>
-        public IntPtr dataBuffer;
+        /// <summary>for client's use (dwUser)</summary>
+        public IntPtr userData;
 
         /// <summary>assorted flags (dwFlags)</summary>
         public WaveHeaderFlags flags;
@@ -30,8 +33,5 @@ namespace NAudio.Wave.MmeInterop
 
         /// <summary>reserved for driver</summary>
         public IntPtr reserved;
-
-        /// <summary>for client's use (dwUser)</summary>
-        public IntPtr userData;
     }
 }

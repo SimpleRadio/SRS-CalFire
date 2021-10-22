@@ -25,7 +25,7 @@ using System;
 namespace NAudio.Dsp
 {
     /// <summary>
-    ///     BiQuad filter
+    /// BiQuad filter
     /// </summary>
     public class BiQuadFilter
     {
@@ -44,24 +44,8 @@ namespace NAudio.Dsp
         private float y1;
         private float y2;
 
-        private BiQuadFilter()
-        {
-            // zero initial samples
-            x1 = x2 = 0;
-            y1 = y2 = 0;
-        }
-
-        private BiQuadFilter(double a0, double a1, double a2, double b0, double b1, double b2)
-        {
-            SetCoefficients(a0, a1, a2, b0, b1, b2);
-
-            // zero initial samples
-            x1 = x2 = 0;
-            y1 = y2 = 0;
-        }
-
         /// <summary>
-        ///     Passes a single sample through the filter
+        /// Passes a single sample through the filter
         /// </summary>
         /// <param name="inSample">Input sample</param>
         /// <returns>Output sample</returns>
@@ -76,7 +60,7 @@ namespace NAudio.Dsp
 
             // shift y1 to y2, result to y1 
             y2 = y1;
-            y1 = (float)result;
+            y1 = (float) result;
 
             return y1;
         }
@@ -92,7 +76,7 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     Set this up as a low pass filter
+        /// Set this up as a low pass filter
         /// </summary>
         /// <param name="sampleRate">Sample Rate</param>
         /// <param name="cutoffFrequency">Cut-off Frequency</param>
@@ -114,7 +98,7 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     Set this up as a peaking EQ
+        /// Set this up as a peaking EQ
         /// </summary>
         /// <param name="sampleRate">Sample Rate</param>
         /// <param name="centreFrequency">Centre Frequency</param>
@@ -139,7 +123,7 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     Set this as a high pass filter
+        /// Set this as a high pass filter
         /// </summary>
         public void SetHighPassFilter(float sampleRate, float cutoffFrequency, float q)
         {
@@ -158,7 +142,7 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     Create a low pass filter
+        /// Create a low pass filter
         /// </summary>
         public static BiQuadFilter LowPassFilter(float sampleRate, float cutoffFrequency, float q)
         {
@@ -168,7 +152,7 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     Create a High pass filter
+        /// Create a High pass filter
         /// </summary>
         public static BiQuadFilter HighPassFilter(float sampleRate, float cutoffFrequency, float q)
         {
@@ -178,7 +162,7 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     Create a bandpass filter with constant skirt gain
+        /// Create a bandpass filter with constant skirt gain
         /// </summary>
         public static BiQuadFilter BandPassFilterConstantSkirtGain(float sampleRate, float centreFrequency, float q)
         {
@@ -198,7 +182,7 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     Create a bandpass filter with constant peak gain
+        /// Create a bandpass filter with constant peak gain
         /// </summary>
         public static BiQuadFilter BandPassFilterConstantPeakGain(float sampleRate, float centreFrequency, float q)
         {
@@ -218,7 +202,7 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     Creates a notch filter
+        /// Creates a notch filter
         /// </summary>
         public static BiQuadFilter NotchFilter(float sampleRate, float centreFrequency, float q)
         {
@@ -238,7 +222,7 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     Creaes an all pass filter
+        /// Creaes an all pass filter
         /// </summary>
         public static BiQuadFilter AllPassFilter(float sampleRate, float centreFrequency, float q)
         {
@@ -258,7 +242,7 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     Create a Peaking EQ
+        /// Create a Peaking EQ
         /// </summary>
         public static BiQuadFilter PeakingEQ(float sampleRate, float centreFrequency, float q, float dbGain)
         {
@@ -268,16 +252,14 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     H(s) = A * (s^2 + (sqrt(A)/Q)*s + A)/(A*s^2 + (sqrt(A)/Q)*s + 1)
+        /// H(s) = A * (s^2 + (sqrt(A)/Q)*s + A)/(A*s^2 + (sqrt(A)/Q)*s + 1)
         /// </summary>
         /// <param name="sampleRate"></param>
         /// <param name="cutoffFrequency"></param>
-        /// <param name="shelfSlope">
-        ///     a "shelf slope" parameter (for shelving EQ only).
-        ///     When S = 1, the shelf slope is as steep as it can be and remain monotonically
-        ///     increasing or decreasing gain with frequency.  The shelf slope, in dB/octave,
-        ///     remains proportional to S for all other values for a fixed f0/Fs and dBgain.
-        /// </param>
+        /// <param name="shelfSlope">a "shelf slope" parameter (for shelving EQ only).  
+        /// When S = 1, the shelf slope is as steep as it can be and remain monotonically
+        /// increasing or decreasing gain with frequency.  The shelf slope, in dB/octave, 
+        /// remains proportional to S for all other values for a fixed f0/Fs and dBgain.</param>
         /// <param name="dbGain">Gain in decibels</param>
         public static BiQuadFilter LowShelf(float sampleRate, float cutoffFrequency, float shelfSlope, float dbGain)
         {
@@ -288,17 +270,17 @@ namespace NAudio.Dsp
             var alpha = sinw0 / 2 * Math.Sqrt((a + 1 / a) * (1 / shelfSlope - 1) + 2);
             var temp = 2 * Math.Sqrt(a) * alpha;
 
-            var b0 = a * (a + 1 - (a - 1) * cosw0 + temp);
-            var b1 = 2 * a * (a - 1 - (a + 1) * cosw0);
-            var b2 = a * (a + 1 - (a - 1) * cosw0 - temp);
-            var a0 = a + 1 + (a - 1) * cosw0 + temp;
-            var a1 = -2 * (a - 1 + (a + 1) * cosw0);
-            var a2 = a + 1 + (a - 1) * cosw0 - temp;
+            var b0 = a * ((a + 1) - (a - 1) * cosw0 + temp);
+            var b1 = 2 * a * ((a - 1) - (a + 1) * cosw0);
+            var b2 = a * ((a + 1) - (a - 1) * cosw0 - temp);
+            var a0 = (a + 1) + (a - 1) * cosw0 + temp;
+            var a1 = -2 * ((a - 1) + (a + 1) * cosw0);
+            var a2 = (a + 1) + (a - 1) * cosw0 - temp;
             return new BiQuadFilter(a0, a1, a2, b0, b1, b2);
         }
 
         /// <summary>
-        ///     H(s) = A * (A*s^2 + (sqrt(A)/Q)*s + 1)/(s^2 + (sqrt(A)/Q)*s + A)
+        /// H(s) = A * (A*s^2 + (sqrt(A)/Q)*s + 1)/(s^2 + (sqrt(A)/Q)*s + A)
         /// </summary>
         /// <param name="sampleRate"></param>
         /// <param name="cutoffFrequency"></param>
@@ -314,13 +296,29 @@ namespace NAudio.Dsp
             var alpha = sinw0 / 2 * Math.Sqrt((a + 1 / a) * (1 / shelfSlope - 1) + 2);
             var temp = 2 * Math.Sqrt(a) * alpha;
 
-            var b0 = a * (a + 1 + (a - 1) * cosw0 + temp);
-            var b1 = -2 * a * (a - 1 + (a + 1) * cosw0);
-            var b2 = a * (a + 1 + (a - 1) * cosw0 - temp);
-            var a0 = a + 1 - (a - 1) * cosw0 + temp;
-            var a1 = 2 * (a - 1 - (a + 1) * cosw0);
-            var a2 = a + 1 - (a - 1) * cosw0 - temp;
+            var b0 = a * ((a + 1) + (a - 1) * cosw0 + temp);
+            var b1 = -2 * a * ((a - 1) + (a + 1) * cosw0);
+            var b2 = a * ((a + 1) + (a - 1) * cosw0 - temp);
+            var a0 = (a + 1) - (a - 1) * cosw0 + temp;
+            var a1 = 2 * ((a - 1) - (a + 1) * cosw0);
+            var a2 = (a + 1) - (a - 1) * cosw0 - temp;
             return new BiQuadFilter(a0, a1, a2, b0, b1, b2);
+        }
+
+        private BiQuadFilter()
+        {
+            // zero initial samples
+            x1 = x2 = 0;
+            y1 = y2 = 0;
+        }
+
+        private BiQuadFilter(double a0, double a1, double a2, double b0, double b1, double b2)
+        {
+            SetCoefficients(a0, a1, a2, b0, b1, b2);
+
+            // zero initial samples
+            x1 = x2 = 0;
+            y1 = y2 = 0;
         }
     }
 }

@@ -1,29 +1,45 @@
-namespace NAudio.FileFormats.SoundFont
+using System;
+
+namespace NAudio.SoundFont
 {
     /// <summary>
-    ///     SoundFont instrument
+    /// SoundFont instrument
     /// </summary>
     public class Instrument
     {
-        internal ushort endInstrumentZoneIndex;
+        private string name;
         internal ushort startInstrumentZoneIndex;
+        internal ushort endInstrumentZoneIndex;
+        private Zone[] zones;
 
         /// <summary>
-        ///     instrument name
+        /// instrument name
         /// </summary>
-        public string Name { get; set; }
+        public string Name
+        {
+            get { return name; }
+            set
+            {
+                // TODO: validate
+                name = value;
+            }
+        }
 
         /// <summary>
-        ///     Zones
+        /// Zones
         /// </summary>
-        public Zone[] Zones { get; set; }
+        public Zone[] Zones
+        {
+            get { return zones; }
+            set { zones = value; }
+        }
 
         /// <summary>
-        ///     <see cref="object.ToString" />
+        /// <see cref="Object.ToString"/>
         /// </summary>
         public override string ToString()
         {
-            return Name;
+            return this.name;
         }
     }
 }

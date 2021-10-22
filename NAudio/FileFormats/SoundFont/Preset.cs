@@ -1,42 +1,77 @@
-namespace NAudio.FileFormats.SoundFont
+using System;
+
+namespace NAudio.SoundFont
 {
     /// <summary>
-    ///     A SoundFont Preset
+    /// A SoundFont Preset
     /// </summary>
     public class Preset
     {
-        internal ushort endPresetZoneIndex;
-        internal uint genre;
-        internal uint library;
-        internal uint morphology;
+        private string name;
+        private ushort patchNumber;
+        private ushort bank;
         internal ushort startPresetZoneIndex;
+        internal ushort endPresetZoneIndex;
+        internal uint library;
+        internal uint genre;
+        internal uint morphology;
+        private Zone[] zones;
 
         /// <summary>
-        ///     Preset name
+        /// Preset name
         /// </summary>
-        public string Name { get; set; }
+        public string Name
+        {
+            get { return name; }
+            set
+            {
+                // TODO: validate
+                name = value;
+            }
+        }
 
         /// <summary>
-        ///     Patch Number
+        /// Patch Number
         /// </summary>
-        public ushort PatchNumber { get; set; }
+        public ushort PatchNumber
+        {
+            get { return patchNumber; }
+            set
+            {
+                // TODO: validate
+                patchNumber = value;
+            }
+        }
 
         /// <summary>
-        ///     Bank number
+        /// Bank number
         /// </summary>
-        public ushort Bank { get; set; }
+        public ushort Bank
+        {
+            get { return bank; }
+            set
+            {
+                // 0 - 127, GM percussion bank is 128
+                // TODO: validate
+                bank = value;
+            }
+        }
 
         /// <summary>
-        ///     Zones
+        /// Zones
         /// </summary>
-        public Zone[] Zones { get; set; }
+        public Zone[] Zones
+        {
+            get { return zones; }
+            set { zones = value; }
+        }
 
         /// <summary>
-        ///     <see cref="object.ToString" />
+        /// <see cref="Object.ToString"/>
         /// </summary>
         public override string ToString()
         {
-            return string.Format("{0}-{1} {2}", Bank, PatchNumber, Name);
+            return String.Format("{0}-{1} {2}", bank, patchNumber, name);
         }
     }
 }

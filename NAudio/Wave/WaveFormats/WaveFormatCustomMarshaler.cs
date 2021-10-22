@@ -1,26 +1,39 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using NAudio.Wave.WaveFormats;
 
 // ReSharper disable once CheckNamespace
 namespace NAudio.Wave
 {
     /// <summary>
-    ///     Custom marshaller for WaveFormat structures
+    /// Custom marshaller for WaveFormat structures
     /// </summary>
     public sealed class WaveFormatCustomMarshaler : ICustomMarshaler
     {
-        private static WaveFormatCustomMarshaler marshaler;
+        private static WaveFormatCustomMarshaler marshaler = null;
 
         /// <summary>
-        ///     Clean up managed data
+        /// Gets the instance of this marshaller
+        /// </summary>
+        /// <param name="cookie"></param>
+        /// <returns></returns>
+        public static ICustomMarshaler GetInstance(string cookie)
+        {
+            if (marshaler == null)
+            {
+                marshaler = new WaveFormatCustomMarshaler();
+            }
+            return marshaler;
+        }
+
+        /// <summary>
+        /// Clean up managed data
         /// </summary>
         public void CleanUpManagedData(object ManagedObj)
         {
         }
 
         /// <summary>
-        ///     Clean up native data
+        /// Clean up native data
         /// </summary>
         /// <param name="pNativeData"></param>
         public void CleanUpNativeData(IntPtr pNativeData)
@@ -29,39 +42,27 @@ namespace NAudio.Wave
         }
 
         /// <summary>
-        ///     Get native data size
-        /// </summary>
+        /// Get native data size
+        /// </summary>        
         public int GetNativeDataSize()
         {
             throw new NotImplementedException();
         }
 
         /// <summary>
-        ///     Marshal managed to native
+        /// Marshal managed to native
         /// </summary>
         public IntPtr MarshalManagedToNative(object ManagedObj)
         {
-            return WaveFormat.MarshalToPtr((WaveFormat)ManagedObj);
+            return WaveFormat.MarshalToPtr((WaveFormat) ManagedObj);
         }
 
         /// <summary>
-        ///     Marshal Native to Managed
+        /// Marshal Native to Managed
         /// </summary>
         public object MarshalNativeToManaged(IntPtr pNativeData)
         {
             return WaveFormat.MarshalFromPtr(pNativeData);
-        }
-
-        /// <summary>
-        ///     Gets the instance of this marshaller
-        /// </summary>
-        /// <param name="cookie"></param>
-        /// <returns></returns>
-        public static ICustomMarshaler GetInstance(string cookie)
-        {
-            if (marshaler == null) marshaler = new WaveFormatCustomMarshaler();
-
-            return marshaler;
         }
     }
 }

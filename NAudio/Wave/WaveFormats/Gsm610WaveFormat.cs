@@ -1,19 +1,21 @@
-﻿using System.IO;
+﻿using System;
 using System.Runtime.InteropServices;
-using NAudio.Wave.WaveFormats;
+using System.IO;
 
 // ReSharper disable once CheckNamespace
 namespace NAudio.Wave
 {
     /// <summary>
-    ///     GSM 610
+    /// GSM 610
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 2)]
     public class Gsm610WaveFormat : WaveFormat
     {
+        private readonly short samplesPerBlock;
+
         /// <summary>
-        ///     Creates a GSM 610 WaveFormat
-        ///     For now hardcoded to 13kbps
+        /// Creates a GSM 610 WaveFormat
+        /// For now hardcoded to 13kbps
         /// </summary>
         public Gsm610WaveFormat()
         {
@@ -25,21 +27,24 @@ namespace NAudio.Wave
             sampleRate = 8000;
 
             extraSize = 2;
-            SamplesPerBlock = 320;
+            samplesPerBlock = 320;
         }
 
         /// <summary>
-        ///     Samples per block
+        /// Samples per block
         /// </summary>
-        public short SamplesPerBlock { get; }
+        public short SamplesPerBlock
+        {
+            get { return samplesPerBlock; }
+        }
 
         /// <summary>
-        ///     Writes this structure to a BinaryWriter
+        /// Writes this structure to a BinaryWriter
         /// </summary>
         public override void Serialize(BinaryWriter writer)
         {
             base.Serialize(writer);
-            writer.Write(SamplesPerBlock);
+            writer.Write(samplesPerBlock);
         }
     }
 }

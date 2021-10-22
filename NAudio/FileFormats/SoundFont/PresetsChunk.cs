@@ -1,31 +1,35 @@
+using System;
 using System.IO;
 using System.Text;
 
-namespace NAudio.FileFormats.SoundFont
+namespace NAudio.SoundFont
 {
     /// <summary>
-    ///     Class to read the SoundFont file presets chunk
+    /// Class to read the SoundFont file presets chunk
     /// </summary>
     public class PresetsChunk
     {
-        private readonly InstrumentBuilder instruments = new();
-        private readonly GeneratorBuilder instrumentZoneGenerators = new();
-        private readonly ModulatorBuilder instrumentZoneModulators = new();
-        private readonly ZoneBuilder instrumentZones = new();
-        private readonly PresetBuilder presetHeaders = new();
-        private readonly GeneratorBuilder presetZoneGenerators = new();
-        private readonly ModulatorBuilder presetZoneModulators = new();
-        private readonly ZoneBuilder presetZones = new();
-        private readonly SampleHeaderBuilder sampleHeaders = new();
+        private PresetBuilder presetHeaders = new PresetBuilder();
+        private ZoneBuilder presetZones = new ZoneBuilder();
+        private ModulatorBuilder presetZoneModulators = new ModulatorBuilder();
+        private GeneratorBuilder presetZoneGenerators = new GeneratorBuilder();
+        private InstrumentBuilder instruments = new InstrumentBuilder();
+        private ZoneBuilder instrumentZones = new ZoneBuilder();
+        private ModulatorBuilder instrumentZoneModulators = new ModulatorBuilder();
+        private GeneratorBuilder instrumentZoneGenerators = new GeneratorBuilder();
+        private SampleHeaderBuilder sampleHeaders = new SampleHeaderBuilder();
 
         internal PresetsChunk(RiffChunk chunk)
         {
-            var header = chunk.ReadChunkID();
+            string header = chunk.ReadChunkID();
             if (header != "pdta")
-                throw new InvalidDataException(string.Format("Not a presets data chunk ({0})", header));
+            {
+                throw new InvalidDataException(String.Format("Not a presets data chunk ({0})", header));
+            }
 
             RiffChunk c;
             while ((c = chunk.GetNextSubChunk()) != null)
+            {
                 switch (c.ChunkID)
                 {
                     case "PHDR":
@@ -65,8 +69,9 @@ namespace NAudio.FileFormats.SoundFont
                         c.GetDataAsStructureArray(sampleHeaders);
                         break;
                     default:
-                        throw new InvalidDataException(string.Format("Unknown chunk type {0}", c.ChunkID));
+                        throw new InvalidDataException(String.Format("Unknown chunk type {0}", c.ChunkID));
                 }
+            }
 
             // now link things up
             instrumentZoneGenerators.Load(sampleHeaders.SampleHeaders);
@@ -79,32 +84,45 @@ namespace NAudio.FileFormats.SoundFont
         }
 
         /// <summary>
-        ///     The Presets contained in this chunk
+        /// The Presets contained in this chunk
         /// </summary>
-        public Preset[] Presets => presetHeaders.Presets;
+        public Preset[] Presets
+        {
+            get { return presetHeaders.Presets; }
+        }
 
         /// <summary>
-        ///     The instruments contained in this chunk
+        /// The instruments contained in this chunk
         /// </summary>
-        public Instrument[] Instruments => instruments.Instruments;
+        public Instrument[] Instruments
+        {
+            get { return instruments.Instruments; }
+        }
 
         /// <summary>
-        ///     The sample headers contained in this chunk
+        /// The sample headers contained in this chunk
         /// </summary>
-        public SampleHeader[] SampleHeaders => sampleHeaders.SampleHeaders;
+        public SampleHeader[] SampleHeaders
+        {
+            get { return sampleHeaders.SampleHeaders; }
+        }
 
         /// <summary>
-        ///     <see cref="object.ToString" />
+        /// <see cref="Object.ToString"/>
         /// </summary>
         public override string ToString()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             sb.Append("Preset Headers:\r\n");
-            foreach (var p in presetHeaders.Presets) sb.AppendFormat("{0}\r\n", p);
-
+            foreach (Preset p in presetHeaders.Presets)
+            {
+                sb.AppendFormat("{0}\r\n", p);
+            }
             sb.Append("Instruments:\r\n");
-            foreach (var i in instruments.Instruments) sb.AppendFormat("{0}\r\n", i);
-
+            foreach (Instrument i in instruments.Instruments)
+            {
+                sb.AppendFormat("{0}\r\n", i);
+            }
             return sb.ToString();
         }
     }

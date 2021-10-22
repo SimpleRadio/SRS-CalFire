@@ -4,45 +4,17 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using NAudio.MediaFoundation;
 using NAudio.Utils;
-using NAudio.Wave.WaveFormats;
 
-namespace NAudio.Wave.WaveOutputs
+namespace NAudio.Wave
 {
     /// <summary>
-    ///     Media Foundation Encoder class allows you to use Media Foundation to encode an IWaveProvider
-    ///     to any supported encoding format
+    /// Media Foundation Encoder class allows you to use Media Foundation to encode an IWaveProvider
+    /// to any supported encoding format
     /// </summary>
     public class MediaFoundationEncoder : IDisposable
     {
-        private readonly MediaType outputMediaType;
-        private bool disposed;
-
         /// <summary>
-        ///     Creates a new encoder that encodes to the specified output media type
-        /// </summary>
-        /// <param name="outputMediaType">Desired output media type</param>
-        public MediaFoundationEncoder(MediaType outputMediaType)
-        {
-            if (outputMediaType == null) throw new ArgumentNullException("outputMediaType");
-            this.outputMediaType = outputMediaType;
-        }
-
-        /// <summary>
-        ///     Disposes this instance
-        /// </summary>
-        public void Dispose()
-        {
-            if (!disposed)
-            {
-                disposed = true;
-                Dispose(true);
-            }
-
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        ///     Queries the available bitrates for a given encoding output type, sample rate and number of channels
+        /// Queries the available bitrates for a given encoding output type, sample rate and number of channels
         /// </summary>
         /// <param name="audioSubtype">Audio subtype - a value from the AudioSubtypes class</param>
         /// <param name="sampleRate">The sample rate of the PCM to encode</param>
@@ -59,7 +31,7 @@ namespace NAudio.Wave.WaveOutputs
         }
 
         /// <summary>
-        ///     Gets all the available media types for a particular
+        /// Gets all the available media types for a particular 
         /// </summary>
         /// <param name="audioSubtype">Audio subtype - a value from the AudioSubtypes class</param>
         /// <returns>An array of available media types that can be encoded with this subtype</returns>
@@ -74,29 +46,32 @@ namespace NAudio.Wave.WaveOutputs
             catch (COMException c)
             {
                 if (c.GetHResult() == MediaFoundationErrors.MF_E_NOT_FOUND)
+                {
                     // Don't worry if we didn't find any - just means no encoder available for this type
                     return new MediaType[0];
-                throw;
+                }
+                else
+                {
+                    throw;
+                }
             }
-
             int count;
             availableTypes.GetElementCount(out count);
             var mediaTypes = new List<MediaType>(count);
-            for (var n = 0; n < count; n++)
+            for (int n = 0; n < count; n++)
             {
                 object mediaTypeObject;
                 availableTypes.GetElement(n, out mediaTypeObject);
-                var mediaType = (IMFMediaType)mediaTypeObject;
+                var mediaType = (IMFMediaType) mediaTypeObject;
                 mediaTypes.Add(new MediaType(mediaType));
             }
-
             Marshal.ReleaseComObject(availableTypes);
             return mediaTypes.ToArray();
         }
 
         /// <summary>
-        ///     Helper function to simplify encoding Window Media Audio
-        ///     Should be supported on Vista and above (not tested)
+        /// Helper function to simplify encoding Window Media Audio
+        /// Should be supported on Vista and above (not tested)
         /// </summary>
         /// <param name="inputProvider">Input provider, must be PCM</param>
         /// <param name="outputFile">Output file path, should end with .wma</param>
@@ -113,8 +88,8 @@ namespace NAudio.Wave.WaveOutputs
         }
 
         /// <summary>
-        ///     Helper function to simplify encoding to MP3
-        ///     By default, will only be available on Windows 8 and above
+        /// Helper function to simplify encoding to MP3
+        /// By default, will only be available on Windows 8 and above
         /// </summary>
         /// <param name="inputProvider">Input provider, must be PCM</param>
         /// <param name="outputFile">Output file path, should end with .mp3</param>
@@ -130,8 +105,8 @@ namespace NAudio.Wave.WaveOutputs
         }
 
         /// <summary>
-        ///     Helper function to simplify encoding to AAC
-        ///     By default, will only be available on Windows 7 and above
+        /// Helper function to simplify encoding to AAC
+        /// By default, will only be available on Windows 7 and above
         /// </summary>
         /// <param name="inputProvider">Input provider, must be PCM</param>
         /// <param name="outputFile">Output file path, should end with .mp4 (or .aac on Windows 8)</param>
@@ -151,7 +126,7 @@ namespace NAudio.Wave.WaveOutputs
         }
 
         /// <summary>
-        ///     Tries to find the encoding media type with the closest bitrate to that specified
+        /// Tries to find the encoding media type with the closest bitrate to that specified
         /// </summary>
         /// <param name="audioSubtype">Audio subtype, a value from AudioSubtypes</param>
         /// <param name="inputFormat">Your encoder input format (used to check sample rate and channel count)</param>
@@ -161,14 +136,27 @@ namespace NAudio.Wave.WaveOutputs
         {
             return GetOutputMediaTypes(audioSubtype)
                 .Where(mt => mt.SampleRate == inputFormat.SampleRate && mt.ChannelCount == inputFormat.Channels)
-                .Select(mt => new { MediaType = mt, Delta = Math.Abs(desiredBitRate - mt.AverageBytesPerSecond * 8) })
+                .Select(mt => new {MediaType = mt, Delta = Math.Abs(desiredBitRate - mt.AverageBytesPerSecond * 8)})
                 .OrderBy(mt => mt.Delta)
                 .Select(mt => mt.MediaType)
                 .FirstOrDefault();
         }
 
+        private readonly MediaType outputMediaType;
+        private bool disposed;
+
         /// <summary>
-        ///     Encodes a file
+        /// Creates a new encoder that encodes to the specified output media type
+        /// </summary>
+        /// <param name="outputMediaType">Desired output media type</param>
+        public MediaFoundationEncoder(MediaType outputMediaType)
+        {
+            if (outputMediaType == null) throw new ArgumentNullException("outputMediaType");
+            this.outputMediaType = outputMediaType;
+        }
+
+        /// <summary>
+        /// Encodes a file
         /// </summary>
         /// <param name="outputFile">Output filename (container type is deduced from the filename)</param>
         /// <param name="inputProvider">Input provider (should be PCM, some encoders will also allow IEEE float)</param>
@@ -176,7 +164,9 @@ namespace NAudio.Wave.WaveOutputs
         {
             if (inputProvider.WaveFormat.Encoding != WaveFormatEncoding.Pcm &&
                 inputProvider.WaveFormat.Encoding != WaveFormatEncoding.IeeeFloat)
+            {
                 throw new ArgumentException("Encode input format must be PCM or IEEE float");
+            }
 
             var inputMediaType = new MediaType(inputProvider.WaveFormat);
 
@@ -214,21 +204,21 @@ namespace NAudio.Wave.WaveOutputs
             catch (COMException e)
             {
                 if (e.GetHResult() == MediaFoundationErrors.MF_E_NOT_FOUND)
+                {
                     throw new ArgumentException("Was not able to create a sink writer for this file extension");
-
+                }
                 throw;
             }
             finally
             {
                 Marshal.ReleaseComObject(attributes);
             }
-
             return writer;
         }
 
         private void PerformEncode(IMFSinkWriter writer, int streamIndex, IWaveProvider inputProvider)
         {
-            var maxLength = inputProvider.WaveFormat.AverageBytesPerSecond * 4;
+            int maxLength = inputProvider.WaveFormat.AverageBytesPerSecond * 4;
             var managedBuffer = new byte[maxLength];
 
             writer.BeginWriting();
@@ -246,7 +236,7 @@ namespace NAudio.Wave.WaveOutputs
 
         private static long BytesToNsPosition(int bytes, WaveFormat waveFormat)
         {
-            var nsPosition = 10000000L * bytes / waveFormat.AverageBytesPerSecond;
+            long nsPosition = (10000000L * bytes) / waveFormat.AverageBytesPerSecond;
             return nsPosition;
         }
 
@@ -255,16 +245,16 @@ namespace NAudio.Wave.WaveOutputs
         {
             long durationConverted = 0;
             int maxLength;
-            var buffer = MediaFoundationApi.CreateMemoryBuffer(managedBuffer.Length);
+            IMFMediaBuffer buffer = MediaFoundationApi.CreateMemoryBuffer(managedBuffer.Length);
             buffer.GetMaxLength(out maxLength);
 
-            var sample = MediaFoundationApi.CreateSample();
+            IMFSample sample = MediaFoundationApi.CreateSample();
             sample.AddBuffer(buffer);
 
             IntPtr ptr;
             int currentLength;
             buffer.Lock(out ptr, out maxLength, out currentLength);
-            var read = inputProvider.Read(managedBuffer, 0, maxLength);
+            int read = inputProvider.Read(managedBuffer, 0, maxLength);
             if (read > 0)
             {
                 durationConverted = BytesToNsPosition(read, inputProvider.WaveFormat);
@@ -287,7 +277,7 @@ namespace NAudio.Wave.WaveOutputs
         }
 
         /// <summary>
-        ///     Disposes this instance
+        /// Disposes this instance
         /// </summary>
         /// <param name="disposing"></param>
         protected void Dispose(bool disposing)
@@ -296,7 +286,20 @@ namespace NAudio.Wave.WaveOutputs
         }
 
         /// <summary>
-        ///     Finalizer
+        /// Disposes this instance
+        /// </summary>
+        public void Dispose()
+        {
+            if (!disposed)
+            {
+                disposed = true;
+                Dispose(true);
+            }
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Finalizer
         /// </summary>
         ~MediaFoundationEncoder()
         {

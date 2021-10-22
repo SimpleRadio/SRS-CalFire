@@ -1,20 +1,16 @@
 ﻿using System;
-using NAudio.Wave.WaveFormats;
+using System.Collections.Generic;
+using System.Text;
 
-namespace NAudio.FileFormats.Mp3
+namespace NAudio.Wave
 {
     /// <summary>
-    ///     Interface for MP3 frame by frame decoder
+    /// Interface for MP3 frame by frame decoder
     /// </summary>
     public interface IMp3FrameDecompressor : IDisposable
     {
         /// <summary>
-        ///     PCM format that we are converting into
-        /// </summary>
-        WaveFormat OutputFormat { get; }
-
-        /// <summary>
-        ///     Decompress a single MP3 frame
+        /// Decompress a single MP3 frame
         /// </summary>
         /// <param name="frame">Frame to decompress</param>
         /// <param name="dest">Output buffer</param>
@@ -23,8 +19,13 @@ namespace NAudio.FileFormats.Mp3
         int DecompressFrame(Mp3Frame frame, byte[] dest, int destOffset);
 
         /// <summary>
-        ///     Tell the decoder that we have repositioned
+        /// Tell the decoder that we have repositioned
         /// </summary>
         void Reset();
+
+        /// <summary>
+        /// PCM format that we are converting into
+        /// </summary>
+        WaveFormat OutputFormat { get; }
     }
 }

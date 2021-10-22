@@ -1,14 +1,15 @@
+using System;
 using System.Runtime.InteropServices;
 
-namespace NAudio.Wave.WaveFormats
+namespace NAudio.Wave
 {
     //http://svn.xiph.org/tags/vorbisacm_20020708/src/vorbisacm/vorbisacm.h
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 2)]
-    internal class OggWaveFormat : WaveFormat
+    class OggWaveFormat : WaveFormat
     {
-        public uint dwLibVorbisVersion;
-
         //public short cbSize;
         public uint dwVorbisACMVersion;
+
+        public uint dwLibVorbisVersion;
     }
 }

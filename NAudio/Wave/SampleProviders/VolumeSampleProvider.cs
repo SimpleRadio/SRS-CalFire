@@ -1,37 +1,35 @@
-﻿using NAudio.Wave.WaveFormats;
-using NAudio.Wave.WaveOutputs;
+﻿using System;
 
 namespace NAudio.Wave.SampleProviders
 {
     /// <summary>
-    ///     Very simple sample provider supporting adjustable gain
+    /// Very simple sample provider supporting adjustable gain
     /// </summary>
     public class VolumeSampleProvider : ISampleProvider
     {
         private readonly ISampleProvider source;
+        private float volume;
 
         /// <summary>
-        ///     Initializes a new instance of VolumeSampleProvider
+        /// Initializes a new instance of VolumeSampleProvider
         /// </summary>
         /// <param name="source">Source Sample Provider</param>
         public VolumeSampleProvider(ISampleProvider source)
         {
             this.source = source;
-            Volume = 1.0f;
+            this.volume = 1.0f;
         }
 
         /// <summary>
-        ///     Allows adjusting the volume, 1.0f = full volume
+        /// WaveFormat
         /// </summary>
-        public float Volume { get; set; }
+        public WaveFormat WaveFormat
+        {
+            get { return source.WaveFormat; }
+        }
 
         /// <summary>
-        ///     WaveFormat
-        /// </summary>
-        public WaveFormat WaveFormat => source.WaveFormat;
-
-        /// <summary>
-        ///     Reads samples from this sample provider
+        /// Reads samples from this sample provider
         /// </summary>
         /// <param name="buffer">Sample buffer</param>
         /// <param name="offset">Offset into sample buffer</param>
@@ -39,12 +37,24 @@ namespace NAudio.Wave.SampleProviders
         /// <returns>Number of samples read</returns>
         public int Read(float[] buffer, int offset, int sampleCount)
         {
-            var samplesRead = source.Read(buffer, offset, sampleCount);
-            if (Volume != 1f)
-                for (var n = 0; n < sampleCount; n++)
-                    buffer[offset + n] *= Volume;
-
+            int samplesRead = source.Read(buffer, offset, sampleCount);
+            if (volume != 1f)
+            {
+                for (int n = 0; n < sampleCount; n++)
+                {
+                    buffer[offset + n] *= volume;
+                }
+            }
             return samplesRead;
+        }
+
+        /// <summary>
+        /// Allows adjusting the volume, 1.0f = full volume
+        /// </summary>
+        public float Volume
+        {
+            get { return volume; }
+            set { volume = value; }
         }
     }
 }

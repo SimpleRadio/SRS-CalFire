@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using NAudio.Wave.WaveFormats;
+using NAudio.Wave;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility
 {

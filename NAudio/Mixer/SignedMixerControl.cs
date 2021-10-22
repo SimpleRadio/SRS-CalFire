@@ -2,12 +2,12 @@
 
 using System;
 using System.Runtime.InteropServices;
-using NAudio.Wave.MmeInterop;
+using NAudio.Wave;
 
 namespace NAudio.Mixer
 {
     /// <summary>
-    ///     Represents a signed mixer control
+    /// Represents a signed mixer control
     /// </summary>
     public class SignedMixerControl : MixerControl
     {
@@ -20,12 +20,22 @@ namespace NAudio.Mixer
             this.mixerHandle = mixerHandle;
             this.mixerHandleType = mixerHandleType;
             this.nChannels = nChannels;
-            mixerControlDetails = new MixerInterop.MIXERCONTROLDETAILS();
+            this.mixerControlDetails = new MixerInterop.MIXERCONTROLDETAILS();
             GetControlDetails();
         }
 
         /// <summary>
-        ///     The value of the control
+        /// Gets details for this contrl
+        /// </summary>
+        protected override void GetDetails(IntPtr pDetails)
+        {
+            signedDetails =
+                (MixerInterop.MIXERCONTROLDETAILS_SIGNED) Marshal.PtrToStructure(mixerControlDetails.paDetails,
+                    typeof(MixerInterop.MIXERCONTROLDETAILS_SIGNED));
+        }
+
+        /// <summary>
+        /// The value of the control
         /// </summary>
         public int Value
         {
@@ -47,41 +57,37 @@ namespace NAudio.Mixer
         }
 
         /// <summary>
-        ///     Minimum value for this control
+        /// Minimum value for this control
         /// </summary>
-        public int MinValue => mixerControl.Bounds.minimum;
+        public int MinValue
+        {
+            get { return mixerControl.Bounds.minimum; }
+        }
 
         /// <summary>
-        ///     Maximum value for this control
+        /// Maximum value for this control
         /// </summary>
-        public int MaxValue => mixerControl.Bounds.maximum;
+        public int MaxValue
+        {
+            get { return mixerControl.Bounds.maximum; }
+        }
 
         /// <summary>
-        ///     Value of the control represented as a percentage
+        /// Value of the control represented as a percentage
         /// </summary>
         public double Percent
         {
-            get => 100.0 * (Value - MinValue) / (MaxValue - MinValue);
-            set => Value = (int)(MinValue + value / 100.0 * (MaxValue - MinValue));
+            get { return 100.0 * (Value - MinValue) / (double) (MaxValue - MinValue); }
+            set { Value = (int) (MinValue + (value / 100.0) * (MaxValue - MinValue)); }
         }
 
         /// <summary>
-        ///     Gets details for this contrl
-        /// </summary>
-        protected override void GetDetails(IntPtr pDetails)
-        {
-            signedDetails =
-                (MixerInterop.MIXERCONTROLDETAILS_SIGNED)Marshal.PtrToStructure(mixerControlDetails.paDetails,
-                    typeof(MixerInterop.MIXERCONTROLDETAILS_SIGNED));
-        }
-
-        /// <summary>
-        ///     String Representation for debugging purposes
+        /// String Representation for debugging purposes
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            return string.Format("{0} {1}%", base.ToString(), Percent);
+            return String.Format("{0} {1}%", base.ToString(), Percent);
         }
     }
 }

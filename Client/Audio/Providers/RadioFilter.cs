@@ -1,7 +1,7 @@
 ﻿using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using MathNet.Filtering;
-using NAudio.Wave.WaveFormats;
-using NAudio.Wave.WaveOutputs;
+using NAudio.Wave;
+
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
 {

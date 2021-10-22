@@ -3,7 +3,7 @@ using System;
 namespace NAudio.Wave.Compression
 {
     /// <summary>
-    ///     Flags indicating what support a particular ACM driver has
+    /// Flags indicating what support a particular ACM driver has
     /// </summary>
     [Flags]
     public enum AcmDriverDetailsSupportFlags
@@ -27,6 +27,6 @@ namespace NAudio.Wave.Compression
         Local = 0x40000000,
 
         /// <summary>ACMDRIVERDETAILS_SUPPORTF_DISABLED - Disabled</summary>
-        Disabled = unchecked((int)0x80000000)
+        Disabled = unchecked((int) 0x80000000),
     }
 }

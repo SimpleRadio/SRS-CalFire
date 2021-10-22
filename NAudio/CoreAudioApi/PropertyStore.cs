@@ -21,29 +21,21 @@
 */
 // this version modified for NAudio from Ray Molenkamp's original
 
+using System;
 using System.Runtime.InteropServices;
 using NAudio.CoreAudioApi.Interfaces;
 
 namespace NAudio.CoreAudioApi
 {
     /// <summary>
-    ///     Property Store class, only supports reading properties at the moment.
+    /// Property Store class, only supports reading properties at the moment.
     /// </summary>
     public class PropertyStore
     {
         private readonly IPropertyStore storeInterface;
 
         /// <summary>
-        ///     Creates a new property store
-        /// </summary>
-        /// <param name="store">IPropertyStore COM interface</param>
-        internal PropertyStore(IPropertyStore store)
-        {
-            storeInterface = store;
-        }
-
-        /// <summary>
-        ///     Property Count
+        /// Property Count
         /// </summary>
         public int Count
         {
@@ -56,7 +48,7 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        ///     Gets property by index
+        /// Gets property by index
         /// </summary>
         /// <param name="index">Property index</param>
         /// <returns>The property</returns>
@@ -65,14 +57,32 @@ namespace NAudio.CoreAudioApi
             get
             {
                 PropVariant result;
-                var key = Get(index);
+                PropertyKey key = Get(index);
                 Marshal.ThrowExceptionForHR(storeInterface.GetValue(ref key, out result));
                 return new PropertyStoreProperty(key, result);
             }
         }
 
         /// <summary>
-        ///     Indexer by guid
+        /// Contains property guid
+        /// </summary>
+        /// <param name="key">Looks for a specific key</param>
+        /// <returns>True if found</returns>
+        public bool Contains(PropertyKey key)
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                PropertyKey ikey = Get(i);
+                if ((ikey.formatId == key.formatId) && (ikey.propertyId == key.propertyId))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Indexer by guid
         /// </summary>
         /// <param name="key">Property Key</param>
         /// <returns>Property or null if not found</returns>
@@ -81,38 +91,21 @@ namespace NAudio.CoreAudioApi
             get
             {
                 PropVariant result;
-                for (var i = 0; i < Count; i++)
+                for (int i = 0; i < Count; i++)
                 {
-                    var ikey = Get(i);
-                    if (ikey.formatId == key.formatId && ikey.propertyId == key.propertyId)
+                    PropertyKey ikey = Get(i);
+                    if ((ikey.formatId == key.formatId) && (ikey.propertyId == key.propertyId))
                     {
                         Marshal.ThrowExceptionForHR(storeInterface.GetValue(ref ikey, out result));
                         return new PropertyStoreProperty(ikey, result);
                     }
                 }
-
                 return null;
             }
         }
 
         /// <summary>
-        ///     Contains property guid
-        /// </summary>
-        /// <param name="key">Looks for a specific key</param>
-        /// <returns>True if found</returns>
-        public bool Contains(PropertyKey key)
-        {
-            for (var i = 0; i < Count; i++)
-            {
-                var ikey = Get(i);
-                if (ikey.formatId == key.formatId && ikey.propertyId == key.propertyId) return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        ///     Gets property key at sepecified index
+        /// Gets property key at sepecified index
         /// </summary>
         /// <param name="index">Index</param>
         /// <returns>Property key</returns>
@@ -124,20 +117,20 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        ///     Gets property value at specified index
+        /// Gets property value at specified index
         /// </summary>
         /// <param name="index">Index</param>
         /// <returns>Property value</returns>
         public PropVariant GetValue(int index)
         {
             PropVariant result;
-            var key = Get(index);
+            PropertyKey key = Get(index);
             Marshal.ThrowExceptionForHR(storeInterface.GetValue(ref key, out result));
             return result;
         }
 
         /// <summary>
-        ///     Sets property value at specified key.
+        /// Sets property value at specified key.
         /// </summary>
         /// <param name="key">Key of property to set.</param>
         /// <param name="value">Value to write.</param>
@@ -147,11 +140,20 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        ///     Saves a property change.
+        /// Saves a property change.
         /// </summary>
         public void Commit()
         {
             Marshal.ThrowExceptionForHR(storeInterface.Commit());
+        }
+
+        /// <summary>
+        /// Creates a new property store
+        /// </summary>
+        /// <param name="store">IPropertyStore COM interface</param>
+        internal PropertyStore(IPropertyStore store)
+        {
+            this.storeInterface = store;
         }
     }
 }

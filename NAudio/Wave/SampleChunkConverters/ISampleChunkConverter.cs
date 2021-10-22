@@ -1,14 +1,15 @@
-﻿using NAudio.Wave.WaveFormats;
-using NAudio.Wave.WaveOutputs;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace NAudio.Wave.SampleChunkConverters
+namespace NAudio.Wave.SampleProviders
 {
     /// <summary>
-    ///     Sample provider interface to make WaveChannel32 extensible
-    ///     Still a bit ugly, hence internal at the moment - and might even make these into
-    ///     bit depth converting WaveProviders
+    /// Sample provider interface to make WaveChannel32 extensible
+    /// Still a bit ugly, hence internal at the moment - and might even make these into
+    /// bit depth converting WaveProviders
     /// </summary>
-    internal interface ISampleChunkConverter
+    interface ISampleChunkConverter
     {
         bool Supports(WaveFormat format);
         void LoadNextChunk(IWaveProvider sourceProvider, int samplePairsRequired);

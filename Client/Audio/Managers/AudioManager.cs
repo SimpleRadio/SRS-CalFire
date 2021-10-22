@@ -20,7 +20,6 @@ using Ciribob.SRS.Common.PlayerState;
 using FragLabs.Audio.Codecs;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
-using NAudio.Wave.MmeInterop;
 using NAudio.Wave.SampleProviders;
 using NAudio.Wave.WaveFormats;
 using NLog;

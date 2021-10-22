@@ -4,77 +4,102 @@ using System.Runtime.InteropServices;
 namespace NAudio.Dmo
 {
     /// <summary>
-    ///     DMO Output Data Buffer
+    /// DMO Output Data Buffer
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 8)]
     public struct DmoOutputDataBuffer : IDisposable
     {
+        [MarshalAs(UnmanagedType.Interface)] IMediaBuffer pBuffer;
+        DmoOutputDataBufferFlags dwStatus;
+        long rtTimestamp;
+        long referenceTimeDuration;
+
         /// <summary>
-        ///     Creates a new DMO Output Data Buffer structure
+        /// Creates a new DMO Output Data Buffer structure
         /// </summary>
         /// <param name="maxBufferSize">Maximum buffer size</param>
         public DmoOutputDataBuffer(int maxBufferSize)
         {
-            MediaBuffer = new MediaBuffer(maxBufferSize);
-            StatusFlags = DmoOutputDataBufferFlags.None;
-            Timestamp = 0;
-            Duration = 0;
+            pBuffer = new MediaBuffer(maxBufferSize);
+            dwStatus = DmoOutputDataBufferFlags.None;
+            rtTimestamp = 0;
+            referenceTimeDuration = 0;
         }
 
         /// <summary>
-        ///     Dispose
+        /// Dispose
         /// </summary>
         public void Dispose()
         {
-            if (MediaBuffer != null)
+            if (pBuffer != null)
             {
-                ((MediaBuffer)MediaBuffer).Dispose();
-                MediaBuffer = null;
+                ((MediaBuffer) pBuffer).Dispose();
+                pBuffer = null;
                 GC.SuppressFinalize(this);
             }
         }
 
         /// <summary>
-        ///     Media Buffer
+        /// Media Buffer
         /// </summary>
-        [field: MarshalAs(UnmanagedType.Interface)]
-        public IMediaBuffer MediaBuffer { get; internal set; }
+        public IMediaBuffer MediaBuffer
+        {
+            get { return pBuffer; }
+            internal set { pBuffer = value; }
+        }
 
         /// <summary>
-        ///     Length of data in buffer
+        /// Length of data in buffer
         /// </summary>
-        public int Length => ((MediaBuffer)MediaBuffer).Length;
+        public int Length
+        {
+            get { return ((MediaBuffer) pBuffer).Length; }
+        }
 
         /// <summary>
-        ///     Status Flags
+        /// Status Flags
         /// </summary>
-        public DmoOutputDataBufferFlags StatusFlags { get; set; }
+        public DmoOutputDataBufferFlags StatusFlags
+        {
+            get { return dwStatus; }
+            set { dwStatus = value; }
+        }
 
         /// <summary>
-        ///     Timestamp
+        /// Timestamp
         /// </summary>
-        public long Timestamp { get; internal set; }
+        public long Timestamp
+        {
+            get { return rtTimestamp; }
+            internal set { rtTimestamp = value; }
+        }
 
         /// <summary>
-        ///     Duration
+        /// Duration
         /// </summary>
-        public long Duration { get; internal set; }
+        public long Duration
+        {
+            get { return referenceTimeDuration; }
+            internal set { referenceTimeDuration = value; }
+        }
 
         /// <summary>
-        ///     Retrives the data in this buffer
+        /// Retrives the data in this buffer
         /// </summary>
         /// <param name="data">Buffer to receive data</param>
         /// <param name="offset">Offset into buffer</param>
         public void RetrieveData(byte[] data, int offset)
         {
-            ((MediaBuffer)MediaBuffer).RetrieveData(data, offset);
+            ((MediaBuffer) pBuffer).RetrieveData(data, offset);
         }
 
         /// <summary>
-        ///     Is more data available
-        ///     If true, ProcessOuput should be called again
+        /// Is more data available
+        /// If true, ProcessOuput should be called again
         /// </summary>
-        public bool MoreDataAvailable =>
-            (StatusFlags & DmoOutputDataBufferFlags.Incomplete) == DmoOutputDataBufferFlags.Incomplete;
+        public bool MoreDataAvailable
+        {
+            get { return (StatusFlags & DmoOutputDataBufferFlags.Incomplete) == DmoOutputDataBufferFlags.Incomplete; }
+        }
     }
 }

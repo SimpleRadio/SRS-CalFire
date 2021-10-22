@@ -1,61 +1,63 @@
 ﻿using System;
+using System.Linq;
 
 namespace NAudio.Dsp
 {
     // C# ADSR based on work by Nigel Redmon, EarLevel Engineering: earlevel.com
     // http://www.earlevel.com/main/2013/06/03/envelope-generators-adsr-code/
     /// <summary>
-    ///     Envelope generator (ADSR)
+    /// Envelope generator (ADSR)
     /// </summary>
     public class EnvelopeGenerator
     {
+        private EnvelopeState state;
+        private float output;
+        private float attackRate;
+        private float decayRate;
+        private float releaseRate;
+        private float attackCoef;
+        private float decayCoef;
+        private float releaseCoef;
+        private float sustainLevel;
+        private float targetRatioAttack;
+        private float targetRatioDecayRelease;
+        private float attackBase;
+        private float decayBase;
+        private float releaseBase;
+
         /// <summary>
-        ///     Envelope State
+        /// Envelope State
         /// </summary>
         public enum EnvelopeState
         {
             /// <summary>
-            ///     Idle
+            /// Idle
             /// </summary>
             Idle = 0,
 
             /// <summary>
-            ///     Attack
+            /// Attack
             /// </summary>
             Attack,
 
             /// <summary>
-            ///     Decay
+            /// Decay
             /// </summary>
             Decay,
 
             /// <summary>
-            ///     Sustain
+            /// Sustain
             /// </summary>
             Sustain,
 
             /// <summary>
-            ///     Release
+            /// Release
             /// </summary>
             Release
-        }
-
-        private float attackBase;
-        private float attackCoef;
-        private float attackRate;
-        private float decayBase;
-        private float decayCoef;
-        private float decayRate;
-        private float output;
-        private float releaseBase;
-        private float releaseCoef;
-        private float releaseRate;
-        private float sustainLevel;
-        private float targetRatioAttack;
-        private float targetRatioDecayRelease;
+        };
 
         /// <summary>
-        ///     Creates and Initializes an Envelope Generator
+        /// Creates and Initializes an Envelope Generator
         /// </summary>
         public EnvelopeGenerator()
         {
@@ -69,11 +71,11 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     Attack Rate (seconds * SamplesPerSecond)
+        /// Attack Rate (seconds * SamplesPerSecond)
         /// </summary>
         public float AttackRate
         {
-            get => attackRate;
+            get { return attackRate; }
             set
             {
                 attackRate = value;
@@ -83,11 +85,11 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     Decay Rate (seconds * SamplesPerSecond)
+        /// Decay Rate (seconds * SamplesPerSecond)
         /// </summary>
         public float DecayRate
         {
-            get => decayRate;
+            get { return decayRate; }
             set
             {
                 decayRate = value;
@@ -97,11 +99,11 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     Release Rate (seconds * SamplesPerSecond)
+        /// Release Rate (seconds * SamplesPerSecond)
         /// </summary>
         public float ReleaseRate
         {
-            get => releaseRate;
+            get { return releaseRate; }
             set
             {
                 releaseRate = value;
@@ -110,12 +112,17 @@ namespace NAudio.Dsp
             }
         }
 
+        private static float CalcCoef(float rate, float targetRatio)
+        {
+            return (float) Math.Exp(-Math.Log((1.0f + targetRatio) / targetRatio) / rate);
+        }
+
         /// <summary>
-        ///     Sustain Level (1 = 100%)
+        /// Sustain Level (1 = 100%)
         /// </summary>
         public float SustainLevel
         {
-            get => sustainLevel;
+            get { return sustainLevel; }
             set
             {
                 sustainLevel = value;
@@ -124,19 +131,9 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     Current envelope state
+        /// Sets the attack curve
         /// </summary>
-        public EnvelopeState State { get; private set; }
-
-        private static float CalcCoef(float rate, float targetRatio)
-        {
-            return (float)Math.Exp(-Math.Log((1.0f + targetRatio) / targetRatio) / rate);
-        }
-
-        /// <summary>
-        ///     Sets the attack curve
-        /// </summary>
-        private void SetTargetRatioAttack(float targetRatio)
+        void SetTargetRatioAttack(float targetRatio)
         {
             if (targetRatio < 0.000000001f)
                 targetRatio = 0.000000001f; // -180 dB
@@ -145,9 +142,9 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     Sets the decay release curve
+        /// Sets the decay release curve
         /// </summary>
-        private void SetTargetRatioDecayRelease(float targetRatio)
+        void SetTargetRatioDecayRelease(float targetRatio)
         {
             if (targetRatio < 0.000000001f)
                 targetRatio = 0.000000001f; // -180 dB
@@ -157,12 +154,12 @@ namespace NAudio.Dsp
         }
 
         /// <summary>
-        ///     Read the next volume multiplier from the envelope generator
+        /// Read the next volume multiplier from the envelope generator
         /// </summary>
         /// <returns>A volume multiplier</returns>
         public float Process()
         {
-            switch (State)
+            switch (state)
             {
                 case EnvelopeState.Idle:
                     break;
@@ -171,18 +168,16 @@ namespace NAudio.Dsp
                     if (output >= 1.0f)
                     {
                         output = 1.0f;
-                        State = EnvelopeState.Decay;
+                        state = EnvelopeState.Decay;
                     }
-
                     break;
                 case EnvelopeState.Decay:
                     output = decayBase + output * decayCoef;
                     if (output <= sustainLevel)
                     {
                         output = sustainLevel;
-                        State = EnvelopeState.Sustain;
+                        state = EnvelopeState.Sustain;
                     }
-
                     break;
                 case EnvelopeState.Sustain:
                     break;
@@ -191,38 +186,44 @@ namespace NAudio.Dsp
                     if (output <= 0.0)
                     {
                         output = 0.0f;
-                        State = EnvelopeState.Idle;
+                        state = EnvelopeState.Idle;
                     }
-
                     break;
             }
-
             return output;
         }
 
         /// <summary>
-        ///     Trigger the gate
+        /// Trigger the gate
         /// </summary>
         /// <param name="gate">If true, enter attack phase, if false enter release phase (unless already idle)</param>
         public void Gate(bool gate)
         {
             if (gate)
-                State = EnvelopeState.Attack;
-            else if (State != EnvelopeState.Idle)
-                State = EnvelopeState.Release;
+                state = EnvelopeState.Attack;
+            else if (state != EnvelopeState.Idle)
+                state = EnvelopeState.Release;
         }
 
         /// <summary>
-        ///     Reset to idle state
+        /// Current envelope state
+        /// </summary>
+        public EnvelopeState State
+        {
+            get { return state; }
+        }
+
+        /// <summary>
+        /// Reset to idle state
         /// </summary>
         public void Reset()
         {
-            State = EnvelopeState.Idle;
+            state = EnvelopeState.Idle;
             output = 0.0f;
         }
 
         /// <summary>
-        ///     Get the current output level
+        /// Get the current output level
         /// </summary>
         public float GetOutput()
         {

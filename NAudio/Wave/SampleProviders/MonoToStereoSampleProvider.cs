@@ -1,12 +1,10 @@
 ﻿using System;
-using NAudio.Wave.WaveFormats;
-using NAudio.Wave.WaveOutputs;
 
 namespace NAudio.Wave.SampleProviders
 {
     /// <summary>
-    ///     No nonsense mono to stereo provider, no volume adjustment,
-    ///     just copies input to left and right.
+    /// No nonsense mono to stereo provider, no volume adjustment,
+    /// just copies input to left and right. 
     /// </summary>
     public class MonoToStereoSampleProvider : ISampleProvider
     {
@@ -14,36 +12,28 @@ namespace NAudio.Wave.SampleProviders
         private float[] sourceBuffer;
 
         /// <summary>
-        ///     Initializes a new instance of MonoToStereoSampleProvider
+        /// Initializes a new instance of MonoToStereoSampleProvider
         /// </summary>
         /// <param name="source">Source sample provider</param>
         public MonoToStereoSampleProvider(ISampleProvider source)
         {
             LeftVolume = 1.0f;
             RightVolume = 1.0f;
-            if (source.WaveFormat.Channels != 1) throw new ArgumentException("Source must be mono");
-
+            if (source.WaveFormat.Channels != 1)
+            {
+                throw new ArgumentException("Source must be mono");
+            }
             this.source = source;
             WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(source.WaveFormat.SampleRate, 2);
         }
 
         /// <summary>
-        ///     Multiplier for left channel (default is 1.0)
-        /// </summary>
-        public float LeftVolume { get; set; }
-
-        /// <summary>
-        ///     Multiplier for right channel (default is 1.0)
-        /// </summary>
-        public float RightVolume { get; set; }
-
-        /// <summary>
-        ///     WaveFormat of this provider
+        /// WaveFormat of this provider
         /// </summary>
         public WaveFormat WaveFormat { get; }
 
         /// <summary>
-        ///     Reads samples from this provider
+        /// Reads samples from this provider
         /// </summary>
         /// <param name="buffer">Sample buffer</param>
         /// <param name="offset">Offset into sample buffer</param>
@@ -60,13 +50,25 @@ namespace NAudio.Wave.SampleProviders
                 buffer[outIndex++] = sourceBuffer[n] * LeftVolume;
                 buffer[outIndex++] = sourceBuffer[n] * RightVolume;
             }
-
             return sourceSamplesRead * 2;
         }
 
+        /// <summary>
+        /// Multiplier for left channel (default is 1.0)
+        /// </summary>
+        public float LeftVolume { get; set; }
+
+        /// <summary>
+        /// Multiplier for right channel (default is 1.0)
+        /// </summary>
+        public float RightVolume { get; set; }
+
         private void EnsureSourceBuffer(int count)
         {
-            if (sourceBuffer == null || sourceBuffer.Length < count) sourceBuffer = new float[count];
+            if (sourceBuffer == null || sourceBuffer.Length < count)
+            {
+                sourceBuffer = new float[count];
+            }
         }
     }
 }

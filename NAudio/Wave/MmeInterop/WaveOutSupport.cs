@@ -1,12 +1,12 @@
 using System;
 
-namespace NAudio.Wave.MmeInterop
+namespace NAudio.Wave
 {
     /// <summary>
-    ///     Flags indicating what features this WaveOut device supports
+    /// Flags indicating what features this WaveOut device supports
     /// </summary>
     [Flags]
-    internal enum WaveOutSupport
+    enum WaveOutSupport
     {
         /// <summary>supports pitch control (WAVECAPS_PITCH)</summary>
         Pitch = 0x0001,
@@ -24,6 +24,6 @@ namespace NAudio.Wave.MmeInterop
         Sync = 0x0010,
 
         /// <summary>(WAVECAPS_SAMPLEACCURATE)</summary>
-        SampleAccurate = 0x0020
+        SampleAccurate = 0x0020,
     }
 }

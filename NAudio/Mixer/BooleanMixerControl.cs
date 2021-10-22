@@ -2,12 +2,11 @@
 
 using System;
 using System.Runtime.InteropServices;
-using NAudio.Wave.MmeInterop;
 
 namespace NAudio.Mixer
 {
     /// <summary>
-    ///     Boolean mixer control
+    /// Boolean mixer control
     /// </summary>
     public class BooleanMixerControl : MixerControl
     {
@@ -20,24 +19,35 @@ namespace NAudio.Mixer
             this.mixerHandle = mixerHandle;
             this.mixerHandleType = mixerHandleType;
             this.nChannels = nChannels;
-            mixerControlDetails = new MixerInterop.MIXERCONTROLDETAILS();
+            this.mixerControlDetails = new MixerInterop.MIXERCONTROLDETAILS();
 
             GetControlDetails();
         }
 
         /// <summary>
-        ///     The current value of the control
+        /// Gets the details for this control
+        /// </summary>
+        /// <param name="pDetails">memory pointer</param>
+        protected override void GetDetails(IntPtr pDetails)
+        {
+            boolDetails =
+                (MixerInterop.MIXERCONTROLDETAILS_BOOLEAN) Marshal.PtrToStructure(pDetails,
+                    typeof(MixerInterop.MIXERCONTROLDETAILS_BOOLEAN));
+        }
+
+        /// <summary>
+        /// The current value of the control
         /// </summary>
         public bool Value
         {
             get
             {
                 GetControlDetails(); // make sure we have the latest value
-                return boolDetails.fValue == 1;
+                return (boolDetails.fValue == 1);
             }
             set
             {
-                boolDetails.fValue = value ? 1 : 0;
+                boolDetails.fValue = (value) ? 1 : 0;
                 mixerControlDetails.paDetails = Marshal.AllocHGlobal(Marshal.SizeOf(boolDetails));
                 Marshal.StructureToPtr(boolDetails, mixerControlDetails.paDetails, false);
                 MmException.Try(
@@ -45,17 +55,6 @@ namespace NAudio.Mixer
                         MixerFlags.Value | mixerHandleType), "mixerSetControlDetails");
                 Marshal.FreeHGlobal(mixerControlDetails.paDetails);
             }
-        }
-
-        /// <summary>
-        ///     Gets the details for this control
-        /// </summary>
-        /// <param name="pDetails">memory pointer</param>
-        protected override void GetDetails(IntPtr pDetails)
-        {
-            boolDetails =
-                (MixerInterop.MIXERCONTROLDETAILS_BOOLEAN)Marshal.PtrToStructure(pDetails,
-                    typeof(MixerInterop.MIXERCONTROLDETAILS_BOOLEAN));
         }
     }
 }

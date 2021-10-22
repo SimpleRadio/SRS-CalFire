@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace NAudio.CoreAudioApi
+namespace NAudio.CoreAudioApi.Interfaces
 {
-    internal class PropVariantNative
+    class PropVariantNative
     {
         [DllImport("ole32.dll")]
         internal static extern int PropVariantClear(ref PropVariant pvar);

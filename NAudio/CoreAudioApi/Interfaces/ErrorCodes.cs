@@ -1,34 +1,37 @@
-﻿using NAudio.Utils;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using NAudio.Utils;
 
 namespace NAudio.CoreAudioApi.Interfaces
 {
     /// <summary>
-    ///     Audio Client WASAPI Error Codes (HResult)
+    /// Audio Client WASAPI Error Codes (HResult)
     /// </summary>
     public enum AudioClientErrors
     {
         /// <summary>
-        ///     AUDCLNT_E_NOT_INITIALIZED
+        /// AUDCLNT_E_NOT_INITIALIZED
         /// </summary>
-        NotInitialized = unchecked((int)0x88890001),
+        NotInitialized = unchecked((int) 0x88890001),
 
         /// <summary>
-        ///     AUDCLNT_E_UNSUPPORTED_FORMAT
+        /// AUDCLNT_E_UNSUPPORTED_FORMAT
         /// </summary>
-        UnsupportedFormat = unchecked((int)0x88890008),
+        UnsupportedFormat = unchecked((int) 0x88890008),
 
         /// <summary>
-        ///     AUDCLNT_E_DEVICE_IN_USE
+        /// AUDCLNT_E_DEVICE_IN_USE
         /// </summary>
-        DeviceInUse = unchecked((int)0x8889000A),
+        DeviceInUse = unchecked((int) 0x8889000A),
 
         /// <summary>
-        ///     AUDCLNT_E_RESOURCES_INVALIDATED
+        /// AUDCLNT_E_RESOURCES_INVALIDATED
         /// </summary>
-        ResourcesInvalidated = unchecked((int)0x88890026)
+        ResourcesInvalidated = unchecked((int) 0x88890026),
     }
 
-    internal static class ErrorCodes
+    static class ErrorCodes
     {
         // AUDCLNT_ERR(n) MAKE_HRESULT(SEVERITY_ERROR, FACILITY_AUDCLNT, n)
         // AUDCLNT_SUCCESS(n) MAKE_SCODE(SEVERITY_SUCCESS, FACILITY_AUDCLNT, n)
@@ -103,7 +106,7 @@ namespace NAudio.CoreAudioApi.Interfaces
         public static readonly int AUDCLNT_E_CPUUSAGE_EXCEEDED =
             HResult.MAKE_HRESULT(SEVERITY_ERROR, FACILITY_AUDCLNT, 0x017);
 
-        public static readonly int AUDCLNT_E_RESOURCES_INVALIDATED = unchecked((int)0x88890026);
+        public static readonly int AUDCLNT_E_RESOURCES_INVALIDATED = unchecked((int) 0x88890026);
         // ReSharper restore InconsistentNaming
 
         /*static readonly int AUDCLNT_S_BUFFER_EMPTY              AUDCLNT_SUCCESS(0x001)

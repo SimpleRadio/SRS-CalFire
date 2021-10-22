@@ -1,34 +1,29 @@
 ﻿using System;
-using NAudio.Wave.WaveFormats;
+using System.Collections.Generic;
+using System.Text;
 
-namespace NAudio.Wave.MmeInterop
+namespace NAudio.Wave
 {
     /// <summary>
-    ///     Wave Callback Info
+    /// Wave Callback Info
     /// </summary>
     public class WaveCallbackInfo
     {
-        private WaveWindow waveOutWindow;
-        private WaveWindowNative waveOutWindowNative;
-
-        private WaveCallbackInfo(WaveCallbackStrategy strategy, IntPtr handle)
-        {
-            Strategy = strategy;
-            Handle = handle;
-        }
-
         /// <summary>
-        ///     Callback Strategy
+        /// Callback Strategy
         /// </summary>
-        public WaveCallbackStrategy Strategy { get; }
+        public WaveCallbackStrategy Strategy { get; private set; }
 
         /// <summary>
-        ///     Window Handle (if applicable)
+        /// Window Handle (if applicable)
         /// </summary>
         public IntPtr Handle { get; private set; }
 
+        private WaveWindow waveOutWindow;
+        private WaveWindowNative waveOutWindowNative;
+
         /// <summary>
-        ///     Sets up a new WaveCallbackInfo for function callbacks
+        /// Sets up a new WaveCallbackInfo for function callbacks
         /// </summary>
         public static WaveCallbackInfo FunctionCallback()
         {
@@ -36,8 +31,8 @@ namespace NAudio.Wave.MmeInterop
         }
 
         /// <summary>
-        ///     Sets up a new WaveCallbackInfo to use a New Window
-        ///     IMPORTANT: only use this on the GUI thread
+        /// Sets up a new WaveCallbackInfo to use a New Window
+        /// IMPORTANT: only use this on the GUI thread
         /// </summary>
         public static WaveCallbackInfo NewWindow()
         {
@@ -45,14 +40,22 @@ namespace NAudio.Wave.MmeInterop
         }
 
         /// <summary>
-        ///     Sets up a new WaveCallbackInfo to use an existing window
-        ///     IMPORTANT: only use this on the GUI thread
+        /// Sets up a new WaveCallbackInfo to use an existing window
+        /// IMPORTANT: only use this on the GUI thread
         /// </summary>
         public static WaveCallbackInfo ExistingWindow(IntPtr handle)
         {
-            if (handle == IntPtr.Zero) throw new ArgumentException("Handle cannot be zero");
-
+            if (handle == IntPtr.Zero)
+            {
+                throw new ArgumentException("Handle cannot be zero");
+            }
             return new WaveCallbackInfo(WaveCallbackStrategy.ExistingWindow, handle);
+        }
+
+        private WaveCallbackInfo(WaveCallbackStrategy strategy, IntPtr handle)
+        {
+            this.Strategy = strategy;
+            this.Handle = handle;
         }
 
         internal void Connect(WaveInterop.WaveCallback callback)
@@ -61,12 +64,12 @@ namespace NAudio.Wave.MmeInterop
             {
                 waveOutWindow = new WaveWindow(callback);
                 waveOutWindow.CreateControl();
-                Handle = waveOutWindow.Handle;
+                this.Handle = waveOutWindow.Handle;
             }
             else if (Strategy == WaveCallbackStrategy.ExistingWindow)
             {
                 waveOutWindowNative = new WaveWindowNative(callback);
-                waveOutWindowNative.AssignHandle(Handle);
+                waveOutWindowNative.AssignHandle(this.Handle);
             }
         }
 
@@ -75,12 +78,15 @@ namespace NAudio.Wave.MmeInterop
         {
             MmResult result;
             if (Strategy == WaveCallbackStrategy.FunctionCallback)
-                result = WaveInterop.waveOutOpen(out waveOutHandle, (IntPtr)deviceNumber, waveFormat, callback,
+            {
+                result = WaveInterop.waveOutOpen(out waveOutHandle, (IntPtr) deviceNumber, waveFormat, callback,
                     IntPtr.Zero, WaveInterop.WaveInOutOpenFlags.CallbackFunction);
+            }
             else
-                result = WaveInterop.waveOutOpenWindow(out waveOutHandle, (IntPtr)deviceNumber, waveFormat,
-                    Handle, IntPtr.Zero, WaveInterop.WaveInOutOpenFlags.CallbackWindow);
-
+            {
+                result = WaveInterop.waveOutOpenWindow(out waveOutHandle, (IntPtr) deviceNumber, waveFormat,
+                    this.Handle, IntPtr.Zero, WaveInterop.WaveInOutOpenFlags.CallbackWindow);
+            }
             return result;
         }
 
@@ -89,12 +95,15 @@ namespace NAudio.Wave.MmeInterop
         {
             MmResult result;
             if (Strategy == WaveCallbackStrategy.FunctionCallback)
-                result = WaveInterop.waveInOpen(out waveInHandle, (IntPtr)deviceNumber, waveFormat, callback,
+            {
+                result = WaveInterop.waveInOpen(out waveInHandle, (IntPtr) deviceNumber, waveFormat, callback,
                     IntPtr.Zero, WaveInterop.WaveInOutOpenFlags.CallbackFunction);
+            }
             else
-                result = WaveInterop.waveInOpenWindow(out waveInHandle, (IntPtr)deviceNumber, waveFormat, Handle,
+            {
+                result = WaveInterop.waveInOpenWindow(out waveInHandle, (IntPtr) deviceNumber, waveFormat, this.Handle,
                     IntPtr.Zero, WaveInterop.WaveInOutOpenFlags.CallbackWindow);
-
+            }
             return result;
         }
 
@@ -105,7 +114,6 @@ namespace NAudio.Wave.MmeInterop
                 waveOutWindow.Close();
                 waveOutWindow = null;
             }
-
             if (waveOutWindowNative != null)
             {
                 waveOutWindowNative.ReleaseHandle();

@@ -4,12 +4,12 @@ using System.Runtime.InteropServices;
 namespace NAudio.Utils
 {
     /// <summary>
-    ///     Support for Marshal Methods in both UWP and .NET 3.5
+    /// Support for Marshal Methods in both UWP and .NET 3.5
     /// </summary>
     public static class MarshalHelpers
     {
         /// <summary>
-        ///     SizeOf a structure
+        /// SizeOf a structure
         /// </summary>
         public static int SizeOf<T>()
         {
@@ -17,7 +17,7 @@ namespace NAudio.Utils
         }
 
         /// <summary>
-        ///     Offset of a field in a structure
+        /// Offset of a field in a structure
         /// </summary>
         public static IntPtr OffsetOf<T>(string fieldName)
         {
@@ -25,11 +25,11 @@ namespace NAudio.Utils
         }
 
         /// <summary>
-        ///     Pointer to Structure
+        /// Pointer to Structure
         /// </summary>
         public static T PtrToStructure<T>(IntPtr pointer)
         {
-            return (T)Marshal.PtrToStructure(pointer, typeof(T));
+            return (T) Marshal.PtrToStructure(pointer, typeof(T));
         }
     }
 }

@@ -1,84 +1,66 @@
+using System;
 using System.ComponentModel;
-using System.Drawing;
+using System.Collections;
+using System.Diagnostics;
 using System.Windows.Forms;
+using System.Drawing;
 
 namespace NAudio.Gui
 {
     /// <summary>
-    ///     Summary description for Fader.
+    /// Summary description for Fader.
     /// </summary>
-    public class Fader : Control
+    public class Fader : System.Windows.Forms.Control
     {
-        private readonly int SliderHeight = 30;
-        private readonly int SliderWidth = 15;
-
-        /// <summary>
-        ///     Required designer variable.
-        /// </summary>
-        private Container components;
-
-        private bool dragging;
-        private int dragY;
+        private int minimum;
+        private int maximum;
         private float percent;
-        private Rectangle sliderRectangle;
+        private Orientation orientation;
 
         /// <summary>
-        ///     Creates a new Fader control
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.Container components = null;
+
+        /// <summary>
+        /// Creates a new Fader control
         /// </summary>
         public Fader()
         {
             // Required for Windows.Forms Class Composition Designer support
             InitializeComponent();
 
-            SetStyle(ControlStyles.DoubleBuffer |
-                     ControlStyles.AllPaintingInWmPaint |
-                     ControlStyles.UserPaint, true);
+            this.SetStyle(ControlStyles.DoubleBuffer |
+                          ControlStyles.AllPaintingInWmPaint |
+                          ControlStyles.UserPaint, true);
         }
 
-
-        /// <summary>
-        ///     Minimum value of this fader
-        /// </summary>
-        public int Minimum { get; set; }
-
-        /// <summary>
-        ///     Maximum value of this fader
-        /// </summary>
-        public int Maximum { get; set; }
-
-        /// <summary>
-        ///     Current value of this fader
-        /// </summary>
-        public int Value
-        {
-            get => (int)(percent * (Maximum - Minimum)) + Minimum;
-            set => percent = (float)(value - Minimum) / (Maximum - Minimum);
-        }
-
-        /// <summary>
-        ///     Fader orientation
-        /// </summary>
-        public Orientation Orientation { get; set; }
-
-        /// <summary>
-        ///     Clean up any resources being used.
+        /// <summary> 
+        /// Clean up any resources being used.
         /// </summary>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
+            {
                 if (components != null)
+                {
                     components.Dispose();
-
+                }
+            }
             base.Dispose(disposing);
         }
+
+        private readonly int SliderHeight = 30;
+        private readonly int SliderWidth = 15;
+        private Rectangle sliderRectangle = new Rectangle();
 
         private void DrawSlider(Graphics g)
         {
             Brush block = new SolidBrush(Color.White);
-            var centreLine = new Pen(Color.Black);
-            sliderRectangle.X = (Width - SliderWidth) / 2;
+            Pen centreLine = new Pen(Color.Black);
+            sliderRectangle.X = (this.Width - SliderWidth) / 2;
             sliderRectangle.Width = SliderWidth;
-            sliderRectangle.Y = (int)((Height - SliderHeight) * percent);
+            sliderRectangle.Y = (int) ((this.Height - SliderHeight) * percent);
             sliderRectangle.Height = SliderHeight;
 
             g.FillRectangle(block, sliderRectangle);
@@ -96,15 +78,15 @@ namespace NAudio.Gui
 
 
         /// <summary>
-        ///     <see cref="Control.OnPaint" />
+        /// <see cref="Control.OnPaint"/>
         /// </summary>
         protected override void OnPaint(PaintEventArgs e)
         {
-            var g = e.Graphics;
-            if (Orientation == Orientation.Vertical)
+            Graphics g = e.Graphics;
+            if (this.Orientation == Orientation.Vertical)
             {
                 Brush groove = new SolidBrush(Color.Black);
-                g.FillRectangle(groove, Width / 2, SliderHeight / 2, 2, Height - SliderHeight);
+                g.FillRectangle(groove, this.Width / 2, SliderHeight / 2, 2, this.Height - SliderHeight);
                 groove.Dispose();
                 DrawSlider(g);
             }
@@ -112,8 +94,11 @@ namespace NAudio.Gui
             base.OnPaint(e);
         }
 
+        private bool dragging;
+        private int dragY;
+
         /// <summary>
-        ///     <see cref="Control.OnMouseDown" />
+        /// <see cref="Control.OnMouseDown"/>
         /// </summary>
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -122,46 +107,86 @@ namespace NAudio.Gui
                 dragging = true;
                 dragY = e.Y - sliderRectangle.Y;
             }
-
             // TODO: are we over the fader
             base.OnMouseDown(e);
         }
 
         /// <summary>
-        ///     <see cref="Control.OnMouseMove" />
+        /// <see cref="Control.OnMouseMove"/>
         /// </summary>
         protected override void OnMouseMove(MouseEventArgs e)
         {
             if (dragging)
             {
-                var sliderTop = e.Y - dragY;
+                int sliderTop = e.Y - dragY;
                 if (sliderTop < 0)
-                    percent = 0;
-                else if (sliderTop > Height - SliderHeight)
-                    percent = 1;
+                {
+                    this.percent = 0;
+                }
+                else if (sliderTop > this.Height - SliderHeight)
+                {
+                    this.percent = 1;
+                }
                 else
-                    percent = sliderTop / (float)(Height - SliderHeight);
-
-                Invalidate();
+                {
+                    percent = (float) sliderTop / (float) (this.Height - SliderHeight);
+                }
+                this.Invalidate();
             }
-
             base.OnMouseMove(e);
         }
 
         /// <summary>
-        ///     <see cref="Control.OnMouseUp" />
-        /// </summary>
+        /// <see cref="Control.OnMouseUp"/>
+        /// </summary>        
         protected override void OnMouseUp(MouseEventArgs e)
         {
             dragging = false;
             base.OnMouseUp(e);
         }
 
+
+        /// <summary>
+        /// Minimum value of this fader
+        /// </summary>
+        public int Minimum
+        {
+            get { return minimum; }
+            set { minimum = value; }
+        }
+
+        /// <summary>
+        /// Maximum value of this fader
+        /// </summary>
+        public int Maximum
+        {
+            get { return maximum; }
+            set { maximum = value; }
+        }
+
+        /// <summary>
+        /// Current value of this fader
+        /// </summary>
+        public int Value
+        {
+            get { return (int) (percent * (maximum - minimum)) + minimum; }
+            set { percent = (float) (value - minimum) / (maximum - minimum); }
+        }
+
+        /// <summary>
+        /// Fader orientation
+        /// </summary>
+        public Orientation Orientation
+        {
+            get { return orientation; }
+            set { orientation = value; }
+        }
+
         #region Component Designer generated code
 
         /// <summary>
-        ///     Required method for Designer support - do not modify
-        ///     the contents of this method with the code editor.
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent()
         {

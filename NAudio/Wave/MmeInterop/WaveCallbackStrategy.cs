@@ -1,28 +1,32 @@
-﻿namespace NAudio.Wave.MmeInterop
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace NAudio.Wave
 {
     /// <summary>
-    ///     Wave Callback Strategy
+    /// Wave Callback Strategy
     /// </summary>
     public enum WaveCallbackStrategy
     {
         /// <summary>
-        ///     Use a function
+        /// Use a function
         /// </summary>
         FunctionCallback,
 
         /// <summary>
-        ///     Create a new window (should only be done if on GUI thread)
+        /// Create a new window (should only be done if on GUI thread)
         /// </summary>
         NewWindow,
 
         /// <summary>
-        ///     Use an existing window handle
+        /// Use an existing window handle
         /// </summary>
         ExistingWindow,
 
         /// <summary>
-        ///     Use an event handle
+        /// Use an event handle
         /// </summary>
-        Event
+        Event,
     }
 }

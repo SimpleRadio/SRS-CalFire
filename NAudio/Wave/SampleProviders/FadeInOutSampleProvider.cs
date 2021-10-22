@@ -1,21 +1,26 @@
-﻿using NAudio.Wave.WaveFormats;
-using NAudio.Wave.WaveOutputs;
-
-namespace NAudio.Wave.SampleProviders
+﻿namespace NAudio.Wave.SampleProviders
 {
     /// <summary>
-    ///     Sample Provider to allow fading in and out
+    /// Sample Provider to allow fading in and out
     /// </summary>
     public class FadeInOutSampleProvider : ISampleProvider
     {
-        private readonly object lockObject = new();
+        enum FadeState
+        {
+            Silence,
+            FadingIn,
+            FullVolume,
+            FadingOut,
+        }
+
+        private readonly object lockObject = new object();
         private readonly ISampleProvider source;
-        private int fadeSampleCount;
         private int fadeSamplePosition;
+        private int fadeSampleCount;
         private FadeState fadeState;
 
         /// <summary>
-        ///     Creates a new FadeInOutSampleProvider
+        /// Creates a new FadeInOutSampleProvider
         /// </summary>
         /// <param name="source">The source stream with the audio to be faded in or out</param>
         /// <param name="initiallySilent">If true, we start faded out</param>
@@ -26,34 +31,7 @@ namespace NAudio.Wave.SampleProviders
         }
 
         /// <summary>
-        ///     Reads samples from this sample provider
-        /// </summary>
-        /// <param name="buffer">Buffer to read into</param>
-        /// <param name="offset">Offset within buffer to write to</param>
-        /// <param name="count">Number of samples desired</param>
-        /// <returns>Number of samples read</returns>
-        public int Read(float[] buffer, int offset, int count)
-        {
-            var sourceSamplesRead = source.Read(buffer, offset, count);
-            lock (lockObject)
-            {
-                if (fadeState == FadeState.FadingIn)
-                    FadeIn(buffer, offset, sourceSamplesRead);
-                else if (fadeState == FadeState.FadingOut)
-                    FadeOut(buffer, offset, sourceSamplesRead);
-                else if (fadeState == FadeState.Silence) ClearBuffer(buffer, offset, count);
-            }
-
-            return sourceSamplesRead;
-        }
-
-        /// <summary>
-        ///     WaveFormat of this SampleProvider
-        /// </summary>
-        public WaveFormat WaveFormat => source.WaveFormat;
-
-        /// <summary>
-        ///     Requests that a fade-in begins (will start on the next call to Read)
+        /// Requests that a fade-in begins (will start on the next call to Read)
         /// </summary>
         /// <param name="fadeDurationInMilliseconds">Duration of fade in milliseconds</param>
         public void BeginFadeIn(double fadeDurationInMilliseconds)
@@ -61,13 +39,13 @@ namespace NAudio.Wave.SampleProviders
             lock (lockObject)
             {
                 fadeSamplePosition = 0;
-                fadeSampleCount = (int)(fadeDurationInMilliseconds * source.WaveFormat.SampleRate / 1000);
+                fadeSampleCount = (int) ((fadeDurationInMilliseconds * source.WaveFormat.SampleRate) / 1000);
                 fadeState = FadeState.FadingIn;
             }
         }
 
         /// <summary>
-        ///     Requests that a fade-out begins (will start on the next call to Read)
+        /// Requests that a fade-out begins (will start on the next call to Read)
         /// </summary>
         /// <param name="fadeDurationInMilliseconds">Duration of fade in milliseconds</param>
         public void BeginFadeOut(double fadeDurationInMilliseconds)
@@ -75,24 +53,57 @@ namespace NAudio.Wave.SampleProviders
             lock (lockObject)
             {
                 fadeSamplePosition = 0;
-                fadeSampleCount = (int)(fadeDurationInMilliseconds * source.WaveFormat.SampleRate / 1000);
+                fadeSampleCount = (int) ((fadeDurationInMilliseconds * source.WaveFormat.SampleRate) / 1000);
                 fadeState = FadeState.FadingOut;
             }
         }
 
+        /// <summary>
+        /// Reads samples from this sample provider
+        /// </summary>
+        /// <param name="buffer">Buffer to read into</param>
+        /// <param name="offset">Offset within buffer to write to</param>
+        /// <param name="count">Number of samples desired</param>
+        /// <returns>Number of samples read</returns>
+        public int Read(float[] buffer, int offset, int count)
+        {
+            int sourceSamplesRead = source.Read(buffer, offset, count);
+            lock (lockObject)
+            {
+                if (fadeState == FadeState.FadingIn)
+                {
+                    FadeIn(buffer, offset, sourceSamplesRead);
+                }
+                else if (fadeState == FadeState.FadingOut)
+                {
+                    FadeOut(buffer, offset, sourceSamplesRead);
+                }
+                else if (fadeState == FadeState.Silence)
+                {
+                    ClearBuffer(buffer, offset, count);
+                }
+            }
+            return sourceSamplesRead;
+        }
+
         private static void ClearBuffer(float[] buffer, int offset, int count)
         {
-            for (var n = 0; n < count; n++) buffer[n + offset] = 0;
+            for (int n = 0; n < count; n++)
+            {
+                buffer[n + offset] = 0;
+            }
         }
 
         private void FadeOut(float[] buffer, int offset, int sourceSamplesRead)
         {
-            var sample = 0;
+            int sample = 0;
             while (sample < sourceSamplesRead)
             {
-                var multiplier = 1.0f - fadeSamplePosition / (float)fadeSampleCount;
-                for (var ch = 0; ch < source.WaveFormat.Channels; ch++) buffer[offset + sample++] *= multiplier;
-
+                float multiplier = 1.0f - (fadeSamplePosition / (float) fadeSampleCount);
+                for (int ch = 0; ch < source.WaveFormat.Channels; ch++)
+                {
+                    buffer[offset + sample++] *= multiplier;
+                }
                 fadeSamplePosition++;
                 if (fadeSamplePosition > fadeSampleCount)
                 {
@@ -106,12 +117,14 @@ namespace NAudio.Wave.SampleProviders
 
         private void FadeIn(float[] buffer, int offset, int sourceSamplesRead)
         {
-            var sample = 0;
+            int sample = 0;
             while (sample < sourceSamplesRead)
             {
-                var multiplier = fadeSamplePosition / (float)fadeSampleCount;
-                for (var ch = 0; ch < source.WaveFormat.Channels; ch++) buffer[offset + sample++] *= multiplier;
-
+                float multiplier = (fadeSamplePosition / (float) fadeSampleCount);
+                for (int ch = 0; ch < source.WaveFormat.Channels; ch++)
+                {
+                    buffer[offset + sample++] *= multiplier;
+                }
                 fadeSamplePosition++;
                 if (fadeSamplePosition > fadeSampleCount)
                 {
@@ -122,12 +135,12 @@ namespace NAudio.Wave.SampleProviders
             }
         }
 
-        private enum FadeState
+        /// <summary>
+        /// WaveFormat of this SampleProvider
+        /// </summary>
+        public WaveFormat WaveFormat
         {
-            Silence,
-            FadingIn,
-            FullVolume,
-            FadingOut
+            get { return source.WaveFormat; }
         }
     }
 }

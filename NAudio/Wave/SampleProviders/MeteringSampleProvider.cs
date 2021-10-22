@@ -1,26 +1,34 @@
 ﻿using System;
-using NAudio.Wave.WaveFormats;
-using NAudio.Wave.WaveOutputs;
 
 namespace NAudio.Wave.SampleProviders
 {
     /// <summary>
-    ///     Simple SampleProvider that passes through audio unchanged and raises
-    ///     an event every n samples with the maximum sample value from the period
-    ///     for metering purposes
+    /// Simple SampleProvider that passes through audio unchanged and raises
+    /// an event every n samples with the maximum sample value from the period
+    /// for metering purposes
     /// </summary>
     public class MeteringSampleProvider : ISampleProvider
     {
-        private readonly StreamVolumeEventArgs args;
-        private readonly int channels;
+        private readonly ISampleProvider source;
 
         private readonly float[] maxSamples;
-        private readonly ISampleProvider source;
         private int sampleCount;
+        private readonly int channels;
+        private readonly StreamVolumeEventArgs args;
 
         /// <summary>
-        ///     Initialises a new instance of MeteringSampleProvider that raises 10 stream volume
-        ///     events per second
+        /// Number of Samples per notification
+        /// </summary>
+        public int SamplesPerNotification { get; set; }
+
+        /// <summary>
+        /// Raised periodically to inform the user of the max volume
+        /// </summary>
+        public event EventHandler<StreamVolumeEventArgs> StreamVolume;
+
+        /// <summary>
+        /// Initialises a new instance of MeteringSampleProvider that raises 10 stream volume
+        /// events per second
         /// </summary>
         /// <param name="source">Source sample provider</param>
         public MeteringSampleProvider(ISampleProvider source) :
@@ -29,7 +37,7 @@ namespace NAudio.Wave.SampleProviders
         }
 
         /// <summary>
-        ///     Initialises a new instance of MeteringSampleProvider
+        /// Initialises a new instance of MeteringSampleProvider 
         /// </summary>
         /// <param name="source">source sampler provider</param>
         /// <param name="samplesPerNotification">Number of samples between notifications</param>
@@ -39,24 +47,19 @@ namespace NAudio.Wave.SampleProviders
             channels = source.WaveFormat.Channels;
             maxSamples = new float[channels];
             SamplesPerNotification = samplesPerNotification;
-            args = new StreamVolumeEventArgs
+            args = new StreamVolumeEventArgs()
             {
                 MaxSampleValues = maxSamples
             }; // create objects up front giving GC little to do
         }
 
         /// <summary>
-        ///     Number of Samples per notification
-        /// </summary>
-        public int SamplesPerNotification { get; set; }
-
-        /// <summary>
-        ///     The WaveFormat of this sample provider
+        /// The WaveFormat of this sample provider
         /// </summary>
         public WaveFormat WaveFormat => source.WaveFormat;
 
         /// <summary>
-        ///     Reads samples from this Sample Provider
+        /// Reads samples from this Sample Provider
         /// </summary>
         /// <param name="buffer">Sample buffer</param>
         /// <param name="offset">Offset into sample buffer</param>
@@ -64,17 +67,17 @@ namespace NAudio.Wave.SampleProviders
         /// <returns>Number of samples read</returns>
         public int Read(float[] buffer, int offset, int count)
         {
-            var samplesRead = source.Read(buffer, offset, count);
+            int samplesRead = source.Read(buffer, offset, count);
             // only bother if there is an event listener
             if (StreamVolume != null)
-                for (var index = 0; index < samplesRead; index += channels)
+            {
+                for (int index = 0; index < samplesRead; index += channels)
                 {
-                    for (var channel = 0; channel < channels; channel++)
+                    for (int channel = 0; channel < channels; channel++)
                     {
-                        var sampleValue = Math.Abs(buffer[offset + index + channel]);
+                        float sampleValue = Math.Abs(buffer[offset + index + channel]);
                         maxSamples[channel] = Math.Max(maxSamples[channel], sampleValue);
                     }
-
                     sampleCount++;
                     if (sampleCount >= SamplesPerNotification)
                     {
@@ -84,23 +87,18 @@ namespace NAudio.Wave.SampleProviders
                         Array.Clear(maxSamples, 0, channels);
                     }
                 }
-
+            }
             return samplesRead;
         }
-
-        /// <summary>
-        ///     Raised periodically to inform the user of the max volume
-        /// </summary>
-        public event EventHandler<StreamVolumeEventArgs> StreamVolume;
     }
 
     /// <summary>
-    ///     Event args for aggregated stream volume
+    /// Event args for aggregated stream volume
     /// </summary>
     public class StreamVolumeEventArgs : EventArgs
     {
         /// <summary>
-        ///     Max sample values array (one for each channel)
+        /// Max sample values array (one for each channel)
         /// </summary>
         public float[] MaxSampleValues { get; set; }
     }

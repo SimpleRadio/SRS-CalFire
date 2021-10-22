@@ -1,16 +1,16 @@
 ﻿using System;
+using NAudio.CoreAudioApi.Interfaces;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using NAudio.CoreAudioApi.Interfaces;
 
 namespace NAudio.CoreAudioApi
 {
     /// <summary>
-    ///     Audio Clock Client
+    /// Audio Clock Client
     /// </summary>
     public class AudioClockClient : IDisposable
     {
-        private IAudioClock audioClockClientInterface;
+        IAudioClock audioClockClientInterface;
 
         internal AudioClockClient(IAudioClock audioClockClientInterface)
         {
@@ -21,7 +21,7 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        ///     Characteristics
+        /// Characteristics
         /// </summary>
         public int Characteristics
         {
@@ -29,12 +29,12 @@ namespace NAudio.CoreAudioApi
             {
                 uint characteristics;
                 Marshal.ThrowExceptionForHR(audioClockClientInterface.GetCharacteristics(out characteristics));
-                return (int)characteristics;
+                return (int) characteristics;
             }
         }
 
         /// <summary>
-        ///     Frequency
+        /// Frequency
         /// </summary>
         public ulong Frequency
         {
@@ -47,28 +47,43 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        ///     Adjusted Position
+        /// Get Position
+        /// </summary>
+        public bool GetPosition(out ulong position, out ulong qpcPosition)
+        {
+            var hr = audioClockClientInterface.GetPosition(out position, out qpcPosition);
+            if (hr == -1) return false;
+            Marshal.ThrowExceptionForHR(hr);
+            return true;
+        }
+
+        /// <summary>
+        /// Adjusted Position
         /// </summary>
         public ulong AdjustedPosition
         {
             get
             {
                 // figure out ticks per byte (for later)
-                var byteLatency = TimeSpan.TicksPerSecond / Frequency;
+                var byteLatency = (TimeSpan.TicksPerSecond / Frequency);
 
                 ulong pos, qpos;
-                var cnt = 0;
+                int cnt = 0;
                 while (!GetPosition(out pos, out qpos))
+                {
                     if (++cnt == 5)
+                    {
                         // we've tried too many times, so now we have to just run with what we have...
                         break;
+                    }
+                }
 
                 if (Stopwatch.IsHighResolution)
                 {
                     // cool, we can adjust our position appropriately
 
                     // get the current qpc count (in ticks)
-                    var qposNow = (ulong)(Stopwatch.GetTimestamp() * 10000000M / Stopwatch.Frequency);
+                    var qposNow = (ulong) ((Stopwatch.GetTimestamp() * 10000000M) / Stopwatch.Frequency);
 
                     // find out how many ticks has passed since the device reported the position
                     var qposDiff = (qposNow - qpos) / 100;
@@ -79,20 +94,22 @@ namespace NAudio.CoreAudioApi
                     // add it to the position
                     pos += bytes;
                 }
-
                 return pos;
             }
         }
 
         /// <summary>
-        ///     Can Adjust Position
+        /// Can Adjust Position
         /// </summary>
-        public bool CanAdjustPosition => Stopwatch.IsHighResolution;
+        public bool CanAdjustPosition
+        {
+            get { return Stopwatch.IsHighResolution; }
+        }
 
         #region IDisposable Members
 
         /// <summary>
-        ///     Dispose
+        /// Dispose
         /// </summary>
         public void Dispose()
         {
@@ -107,16 +124,5 @@ namespace NAudio.CoreAudioApi
         }
 
         #endregion
-
-        /// <summary>
-        ///     Get Position
-        /// </summary>
-        public bool GetPosition(out ulong position, out ulong qpcPosition)
-        {
-            var hr = audioClockClientInterface.GetPosition(out position, out qpcPosition);
-            if (hr == -1) return false;
-            Marshal.ThrowExceptionForHR(hr);
-            return true;
-        }
     }
 }

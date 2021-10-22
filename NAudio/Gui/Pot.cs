@@ -1,52 +1,60 @@
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
-using System.Drawing.Drawing2D;
+using System.Data;
+using System.Text;
 using System.Windows.Forms;
 
 namespace NAudio.Gui
 {
     /// <summary>
-    ///     Control that represents a potentiometer
-    ///     TODO list:
-    ///     Optional Log scale
-    ///     Optional reverse scale
-    ///     Keyboard control
-    ///     Optional bitmap mode
-    ///     Optional complete draw mode
-    ///     Tooltip support
+    /// Control that represents a potentiometer
+    /// TODO list:
+    /// Optional Log scale
+    /// Optional reverse scale
+    /// Keyboard control
+    /// Optional bitmap mode
+    /// Optional complete draw mode
+    /// Tooltip support
     /// </summary>
     public partial class Pot : UserControl
     {
-        private double beginDragValue;
-
-        //
-        private int beginDragY;
-        private bool dragging;
+        // control properties
+        private double minimum = 0.0;
 
         private double maximum = 1.0;
 
-        // control properties
-        private double minimum;
-
         private double value = 0.5;
 
+        //
+        private int beginDragY;
+
+        private double beginDragValue;
+        private bool dragging;
+
         /// <summary>
-        ///     Creates a new pot control
+        /// Value changed event
+        /// </summary>
+        public event EventHandler ValueChanged;
+
+        /// <summary>
+        /// Creates a new pot control
         /// </summary>
         public Pot()
         {
-            SetStyle(ControlStyles.DoubleBuffer |
-                     ControlStyles.AllPaintingInWmPaint |
-                     ControlStyles.UserPaint, true);
+            this.SetStyle(ControlStyles.DoubleBuffer |
+                          ControlStyles.AllPaintingInWmPaint |
+                          ControlStyles.UserPaint, true);
             InitializeComponent();
         }
 
         /// <summary>
-        ///     Minimum Value of the Pot
+        /// Minimum Value of the Pot
         /// </summary>
         public double Minimum
         {
-            get => minimum;
+            get { return minimum; }
             set
             {
                 if (value >= maximum)
@@ -58,11 +66,11 @@ namespace NAudio.Gui
         }
 
         /// <summary>
-        ///     Maximum Value of the Pot
+        /// Maximum Value of the Pot
         /// </summary>
         public double Maximum
         {
-            get => maximum;
+            get { return maximum; }
             set
             {
                 if (value <= minimum)
@@ -74,58 +82,54 @@ namespace NAudio.Gui
         }
 
         /// <summary>
-        ///     The current value of the pot
+        /// The current value of the pot
         /// </summary>
         public double Value
         {
-            get => value;
-            set => SetValue(value, false);
+            get { return value; }
+            set { SetValue(value, false); }
         }
-
-        /// <summary>
-        ///     Value changed event
-        /// </summary>
-        public event EventHandler ValueChanged;
 
         private void SetValue(double newValue, bool raiseEvents)
         {
-            if (value != newValue)
+            if (this.value != newValue)
             {
-                value = newValue;
+                this.value = newValue;
                 if (raiseEvents)
+                {
                     if (ValueChanged != null)
                         ValueChanged(this, EventArgs.Empty);
-
+                }
                 Invalidate();
             }
         }
 
         /// <summary>
-        ///     Draws the control
+        /// Draws the control
         /// </summary>
         protected override void OnPaint(PaintEventArgs e)
         {
-            var diameter = Math.Min(Width - 4, Height - 4);
+            int diameter = Math.Min(this.Width - 4, this.Height - 4);
 
-            var potPen = new Pen(ForeColor, 3.0f);
-            potPen.LineJoin = LineJoin.Round;
-            var state = e.Graphics.Save();
+            Pen potPen = new Pen(ForeColor, 3.0f);
+            potPen.LineJoin = System.Drawing.Drawing2D.LineJoin.Round;
+            System.Drawing.Drawing2D.GraphicsState state = e.Graphics.Save();
             //e.Graphics.TranslateTransform(diameter / 2f, diameter / 2f);
-            e.Graphics.TranslateTransform(Width / 2, Height / 2);
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            e.Graphics.TranslateTransform(this.Width / 2, this.Height / 2);
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
             e.Graphics.DrawArc(potPen, new Rectangle(diameter / -2, diameter / -2, diameter, diameter), 135, 270);
 
-            var percent = (value - minimum) / (maximum - minimum);
-            var degrees = 135 + percent * 270;
-            var x = diameter / 2.0 * Math.Cos(Math.PI * degrees / 180);
-            var y = diameter / 2.0 * Math.Sin(Math.PI * degrees / 180);
-            e.Graphics.DrawLine(potPen, 0, 0, (float)x, (float)y);
+            double percent = (value - minimum) / (maximum - minimum);
+            double degrees = 135 + (percent * 270);
+            double x = (diameter / 2.0) * Math.Cos(Math.PI * degrees / 180);
+            double y = (diameter / 2.0) * Math.Sin(Math.PI * degrees / 180);
+            e.Graphics.DrawLine(potPen, 0, 0, (float) x, (float) y);
             e.Graphics.Restore(state);
             base.OnPaint(e);
         }
 
         /// <summary>
-        ///     Handles the mouse down event to allow changing value by dragging
+        /// Handles the mouse down event to allow changing value by dragging
         /// </summary>
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -136,7 +140,7 @@ namespace NAudio.Gui
         }
 
         /// <summary>
-        ///     Handles the mouse up event to allow changing value by dragging
+        /// Handles the mouse up event to allow changing value by dragging
         /// </summary>
         protected override void OnMouseUp(MouseEventArgs e)
         {
@@ -145,23 +149,22 @@ namespace NAudio.Gui
         }
 
         /// <summary>
-        ///     Handles the mouse down event to allow changing value by dragging
+        /// Handles the mouse down event to allow changing value by dragging
         /// </summary>
         protected override void OnMouseMove(MouseEventArgs e)
         {
             if (dragging)
             {
-                var yDifference = beginDragY - e.Y;
+                int yDifference = beginDragY - e.Y;
                 // 100 is the number of pixels of vertical movement that represents the whole scale
-                var delta = (maximum - minimum) * (yDifference / 150.0);
-                var newValue = beginDragValue + delta;
+                double delta = (maximum - minimum) * (yDifference / 150.0);
+                double newValue = beginDragValue + delta;
                 if (newValue < minimum)
                     newValue = minimum;
                 if (newValue > maximum)
                     newValue = maximum;
                 SetValue(newValue, true);
             }
-
             base.OnMouseMove(e);
         }
     }

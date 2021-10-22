@@ -1,46 +1,86 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading;
-using NAudio.Wave.WaveFormats;
+using System.Collections.Generic;
+using System.Diagnostics;
 
-namespace NAudio.Wave.WaveOutputs
+namespace NAudio.Wave
 {
     /// <summary>
-    ///     NativeDirectSoundOut using DirectSound COM interop.
-    ///     Contact author: Alexandre Mutel - alexandre_mutel at yahoo.fr
-    ///     Modified by: Graham "Gee" Plumb
+    /// NativeDirectSoundOut using DirectSound COM interop.
+    /// Contact author: Alexandre Mutel - alexandre_mutel at yahoo.fr
+    /// Modified by: Graham "Gee" Plumb
     /// </summary>
     public class DirectSoundOut : IWavePlayer
     {
-        private static List<DirectSoundDeviceInfo> devices;
-        private long bytesPlayed;
-        private readonly int desiredLatency;
+        /// <summary>
+        /// Playback Stopped
+        /// </summary>
+        public event EventHandler<StoppedEventArgs> PlaybackStopped;
+
+        private PlaybackState playbackState;
+        private WaveFormat waveFormat;
+        private int samplesTotalSize;
+        private int samplesFrameSize;
+        private int nextSamplesWriteIndex;
+        private int desiredLatency;
         private Guid device;
-        private IDirectSound directSound;
-        private EventWaitHandle endEventWaitHandle;
+        private byte[] samples;
+        private IWaveProvider waveStream = null;
+        private IDirectSound directSound = null;
+        private IDirectSoundBuffer primarySoundBuffer = null;
+        private IDirectSoundBuffer secondaryBuffer = null;
         private EventWaitHandle frameEventWaitHandle1;
         private EventWaitHandle frameEventWaitHandle2;
+        private EventWaitHandle endEventWaitHandle;
+        private Thread notifyThread;
+        private SynchronizationContext syncContext;
+        private long bytesPlayed;
 
         // Used purely for locking
-        private readonly object m_LockObject = new();
-        private int nextSamplesWriteIndex;
-        private Thread notifyThread;
+        private Object m_LockObject = new Object();
 
-        private IDirectSoundBuffer primarySoundBuffer;
-        private byte[] samples;
-        private int samplesFrameSize;
-        private int samplesTotalSize;
-        private IDirectSoundBuffer secondaryBuffer;
-        private readonly SynchronizationContext syncContext;
-        private WaveFormat waveFormat;
-        private IWaveProvider waveStream;
+        /// <summary>
+        /// Gets the DirectSound output devices in the system
+        /// </summary>
+        public static IEnumerable<DirectSoundDeviceInfo> Devices
+        {
+            get
+            {
+                devices = new List<DirectSoundDeviceInfo>();
+                DirectSoundEnumerate(new DSEnumCallback(EnumCallback), IntPtr.Zero);
+                return devices;
+            }
+        }
+
+        private static List<DirectSoundDeviceInfo> devices;
+
+        private static bool EnumCallback(IntPtr lpGuid, IntPtr lpcstrDescription, IntPtr lpcstrModule, IntPtr lpContext)
+        {
+            var device = new DirectSoundDeviceInfo();
+            if (lpGuid == IntPtr.Zero)
+            {
+                device.Guid = Guid.Empty;
+            }
+            else
+            {
+                byte[] guidBytes = new byte[16];
+                Marshal.Copy(lpGuid, guidBytes, 0, 16);
+                device.Guid = new Guid(guidBytes);
+            }
+            device.Description = Marshal.PtrToStringAnsi(lpcstrDescription);
+            if (lpcstrModule != null)
+            {
+                device.ModuleName = Marshal.PtrToStringAnsi(lpcstrModule);
+            }
+            devices.Add(device);
+            return true;
+        }
 
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="DirectSoundOut" /> class.
+        /// Initializes a new instance of the <see cref="DirectSoundOut"/> class.
         /// </summary>
         public DirectSoundOut()
             : this(DSDEVID_DefaultPlayback)
@@ -48,7 +88,7 @@ namespace NAudio.Wave.WaveOutputs
         }
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="DirectSoundOut" /> class.
+        /// Initializes a new instance of the <see cref="DirectSoundOut"/> class.
         /// </summary>
         public DirectSoundOut(Guid device)
             : this(device, 40)
@@ -56,7 +96,7 @@ namespace NAudio.Wave.WaveOutputs
         }
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="DirectSoundOut" /> class.
+        /// Initializes a new instance of the <see cref="DirectSoundOut"/> class.
         /// </summary>
         public DirectSoundOut(int latency)
             : this(DSDEVID_DefaultPlayback, latency)
@@ -64,35 +104,110 @@ namespace NAudio.Wave.WaveOutputs
         }
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="DirectSoundOut" /> class.
-        ///     (40ms seems to work under Vista).
+        /// Initializes a new instance of the <see cref="DirectSoundOut"/> class.
+        /// (40ms seems to work under Vista).
         /// </summary>
         /// <param name="latency">The latency.</param>
         /// <param name="device">Selected device</param>
         public DirectSoundOut(Guid device, int latency)
         {
-            if (device == Guid.Empty) device = DSDEVID_DefaultPlayback;
-
+            if (device == Guid.Empty)
+            {
+                device = DSDEVID_DefaultPlayback;
+            }
             this.device = device;
-            desiredLatency = latency;
-            syncContext = SynchronizationContext.Current;
+            this.desiredLatency = latency;
+            this.syncContext = SynchronizationContext.Current;
         }
 
         /// <summary>
-        ///     Gets the DirectSound output devices in the system
+        /// Releases unmanaged resources and performs other cleanup operations before the
+        /// <see cref="DirectSoundOut"/> is reclaimed by garbage collection.
         /// </summary>
-        public static IEnumerable<DirectSoundDeviceInfo> Devices
+        ~DirectSoundOut()
         {
-            get
+            Dispose();
+        }
+
+        /// <summary>
+        /// Begin playback
+        /// </summary>
+        public void Play()
+        {
+            if (playbackState == PlaybackState.Stopped)
             {
-                devices = new List<DirectSoundDeviceInfo>();
-                DirectSoundEnumerate(EnumCallback, IntPtr.Zero);
-                return devices;
+                // -------------------------------------------------------------------------------------
+                // Thread that process samples
+                // -------------------------------------------------------------------------------------
+                notifyThread = new Thread(new ThreadStart(PlaybackThreadFunc));
+                // put this back to highest when we are confident we don't have any bugs in the thread proc
+                notifyThread.Priority = ThreadPriority.Normal;
+                notifyThread.IsBackground = true;
+                notifyThread.Start();
+            }
+
+            lock (m_LockObject)
+            {
+                playbackState = PlaybackState.Playing;
             }
         }
 
         /// <summary>
-        ///     Gets the current position from the wave output device.
+        /// Stop playback
+        /// </summary>
+        public void Stop()
+        {
+            // Try and tidy up nicely
+            if (Monitor.TryEnter(m_LockObject, 50))
+            {
+                playbackState = PlaybackState.Stopped;
+                Monitor.Exit(m_LockObject);
+            }
+            else
+            {
+                // No joy - abort the thread!
+                if (notifyThread != null)
+                {
+                    notifyThread.Abort();
+                    notifyThread = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Pause Playback
+        /// </summary>
+        public void Pause()
+        {
+            lock (m_LockObject)
+            {
+                playbackState = PlaybackState.Paused;
+            }
+        }
+
+        /// <summary>
+        /// Gets the current position in bytes from the wave output device.
+        /// (n.b. this is not the same thing as the position within your reader
+        /// stream)
+        /// </summary>
+        /// <returns>Position in bytes</returns>
+        public long GetPosition()
+        {
+            if (playbackState != Wave.PlaybackState.Stopped)
+            {
+                var sbuf = secondaryBuffer;
+                if (sbuf != null)
+                {
+                    uint currentPlayCursor, currentWriteCursor;
+                    sbuf.GetCurrentPosition(out currentPlayCursor, out currentWriteCursor);
+                    return currentPlayCursor + bytesPlayed;
+                }
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Gets the current position from the wave output device.
         /// </summary>
         public TimeSpan PlaybackPosition
         {
@@ -109,167 +224,21 @@ namespace NAudio.Wave.WaveOutputs
             }
         }
 
-        /// <summary>
-        ///     Playback Stopped
-        /// </summary>
-        public event EventHandler<StoppedEventArgs> PlaybackStopped;
 
         /// <summary>
-        ///     Begin playback
-        /// </summary>
-        public void Play()
-        {
-            if (PlaybackState == PlaybackState.Stopped)
-            {
-                // -------------------------------------------------------------------------------------
-                // Thread that process samples
-                // -------------------------------------------------------------------------------------
-                notifyThread = new Thread(PlaybackThreadFunc);
-                // put this back to highest when we are confident we don't have any bugs in the thread proc
-                notifyThread.Priority = ThreadPriority.Normal;
-                notifyThread.IsBackground = true;
-                notifyThread.Start();
-            }
-
-            lock (m_LockObject)
-            {
-                PlaybackState = PlaybackState.Playing;
-            }
-        }
-
-        /// <summary>
-        ///     Stop playback
-        /// </summary>
-        public void Stop()
-        {
-            // Try and tidy up nicely
-            if (Monitor.TryEnter(m_LockObject, 50))
-            {
-                PlaybackState = PlaybackState.Stopped;
-                Monitor.Exit(m_LockObject);
-            }
-            else
-            {
-                // No joy - abort the thread!
-                if (notifyThread != null)
-                {
-                    notifyThread.Abort();
-                    notifyThread = null;
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Pause Playback
-        /// </summary>
-        public void Pause()
-        {
-            lock (m_LockObject)
-            {
-                PlaybackState = PlaybackState.Paused;
-            }
-        }
-
-
-        /// <summary>
-        ///     Initialise playback
+        /// Initialise playback
         /// </summary>
         /// <param name="waveProvider">The waveprovider to be played</param>
         public void Init(IWaveProvider waveProvider)
         {
-            waveStream = waveProvider;
-            waveFormat = waveProvider.WaveFormat;
-        }
-
-        /// <summary>
-        ///     Current playback state
-        /// </summary>
-        /// <value></value>
-        public PlaybackState PlaybackState { get; private set; }
-
-        /// <summary>
-        ///     The volume 1.0 is full scale
-        /// </summary>
-        /// <value></value>
-        public float Volume
-        {
-            get => 1.0f;
-            //return 1 + (secondaryBuffer.GetVolume()) / 10000.0f;
-            set
-            {
-                if (value != 1.0f)
-                    throw new InvalidOperationException(
-                        "Setting volume not supported on DirectSoundOut, adjust the volume on your WaveProvider instead");
-                //int intVol = (int)((value - 1) * 10000.0f);
-                //secondaryBuffer.SetVolume(intVol);
-            }
-        }
-
-        /// <summary>
-        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Stop();
-            GC.SuppressFinalize(this);
-        }
-
-        private static bool EnumCallback(IntPtr lpGuid, IntPtr lpcstrDescription, IntPtr lpcstrModule, IntPtr lpContext)
-        {
-            var device = new DirectSoundDeviceInfo();
-            if (lpGuid == IntPtr.Zero)
-            {
-                device.Guid = Guid.Empty;
-            }
-            else
-            {
-                var guidBytes = new byte[16];
-                Marshal.Copy(lpGuid, guidBytes, 0, 16);
-                device.Guid = new Guid(guidBytes);
-            }
-
-            device.Description = Marshal.PtrToStringAnsi(lpcstrDescription);
-            if (lpcstrModule != null) device.ModuleName = Marshal.PtrToStringAnsi(lpcstrModule);
-
-            devices.Add(device);
-            return true;
-        }
-
-        /// <summary>
-        ///     Releases unmanaged resources and performs other cleanup operations before the
-        ///     <see cref="DirectSoundOut" /> is reclaimed by garbage collection.
-        /// </summary>
-        ~DirectSoundOut()
-        {
-            Dispose();
-        }
-
-        /// <summary>
-        ///     Gets the current position in bytes from the wave output device.
-        ///     (n.b. this is not the same thing as the position within your reader
-        ///     stream)
-        /// </summary>
-        /// <returns>Position in bytes</returns>
-        public long GetPosition()
-        {
-            if (PlaybackState != PlaybackState.Stopped)
-            {
-                var sbuf = secondaryBuffer;
-                if (sbuf != null)
-                {
-                    uint currentPlayCursor, currentWriteCursor;
-                    sbuf.GetCurrentPosition(out currentPlayCursor, out currentWriteCursor);
-                    return currentPlayCursor + bytesPlayed;
-                }
-            }
-
-            return 0;
+            this.waveStream = waveProvider;
+            this.waveFormat = waveProvider.WaveFormat;
         }
 
         private void InitializeDirectSound()
         {
             // Open DirectSound
-            lock (m_LockObject)
+            lock (this.m_LockObject)
             {
                 directSound = null;
                 DirectSoundCreate(ref device, out directSound, IntPtr.Zero);
@@ -284,7 +253,7 @@ namespace NAudio.Wave.WaveOutputs
                     // -------------------------------------------------------------------------------------
 
                     // Fill BufferDescription for PrimaryBuffer
-                    var bufferDesc = new BufferDescription();
+                    BufferDescription bufferDesc = new BufferDescription();
                     bufferDesc.dwSize = Marshal.SizeOf(bufferDesc);
                     bufferDesc.dwBufferBytes = 0;
                     bufferDesc.dwFlags = DirectSoundBufferCaps.DSBCAPS_PRIMARYBUFFER;
@@ -295,7 +264,7 @@ namespace NAudio.Wave.WaveOutputs
                     object soundBufferObj;
                     // Create PrimaryBuffer
                     directSound.CreateSoundBuffer(bufferDesc, out soundBufferObj, IntPtr.Zero);
-                    primarySoundBuffer = (IDirectSoundBuffer)soundBufferObj;
+                    primarySoundBuffer = (IDirectSoundBuffer) soundBufferObj;
 
                     // Play & Loop on the PrimarySound Buffer 
                     primarySoundBuffer.Play(0, 0, DirectSoundPlayFlags.DSBPLAY_LOOPING);
@@ -308,9 +277,9 @@ namespace NAudio.Wave.WaveOutputs
                     samplesFrameSize = MsToBytes(desiredLatency);
 
                     // Fill BufferDescription for SecondaryBuffer
-                    var bufferDesc2 = new BufferDescription();
+                    BufferDescription bufferDesc2 = new BufferDescription();
                     bufferDesc2.dwSize = Marshal.SizeOf(bufferDesc2);
-                    bufferDesc2.dwBufferBytes = (uint)(samplesFrameSize * 2);
+                    bufferDesc2.dwBufferBytes = (uint) (samplesFrameSize * 2);
                     bufferDesc2.dwFlags = DirectSoundBufferCaps.DSBCAPS_GETCURRENTPOSITION2
                                           | DirectSoundBufferCaps.DSBCAPS_CTRLPOSITIONNOTIFY
                                           | DirectSoundBufferCaps.DSBCAPS_GLOBALFOCUS
@@ -318,43 +287,43 @@ namespace NAudio.Wave.WaveOutputs
                                           | DirectSoundBufferCaps.DSBCAPS_STICKYFOCUS
                                           | DirectSoundBufferCaps.DSBCAPS_GETCURRENTPOSITION2;
                     bufferDesc2.dwReserved = 0;
-                    var handleOnWaveFormat = GCHandle.Alloc(waveFormat, GCHandleType.Pinned); // Ptr to waveFormat
+                    GCHandle handleOnWaveFormat = GCHandle.Alloc(waveFormat, GCHandleType.Pinned); // Ptr to waveFormat
                     bufferDesc2.lpwfxFormat = handleOnWaveFormat.AddrOfPinnedObject(); // set Ptr to waveFormat
                     bufferDesc2.guidAlgo = Guid.Empty;
 
                     // Create SecondaryBuffer
                     directSound.CreateSoundBuffer(bufferDesc2, out soundBufferObj, IntPtr.Zero);
-                    secondaryBuffer = (IDirectSoundBuffer)soundBufferObj;
+                    secondaryBuffer = (IDirectSoundBuffer) soundBufferObj;
                     handleOnWaveFormat.Free();
 
                     // Get effective SecondaryBuffer size
-                    var dsbCaps = new BufferCaps();
+                    BufferCaps dsbCaps = new BufferCaps();
                     dsbCaps.dwSize = Marshal.SizeOf(dsbCaps);
                     secondaryBuffer.GetCaps(dsbCaps);
 
                     nextSamplesWriteIndex = 0;
                     samplesTotalSize = dsbCaps.dwBufferBytes;
                     samples = new byte[samplesTotalSize];
-                    Debug.Assert(samplesTotalSize == 2 * samplesFrameSize,
+                    System.Diagnostics.Debug.Assert(samplesTotalSize == (2 * samplesFrameSize),
                         "Invalid SamplesTotalSize vs SamplesFrameSize");
 
                     // -------------------------------------------------------------------------------------
                     // Create double buffering notification.
                     // Use DirectSoundNotify at Position [0, 1/2] and Stop Position (0xFFFFFFFF)
                     // -------------------------------------------------------------------------------------
-                    var notify = (IDirectSoundNotify)soundBufferObj;
+                    IDirectSoundNotify notify = (IDirectSoundNotify) soundBufferObj;
 
                     frameEventWaitHandle1 = new EventWaitHandle(false, EventResetMode.AutoReset);
                     frameEventWaitHandle2 = new EventWaitHandle(false, EventResetMode.AutoReset);
                     endEventWaitHandle = new EventWaitHandle(false, EventResetMode.AutoReset);
 
-                    var notifies = new DirectSoundBufferPositionNotify[3];
+                    DirectSoundBufferPositionNotify[] notifies = new DirectSoundBufferPositionNotify[3];
                     notifies[0] = new DirectSoundBufferPositionNotify();
                     notifies[0].dwOffset = 0;
                     notifies[0].hEventNotify = frameEventWaitHandle1.SafeWaitHandle.DangerousGetHandle();
 
                     notifies[1] = new DirectSoundBufferPositionNotify();
-                    notifies[1].dwOffset = (uint)samplesFrameSize;
+                    notifies[1].dwOffset = (uint) samplesFrameSize;
                     notifies[1].hEventNotify = frameEventWaitHandle2.SafeWaitHandle.DangerousGetHandle();
 
                     notifies[2] = new DirectSoundBufferPositionNotify();
@@ -367,10 +336,51 @@ namespace NAudio.Wave.WaveOutputs
         }
 
         /// <summary>
-        ///     Determines whether the SecondaryBuffer is lost.
+        /// Current playback state
+        /// </summary>
+        /// <value></value>
+        public PlaybackState PlaybackState
+        {
+            get { return playbackState; }
+        }
+
+        /// <summary>
+        /// The volume 1.0 is full scale
+        /// </summary>
+        /// <value></value>
+        public float Volume
+        {
+            get
+            {
+                return 1.0f;
+                //return 1 + (secondaryBuffer.GetVolume()) / 10000.0f;
+            }
+            set
+            {
+                if (value != 1.0f)
+                {
+                    throw new InvalidOperationException(
+                        "Setting volume not supported on DirectSoundOut, adjust the volume on your WaveProvider instead");
+                }
+                //int intVol = (int)((value - 1) * 10000.0f);
+                //secondaryBuffer.SetVolume(intVol);
+            }
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Stop();
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Determines whether the SecondaryBuffer is lost.
         /// </summary>
         /// <returns>
-        ///     <c>true</c> if [is buffer lost]; otherwise, <c>false</c>.
+        /// 	<c>true</c> if [is buffer lost]; otherwise, <c>false</c>.
         /// </returns>
         private bool IsBufferLost()
         {
@@ -378,25 +388,25 @@ namespace NAudio.Wave.WaveOutputs
         }
 
         /// <summary>
-        ///     Convert ms to bytes size according to WaveFormat
+        /// Convert ms to bytes size according to WaveFormat
         /// </summary>
         /// <param name="ms">The ms</param>
         /// <returns>number of byttes</returns>
         private int MsToBytes(int ms)
         {
-            var bytes = ms * (waveFormat.AverageBytesPerSecond / 1000);
+            int bytes = ms * (waveFormat.AverageBytesPerSecond / 1000);
             bytes -= bytes % waveFormat.BlockAlign;
             return bytes;
         }
 
         /// <summary>
-        ///     Processes the samples in a separate thread.
+        /// Processes the samples in a separate thread.
         /// </summary>
         private void PlaybackThreadFunc()
         {
             // Used to determine if playback is halted
-            var lPlaybackHalted = false;
-            var firstBufferStarted = false;
+            bool lPlaybackHalted = false;
+            bool firstBufferStarted = false;
             bytesPlayed = 0;
 
             Exception exception = null;
@@ -404,7 +414,7 @@ namespace NAudio.Wave.WaveOutputs
             try
             {
                 InitializeDirectSound();
-                var lResult = 1;
+                int lResult = 1;
 
                 if (PlaybackState == PlaybackState.Stopped)
                 {
@@ -418,19 +428,19 @@ namespace NAudio.Wave.WaveOutputs
                 {
                     lock (m_LockObject)
                     {
-                        PlaybackState = PlaybackState.Playing;
+                        playbackState = PlaybackState.Playing;
                     }
 
                     secondaryBuffer.Play(0, 0, DirectSoundPlayFlags.DSBPLAY_LOOPING);
 
                     var waitHandles = new WaitHandle[]
-                        { frameEventWaitHandle1, frameEventWaitHandle2, endEventWaitHandle };
+                        {frameEventWaitHandle1, frameEventWaitHandle2, endEventWaitHandle};
 
-                    var lContinuePlayback = true;
+                    bool lContinuePlayback = true;
                     while (PlaybackState != PlaybackState.Stopped && lContinuePlayback)
                     {
                         // Wait for signals on frameEventWaitHandle1 (Position 0), frameEventWaitHandle2 (Position 1/2)
-                        var indexHandle = WaitHandle.WaitAny(waitHandles, 3 * desiredLatency, false);
+                        int indexHandle = WaitHandle.WaitAny(waitHandles, 3 * desiredLatency, false);
 
                         // TimeOut is ok
                         if (indexHandle != WaitHandle.WaitTimeout)
@@ -449,15 +459,17 @@ namespace NAudio.Wave.WaveOutputs
                                 {
                                     // we're at the beginning of the buffer...
                                     if (firstBufferStarted)
+                                    {
                                         // because this notification is based on the *playback" cursor, this should be reasonably accurate
                                         bytesPlayed += samplesFrameSize * 2;
+                                    }
                                 }
                                 else
                                 {
                                     firstBufferStarted = true;
                                 }
 
-                                indexHandle = indexHandle == 0 ? 1 : 0;
+                                indexHandle = (indexHandle == 0) ? 1 : 0;
                                 nextSamplesWriteIndex = indexHandle * samplesFrameSize;
 
                                 // Only carry on playing if we can!
@@ -491,6 +503,7 @@ namespace NAudio.Wave.WaveOutputs
             finally
             {
                 if (!lPlaybackHalted)
+                {
                     try
                     {
                         StopPlayback();
@@ -501,10 +514,11 @@ namespace NAudio.Wave.WaveOutputs
                         // don't overwrite the original reason we exited the playback loop
                         if (exception == null) exception = e;
                     }
+                }
 
                 lock (m_LockObject)
                 {
-                    PlaybackState = PlaybackState.Stopped;
+                    playbackState = PlaybackState.Stopped;
                 }
 
                 bytesPlayed = 0;
@@ -519,20 +533,24 @@ namespace NAudio.Wave.WaveOutputs
             var handler = PlaybackStopped;
             if (handler != null)
             {
-                if (syncContext == null)
+                if (this.syncContext == null)
+                {
                     handler(this, new StoppedEventArgs(e));
+                }
                 else
+                {
                     syncContext.Post(state => handler(this, new StoppedEventArgs(e)), null);
+                }
             }
         }
 
 
         /// <summary>
-        ///     Stop playback
+        /// Stop playback
         /// </summary>
         private void StopPlayback()
         {
-            lock (m_LockObject)
+            lock (this.m_LockObject)
             {
                 if (secondaryBuffer != null)
                 {
@@ -541,7 +559,6 @@ namespace NAudio.Wave.WaveOutputs
                     secondaryBuffer.Stop();
                     secondaryBuffer = null;
                 }
-
                 if (primarySoundBuffer != null)
                 {
                     primarySoundBuffer.Stop();
@@ -551,31 +568,31 @@ namespace NAudio.Wave.WaveOutputs
         }
 
         /// <summary>
-        ///     Clean up the SecondaryBuffer
+        /// Clean up the SecondaryBuffer
         /// </summary>
         /// <remarks>
-        ///     <para>
-        ///         In DirectSound, when playback is started,
-        ///         the rest of the sound that was played last time is played back as noise.
-        ///         This happens even if the secondary buffer is completely silenced,
-        ///         so it seems that the buffer in the primary buffer or higher is not cleared.
-        ///     </para>
-        ///     <para>
-        ///         To solve this problem fill the secondary buffer with silence data when stop playback.
-        ///     </para>
+        /// <para>
+        /// In DirectSound, when playback is started,
+        /// the rest of the sound that was played last time is played back as noise.
+        /// This happens even if the secondary buffer is completely silenced,
+        /// so it seems that the buffer in the primary buffer or higher is not cleared.
+        /// </para>
+        /// <para>
+        /// To solve this problem fill the secondary buffer with silence data when stop playback.
+        /// </para>
         /// </remarks>
         private void CleanUpSecondaryBuffer()
         {
             if (secondaryBuffer != null)
             {
-                var silence = new byte[samplesTotalSize];
+                byte[] silence = new byte[samplesTotalSize];
 
                 // Lock the SecondaryBuffer
                 IntPtr wavBuffer1;
                 int nbSamples1;
                 IntPtr wavBuffer2;
                 int nbSamples2;
-                secondaryBuffer.Lock(0, (uint)samplesTotalSize,
+                secondaryBuffer.Lock(0, (uint) samplesTotalSize,
                     out wavBuffer1, out nbSamples1,
                     out wavBuffer2, out nbSamples2,
                     DirectSoundBufferLockFlag.None);
@@ -584,7 +601,10 @@ namespace NAudio.Wave.WaveOutputs
                 if (wavBuffer1 != IntPtr.Zero)
                 {
                     Marshal.Copy(silence, 0, wavBuffer1, nbSamples1);
-                    if (wavBuffer2 != IntPtr.Zero) Marshal.Copy(silence, 0, wavBuffer1, nbSamples1);
+                    if (wavBuffer2 != IntPtr.Zero)
+                    {
+                        Marshal.Copy(silence, 0, wavBuffer1, nbSamples1);
+                    }
                 }
 
                 // Unlock the SecondaryBuffer
@@ -594,18 +614,21 @@ namespace NAudio.Wave.WaveOutputs
 
 
         /// <summary>
-        ///     Feeds the SecondaryBuffer with the WaveStream
+        /// Feeds the SecondaryBuffer with the WaveStream
         /// </summary>
         /// <param name="bytesToCopy">number of bytes to feed</param>
         private int Feed(int bytesToCopy)
         {
-            var bytesRead = bytesToCopy;
+            int bytesRead = bytesToCopy;
 
             // Restore the buffer if lost
-            if (IsBufferLost()) secondaryBuffer.Restore();
+            if (IsBufferLost())
+            {
+                secondaryBuffer.Restore();
+            }
 
             // Clear the bufferSamples if in Paused
-            if (PlaybackState == PlaybackState.Paused)
+            if (playbackState == PlaybackState.Paused)
             {
                 Array.Clear(samples, 0, samples.Length);
             }
@@ -626,7 +649,7 @@ namespace NAudio.Wave.WaveOutputs
             int nbSamples1;
             IntPtr wavBuffer2;
             int nbSamples2;
-            secondaryBuffer.Lock(nextSamplesWriteIndex, (uint)bytesRead, // (uint)bytesToCopy,
+            secondaryBuffer.Lock(nextSamplesWriteIndex, (uint) bytesRead, // (uint)bytesToCopy,
                 out wavBuffer1, out nbSamples1,
                 out wavBuffer2, out nbSamples2,
                 DirectSoundBufferLockFlag.None);
@@ -635,7 +658,10 @@ namespace NAudio.Wave.WaveOutputs
             if (wavBuffer1 != IntPtr.Zero)
             {
                 Marshal.Copy(samples, 0, wavBuffer1, nbSamples1);
-                if (wavBuffer2 != IntPtr.Zero) Marshal.Copy(samples, 0, wavBuffer1, nbSamples1);
+                if (wavBuffer2 != IntPtr.Zero)
+                {
+                    Marshal.Copy(samples, 0, wavBuffer1, nbSamples1);
+                }
             }
 
             // Unlock the SecondaryBuffer
@@ -654,22 +680,22 @@ namespace NAudio.Wave.WaveOutputs
         [StructLayout(LayoutKind.Sequential, Pack = 2)]
         internal class BufferDescription
         {
-            public uint dwBufferBytes;
-            [MarshalAs(UnmanagedType.U4)] public DirectSoundBufferCaps dwFlags;
-            public int dwReserved;
             public int dwSize;
-            public Guid guidAlgo;
+            [MarshalAs(UnmanagedType.U4)] public DirectSoundBufferCaps dwFlags;
+            public uint dwBufferBytes;
+            public int dwReserved;
             public IntPtr lpwfxFormat;
+            public Guid guidAlgo;
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 2)]
         internal class BufferCaps
         {
-            public int dwBufferBytes;
-            public int dwFlags;
-            public int dwPlayCpuOverhead;
             public int dwSize;
+            public int dwFlags;
+            public int dwBufferBytes;
             public int dwUnlockTransferRate;
+            public int dwPlayCpuOverhead;
         }
 
         internal enum DirectSoundCooperativeLevel : uint
@@ -680,7 +706,7 @@ namespace NAudio.Wave.WaveOutputs
             DSSCL_WRITEPRIMARY = 0x00000004
         }
 
-        [Flags]
+        [FlagsAttribute]
         internal enum DirectSoundPlayFlags : uint
         {
             DSBPLAY_LOOPING = 0x00000001,
@@ -698,7 +724,7 @@ namespace NAudio.Wave.WaveOutputs
             EntireBuffer = 0x00000002
         }
 
-        [Flags]
+        [FlagsAttribute]
         internal enum DirectSoundBufferStatus : uint
         {
             DSBSTATUS_PLAYING = 0x00000001,
@@ -709,7 +735,7 @@ namespace NAudio.Wave.WaveOutputs
             DSBSTATUS_TERMINATED = 0x00000020
         }
 
-        [Flags]
+        [FlagsAttribute]
         internal enum DirectSoundBufferCaps : uint
         {
             DSBCAPS_PRIMARYBUFFER = 0x00000001,
@@ -732,35 +758,33 @@ namespace NAudio.Wave.WaveOutputs
         [StructLayout(LayoutKind.Sequential)]
         internal struct DirectSoundBufferPositionNotify
         {
-            public uint dwOffset;
+            public UInt32 dwOffset;
             public IntPtr hEventNotify;
         }
 
         /// <summary>
-        ///     IDirectSound interface
+        /// IDirectSound interface
         /// </summary>
-        [ComImport]
-        [Guid("279AFA83-4981-11CE-A521-0020AF0BE560")]
-        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        [SuppressUnmanagedCodeSecurity]
+        [ComImport,
+         Guid("279AFA83-4981-11CE-A521-0020AF0BE560"),
+         InterfaceType(ComInterfaceType.InterfaceIsIUnknown),
+         SuppressUnmanagedCodeSecurity]
         internal interface IDirectSound
         {
             //STDMETHOD(CreateSoundBuffer)    (THIS_ LPCDSBUFFERDESC pcDSBufferDesc, LPDIRECTSOUNDBUFFER *ppDSBuffer, LPUNKNOWN pUnkOuter) PURE;
             void CreateSoundBuffer([In] BufferDescription desc,
-                [Out] [MarshalAs(UnmanagedType.Interface)]
-                out object dsDSoundBuffer, IntPtr pUnkOuter);
+                [Out, MarshalAs(UnmanagedType.Interface)] out object dsDSoundBuffer, IntPtr pUnkOuter);
 
             //STDMETHOD(GetCaps)              (THIS_ LPDSCAPS pDSCaps) PURE;
             void GetCaps(IntPtr caps);
 
             //STDMETHOD(DuplicateSoundBuffer) (THIS_ LPDIRECTSOUNDBUFFER pDSBufferOriginal, LPDIRECTSOUNDBUFFER *ppDSBufferDuplicate) PURE;
-            void DuplicateSoundBuffer([In] [MarshalAs(UnmanagedType.Interface)] IDirectSoundBuffer bufferOriginal,
-                [In] [MarshalAs(UnmanagedType.Interface)]
-                IDirectSoundBuffer bufferDuplicate);
+            void DuplicateSoundBuffer([In, MarshalAs(UnmanagedType.Interface)] IDirectSoundBuffer bufferOriginal,
+                [In, MarshalAs(UnmanagedType.Interface)] IDirectSoundBuffer bufferDuplicate);
 
             //STDMETHOD(SetCooperativeLevel)  (THIS_ HWND hwnd, DWORD dwLevel) PURE;
             void SetCooperativeLevel(IntPtr HWND,
-                [In] [MarshalAs(UnmanagedType.U4)] DirectSoundCooperativeLevel dwLevel);
+                [In, MarshalAs(UnmanagedType.U4)] DirectSoundCooperativeLevel dwLevel);
 
             //STDMETHOD(Compact)              (THIS) PURE;
             void Compact();
@@ -772,16 +796,16 @@ namespace NAudio.Wave.WaveOutputs
             void SetSpeakerConfig(uint pdwSpeakerConfig);
 
             //STDMETHOD(Initialize)           (THIS_ LPCGUID pcGuidDevice) PURE;
-            void Initialize([In] [MarshalAs(UnmanagedType.LPStruct)] Guid guid);
+            void Initialize([In, MarshalAs(UnmanagedType.LPStruct)] Guid guid);
         }
 
         /// <summary>
-        ///     IDirectSoundBuffer interface
+        /// IDirectSoundBuffer interface
         /// </summary>
-        [ComImport]
-        [Guid("279AFA85-4981-11CE-A521-0020AF0BE560")]
-        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        [SuppressUnmanagedCodeSecurity]
+        [ComImport,
+         Guid("279AFA85-4981-11CE-A521-0020AF0BE560"),
+         InterfaceType(ComInterfaceType.InterfaceIsIUnknown),
+         SuppressUnmanagedCodeSecurity]
         internal interface IDirectSoundBuffer
         {
             //    STDMETHOD(GetCaps)              (THIS_ LPDSBCAPS pDSBufferCaps) PURE;
@@ -809,7 +833,7 @@ namespace NAudio.Wave.WaveOutputs
             DirectSoundBufferStatus GetStatus();
 
             //    STDMETHOD(Initialize)           (THIS_ LPDIRECTSOUND pDirectSound, LPCDSBUFFERDESC pcDSBufferDesc) PURE;
-            void Initialize([In] [MarshalAs(UnmanagedType.Interface)] IDirectSound directSound,
+            void Initialize([In, MarshalAs(UnmanagedType.Interface)] IDirectSound directSound,
                 [In] BufferDescription desc);
 
             //    STDMETHOD(Lock)                 (THIS_ DWORD dwOffset, DWORD dwBytes, LPVOID *ppvAudioPtr1, LPDWORD pdwAudioBytes1,
@@ -820,7 +844,7 @@ namespace NAudio.Wave.WaveOutputs
 
             //    STDMETHOD(Play)                 (THIS_ DWORD dwReserved1, DWORD dwPriority, DWORD dwFlags) PURE;
             void Play(uint dwReserved1, uint dwPriority,
-                [In] [MarshalAs(UnmanagedType.U4)] DirectSoundPlayFlags dwFlags);
+                [In, MarshalAs(UnmanagedType.U4)] DirectSoundPlayFlags dwFlags);
 
             //    STDMETHOD(SetCurrentPosition)   (THIS_ DWORD dwNewPosition) PURE;
             void SetCurrentPosition(uint dwNewPosition);
@@ -848,89 +872,72 @@ namespace NAudio.Wave.WaveOutputs
         }
 
         /// <summary>
-        ///     IDirectSoundNotify interface
+        /// IDirectSoundNotify interface
         /// </summary>
-        [ComImport]
-        [Guid("b0210783-89cd-11d0-af08-00a0c925cd16")]
-        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        [SuppressUnmanagedCodeSecurity]
+        [ComImport,
+         Guid("b0210783-89cd-11d0-af08-00a0c925cd16"),
+         InterfaceType(ComInterfaceType.InterfaceIsIUnknown),
+         SuppressUnmanagedCodeSecurity]
         internal interface IDirectSoundNotify
         {
-            void SetNotificationPositions(uint dwPositionNotifies,
-                [In] [MarshalAs(UnmanagedType.LPArray)]
-                DirectSoundBufferPositionNotify[] pcPositionNotifies);
+            void SetNotificationPositions(UInt32 dwPositionNotifies,
+                [In, MarshalAs(UnmanagedType.LPArray)] DirectSoundBufferPositionNotify[] pcPositionNotifies);
         }
 
         /// <summary>
-        ///     Instanciate DirectSound from the DLL
+        /// Instanciate DirectSound from the DLL
         /// </summary>
         /// <param name="GUID">The GUID.</param>
         /// <param name="directSound">The direct sound.</param>
         /// <param name="pUnkOuter">The p unk outer.</param>
         [DllImport("dsound.dll", EntryPoint = "DirectSoundCreate", SetLastError = true, CharSet = CharSet.Unicode,
             ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
-        private static extern void DirectSoundCreate(ref Guid GUID,
-            [Out] [MarshalAs(UnmanagedType.Interface)]
-            out IDirectSound directSound, IntPtr pUnkOuter);
+        static extern void DirectSoundCreate(ref Guid GUID,
+            [Out, MarshalAs(UnmanagedType.Interface)] out IDirectSound directSound, IntPtr pUnkOuter);
 
 
         /// <summary>
-        ///     DirectSound default playback device GUID
+        /// DirectSound default playback device GUID 
         /// </summary>
-        public static readonly Guid DSDEVID_DefaultPlayback = new("DEF00000-9C6D-47ED-AAF1-4DDA8F2B5C03");
+        public static readonly Guid DSDEVID_DefaultPlayback = new Guid("DEF00000-9C6D-47ED-AAF1-4DDA8F2B5C03");
 
         /// <summary>
-        ///     DirectSound default capture device GUID
+        /// DirectSound default capture device GUID
         /// </summary>
-        public static readonly Guid DSDEVID_DefaultCapture = new("DEF00001-9C6D-47ED-AAF1-4DDA8F2B5C03");
+        public static readonly Guid DSDEVID_DefaultCapture = new Guid("DEF00001-9C6D-47ED-AAF1-4DDA8F2B5C03");
 
         /// <summary>
-        ///     DirectSound default device for voice playback
+        /// DirectSound default device for voice playback
         /// </summary>
-        public static readonly Guid DSDEVID_DefaultVoicePlayback = new("DEF00002-9C6D-47ED-AAF1-4DDA8F2B5C03");
+        public static readonly Guid DSDEVID_DefaultVoicePlayback = new Guid("DEF00002-9C6D-47ED-AAF1-4DDA8F2B5C03");
 
         /// <summary>
-        ///     DirectSound default device for voice capture
+        /// DirectSound default device for voice capture
         /// </summary>
-        public static readonly Guid DSDEVID_DefaultVoiceCapture = new("DEF00003-9C6D-47ED-AAF1-4DDA8F2B5C03");
+        public static readonly Guid DSDEVID_DefaultVoiceCapture = new Guid("DEF00003-9C6D-47ED-AAF1-4DDA8F2B5C03");
 
         /// <summary>
-        ///     The DSEnumCallback function is an application-defined callback function that enumerates the DirectSound drivers.
-        ///     The system calls this function in response to the application's call to the DirectSoundEnumerate or
-        ///     DirectSoundCaptureEnumerate function.
+        /// The DSEnumCallback function is an application-defined callback function that enumerates the DirectSound drivers. 
+        /// The system calls this function in response to the application's call to the DirectSoundEnumerate or DirectSoundCaptureEnumerate function.
         /// </summary>
-        /// <param name="lpGuid">
-        ///     Address of the GUID that identifies the device being enumerated, or NULL for the primary device.
-        ///     This value can be passed to the DirectSoundCreate8 or DirectSoundCaptureCreate8 function to create a device object
-        ///     for that driver.
-        /// </param>
-        /// <param name="lpcstrDescription">
-        ///     Address of a null-terminated string that provides a textual description of the
-        ///     DirectSound device.
-        /// </param>
-        /// <param name="lpcstrModule">
-        ///     Address of a null-terminated string that specifies the module name of the DirectSound driver
-        ///     corresponding to this device.
-        /// </param>
-        /// <param name="lpContext">
-        ///     Address of application-defined data. This is the pointer passed to DirectSoundEnumerate or
-        ///     DirectSoundCaptureEnumerate as the lpContext parameter.
-        /// </param>
+        /// <param name="lpGuid">Address of the GUID that identifies the device being enumerated, or NULL for the primary device. This value can be passed to the DirectSoundCreate8 or DirectSoundCaptureCreate8 function to create a device object for that driver. </param>
+        /// <param name="lpcstrDescription">Address of a null-terminated string that provides a textual description of the DirectSound device. </param>
+        /// <param name="lpcstrModule">Address of a null-terminated string that specifies the module name of the DirectSound driver corresponding to this device. </param>
+        /// <param name="lpContext">Address of application-defined data. This is the pointer passed to DirectSoundEnumerate or DirectSoundCaptureEnumerate as the lpContext parameter. </param>
         /// <returns>Returns TRUE to continue enumerating drivers, or FALSE to stop.</returns>
-        private delegate bool DSEnumCallback(IntPtr lpGuid, IntPtr lpcstrDescription, IntPtr lpcstrModule,
-            IntPtr lpContext);
+        delegate bool DSEnumCallback(IntPtr lpGuid, IntPtr lpcstrDescription, IntPtr lpcstrModule, IntPtr lpContext);
 
         /// <summary>
-        ///     The DirectSoundEnumerate function enumerates the DirectSound drivers installed in the system.
+        /// The DirectSoundEnumerate function enumerates the DirectSound drivers installed in the system.
         /// </summary>
         /// <param name="lpDSEnumCallback">callback function</param>
         /// <param name="lpContext">User context</param>
         [DllImport("dsound.dll", EntryPoint = "DirectSoundEnumerateA", SetLastError = true, CharSet = CharSet.Unicode,
             ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
-        private static extern void DirectSoundEnumerate(DSEnumCallback lpDSEnumCallback, IntPtr lpContext);
+        static extern void DirectSoundEnumerate(DSEnumCallback lpDSEnumCallback, IntPtr lpContext);
 
         /// <summary>
-        ///     Gets the HANDLE of the desktop window.
+        /// Gets the HANDLE of the desktop window.
         /// </summary>
         /// <returns>HANDLE of the Desktop window</returns>
         [DllImport("user32.dll")]
@@ -940,22 +947,22 @@ namespace NAudio.Wave.WaveOutputs
     }
 
     /// <summary>
-    ///     Class for enumerating DirectSound devices
+    /// Class for enumerating DirectSound devices
     /// </summary>
     public class DirectSoundDeviceInfo
     {
         /// <summary>
-        ///     The device identifier
+        /// The device identifier
         /// </summary>
         public Guid Guid { get; set; }
 
         /// <summary>
-        ///     Device description
+        /// Device description
         /// </summary>
         public string Description { get; set; }
 
         /// <summary>
-        ///     Device module name
+        /// Device module name
         /// </summary>
         public string ModuleName { get; set; }
     }

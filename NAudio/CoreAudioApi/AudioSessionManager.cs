@@ -10,23 +10,30 @@ using NAudio.CoreAudioApi.Interfaces;
 namespace NAudio.CoreAudioApi
 {
     /// <summary>
-    ///     AudioSessionManager
-    ///     Designed to manage audio sessions and in particuar the
-    ///     SimpleAudioVolume interface to adjust a session volume
+    /// AudioSessionManager
+    /// 
+    /// Designed to manage audio sessions and in particuar the
+    /// SimpleAudioVolume interface to adjust a session volume
     /// </summary>
     public class AudioSessionManager
     {
+        private readonly IAudioSessionManager audioSessionInterface;
+        private readonly IAudioSessionManager2 audioSessionInterface2;
+        private AudioSessionNotification audioSessionNotification;
+        private SessionCollection sessions;
+
+        private SimpleAudioVolume simpleAudioVolume;
+        private AudioSessionControl audioSessionControl;
+
         /// <summary>
-        ///     Session created delegate
+        /// Session created delegate
         /// </summary>
         public delegate void SessionCreatedDelegate(object sender, IAudioSessionControl newSession);
 
-        private readonly IAudioSessionManager audioSessionInterface;
-        private readonly IAudioSessionManager2 audioSessionInterface2;
-        private AudioSessionControl audioSessionControl;
-        private AudioSessionNotification audioSessionNotification;
-
-        private SimpleAudioVolume simpleAudioVolume;
+        /// <summary>
+        /// Occurs when audio session has been added (for example run another program that use audio playback).
+        /// </summary>
+        public event SessionCreatedDelegate OnSessionCreated;
 
         internal AudioSessionManager(IAudioSessionManager audioSessionManager)
         {
@@ -37,8 +44,8 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        ///     SimpleAudioVolume object
-        ///     for adjusting the volume for the user session
+        /// SimpleAudioVolume object
+        /// for adjusting the volume for the user session
         /// </summary>
         public SimpleAudioVolume SimpleAudioVolume
         {
@@ -52,14 +59,13 @@ namespace NAudio.CoreAudioApi
 
                     simpleAudioVolume = new SimpleAudioVolume(simpleAudioInterface);
                 }
-
                 return simpleAudioVolume;
             }
         }
 
         /// <summary>
-        ///     AudioSessionControl object
-        ///     for registring for callbacks and other session information
+        /// AudioSessionControl object
+        /// for registring for callbacks and other session information
         /// </summary>
         public AudioSessionControl AudioSessionControl
         {
@@ -73,20 +79,9 @@ namespace NAudio.CoreAudioApi
 
                     audioSessionControl = new AudioSessionControl(audioSessionControlInterface);
                 }
-
                 return audioSessionControl;
             }
         }
-
-        /// <summary>
-        ///     Returns list of sessions of current device.
-        /// </summary>
-        public SessionCollection Sessions { get; private set; }
-
-        /// <summary>
-        ///     Occurs when audio session has been added (for example run another program that use audio playback).
-        /// </summary>
-        public event SessionCreatedDelegate OnSessionCreated;
 
         internal void FireSessionCreated(IAudioSessionControl newSession)
         {
@@ -94,7 +89,7 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        ///     Refresh session of current device.
+        /// Refresh session of current device.
         /// </summary>
         public void RefreshSessions()
         {
@@ -104,7 +99,7 @@ namespace NAudio.CoreAudioApi
             {
                 IAudioSessionEnumerator sessionEnum;
                 Marshal.ThrowExceptionForHR(audioSessionInterface2.GetSessionEnumerator(out sessionEnum));
-                Sessions = new SessionCollection(sessionEnum);
+                sessions = new SessionCollection(sessionEnum);
 
                 audioSessionNotification = new AudioSessionNotification(this);
                 Marshal.ThrowExceptionForHR(
@@ -113,7 +108,12 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        ///     Dispose.
+        /// Returns list of sessions of current device.
+        /// </summary>
+        public SessionCollection Sessions => sessions;
+
+        /// <summary>
+        /// Dispose.
         /// </summary>
         public void Dispose()
         {
@@ -124,7 +124,7 @@ namespace NAudio.CoreAudioApi
 
         private void UnregisterNotifications()
         {
-            Sessions = null;
+            sessions = null;
 
             if (audioSessionNotification != null && audioSessionInterface2 != null)
             {
@@ -135,7 +135,7 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        ///     Finalizer.
+        /// Finalizer.
         /// </summary>
         ~AudioSessionManager()
         {

@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace NAudio.CoreAudioApi.Interfaces
 {
     /// <summary>
-    ///     is defined in WTypes.h
+    /// is defined in WTypes.h
     /// </summary>
     [Flags]
-    internal enum ClsCtx
+    enum ClsCtx
     {
         INPROC_SERVER = 0x1,
         INPROC_HANDLER = 0x2,
@@ -31,7 +33,7 @@ namespace NAudio.CoreAudioApi.Interfaces
         ACTIVATE_32_BIT_SERVER = 0x40000,
         ACTIVATE_64_BIT_SERVER = 0x80000,
         ENABLE_CLOAKING = 0x100000,
-        PS_DLL = unchecked((int)0x80000000),
+        PS_DLL = unchecked ( (int) 0x80000000 ),
         INPROC = INPROC_SERVER | INPROC_HANDLER,
         SERVER = INPROC_SERVER | LOCAL_SERVER | REMOTE_SERVER,
         ALL = SERVER | INPROC_HANDLER

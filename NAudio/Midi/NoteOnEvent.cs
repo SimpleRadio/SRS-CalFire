@@ -1,17 +1,18 @@
 using System;
 using System.IO;
+using System.Text;
 
 namespace NAudio.Midi
 {
     /// <summary>
-    ///     Represents a MIDI note on event
+    /// Represents a MIDI note on event
     /// </summary>
     public class NoteOnEvent : NoteEvent
     {
         private NoteEvent offEvent;
 
         /// <summary>
-        ///     Reads a new Note On event from a stream of MIDI data
+        /// Reads a new Note On event from a stream of MIDI data
         /// </summary>
         /// <param name="br">Binary reader on the MIDI data stream</param>
         public NoteOnEvent(BinaryReader br)
@@ -20,7 +21,7 @@ namespace NAudio.Midi
         }
 
         /// <summary>
-        ///     Creates a NoteOn event with specified parameters
+        /// Creates a NoteOn event with specified parameters
         /// </summary>
         /// <param name="absoluteTime">Absolute time of this event</param>
         /// <param name="channel">MIDI channel number</param>
@@ -31,96 +32,106 @@ namespace NAudio.Midi
             int velocity, int duration)
             : base(absoluteTime, channel, MidiCommandCode.NoteOn, noteNumber, velocity)
         {
-            OffEvent = new NoteEvent(absoluteTime, channel, MidiCommandCode.NoteOff,
+            this.OffEvent = new NoteEvent(absoluteTime, channel, MidiCommandCode.NoteOff,
                 noteNumber, 0);
             NoteLength = duration;
         }
 
         /// <summary>
-        ///     The associated Note off event
+        /// Creates a deep clone of this MIDI event.
+        /// </summary>
+        public override MidiEvent Clone() => new NoteOnEvent(AbsoluteTime, Channel, NoteNumber, Velocity, NoteLength);
+
+        /// <summary>
+        /// The associated Note off event
         /// </summary>
         public NoteEvent OffEvent
         {
-            get => offEvent;
+            get { return offEvent; }
             set
             {
-                if (!IsNoteOff(value)) throw new ArgumentException("OffEvent must be a valid MIDI note off event");
-
-                if (value.NoteNumber != NoteNumber)
+                if (!MidiEvent.IsNoteOff(value))
+                {
+                    throw new ArgumentException("OffEvent must be a valid MIDI note off event");
+                }
+                if (value.NoteNumber != this.NoteNumber)
+                {
                     throw new ArgumentException("Note Off Event must be for the same note number");
-
-                if (value.Channel != Channel)
+                }
+                if (value.Channel != this.Channel)
+                {
                     throw new ArgumentException("Note Off Event must be for the same channel");
-
+                }
                 offEvent = value;
             }
         }
 
         /// <summary>
-        ///     Get or set the Note Number, updating the off event at the same time
+        /// Get or set the Note Number, updating the off event at the same time
         /// </summary>
         public override int NoteNumber
         {
-            get => base.NoteNumber;
+            get { return base.NoteNumber; }
             set
             {
                 base.NoteNumber = value;
-                if (OffEvent != null) OffEvent.NoteNumber = NoteNumber;
+                if (OffEvent != null)
+                {
+                    OffEvent.NoteNumber = NoteNumber;
+                }
             }
         }
 
         /// <summary>
-        ///     Get or set the channel, updating the off event at the same time
+        /// Get or set the channel, updating the off event at the same time
         /// </summary>
         public override int Channel
         {
-            get => base.Channel;
+            get { return base.Channel; }
             set
             {
                 base.Channel = value;
-                if (OffEvent != null) OffEvent.Channel = Channel;
+                if (OffEvent != null)
+                {
+                    OffEvent.Channel = Channel;
+                }
             }
         }
 
         /// <summary>
-        ///     The duration of this note
+        /// The duration of this note
         /// </summary>
         /// <remarks>
-        ///     There must be a note off event
+        /// There must be a note off event
         /// </remarks>
         public int NoteLength
         {
-            get => (int)(offEvent.AbsoluteTime - AbsoluteTime);
+            get { return (int) (offEvent.AbsoluteTime - this.AbsoluteTime); }
             set
             {
-                if (value < 0) throw new ArgumentException("NoteLength must be 0 or greater");
-
-                offEvent.AbsoluteTime = AbsoluteTime + value;
+                if (value < 0)
+                {
+                    throw new ArgumentException("NoteLength must be 0 or greater");
+                }
+                offEvent.AbsoluteTime = this.AbsoluteTime + value;
             }
         }
 
         /// <summary>
-        ///     Creates a deep clone of this MIDI event.
-        /// </summary>
-        public override MidiEvent Clone()
-        {
-            return new NoteOnEvent(AbsoluteTime, Channel, NoteNumber, Velocity, NoteLength);
-        }
-
-        /// <summary>
-        ///     Calls base class export first, then exports the data
-        ///     specific to this event
-        ///     <seealso cref="MidiEvent.Export">MidiEvent.Export</seealso>
+        /// Calls base class export first, then exports the data 
+        /// specific to this event
+        /// <seealso cref="MidiEvent.Export">MidiEvent.Export</seealso>
         /// </summary>
         public override string ToString()
         {
-            if (Velocity == 0 && OffEvent == null)
-                return string.Format("{0} (Note Off)",
+            if ((this.Velocity == 0) && (OffEvent == null))
+            {
+                return String.Format("{0} (Note Off)",
                     base.ToString());
-
-            return string.Format("{0} Len: {1}",
+            }
+            return String.Format("{0} Len: {1}",
                 base.ToString(),
-                OffEvent == null ? "?" : NoteLength.ToString());
+                (this.OffEvent == null) ? "?" : this.NoteLength.ToString());
         }
     }
 }

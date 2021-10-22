@@ -25,6 +25,7 @@
 
 using System;
 using NAudio.CoreAudioApi.Interfaces;
+using System.Runtime.InteropServices;
 using NAudio.Utils;
 
 namespace NAudio.CoreAudioApi
@@ -55,12 +56,15 @@ namespace NAudio.CoreAudioApi
             //Determine offset in structure of the first float
             var offset = MarshalHelpers.OffsetOf<AudioVolumeNotificationDataStruct>("ChannelVolume");
             //Determine offset in memory of the first float
-            var firstFloatPtr = (IntPtr)((long)notifyData + (long)offset);
+            var firstFloatPtr = (IntPtr) ((long) notifyData + (long) offset);
 
             var voldata = new float[data.nChannels];
 
             //Read all floats from memory.
-            for (var i = 0; i < data.nChannels; i++) voldata[i] = MarshalHelpers.PtrToStructure<float>(firstFloatPtr);
+            for (int i = 0; i < data.nChannels; i++)
+            {
+                voldata[i] = MarshalHelpers.PtrToStructure<float>(firstFloatPtr);
+            }
 
             //Create combined structure and Fire Event in parent class.
             var notificationData = new AudioVolumeNotificationData(data.guidEventContext, data.bMuted,

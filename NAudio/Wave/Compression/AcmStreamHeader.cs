@@ -1,57 +1,55 @@
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
-using NAudio.Wave.MmeInterop;
 
 namespace NAudio.Wave.Compression
 {
-    internal class AcmStreamHeader : IDisposable
+    class AcmStreamHeader : IDisposable
     {
-        private bool firstTime;
-        private GCHandle hDestBuffer;
+        private AcmStreamHeaderStruct streamHeader;
+        private byte[] sourceBuffer;
         private GCHandle hSourceBuffer;
-        private readonly IntPtr streamHandle;
-        private readonly AcmStreamHeaderStruct streamHeader;
+        private byte[] destBuffer;
+        private GCHandle hDestBuffer;
+        private IntPtr streamHandle;
+        private bool firstTime;
 
         public AcmStreamHeader(IntPtr streamHandle, int sourceBufferLength, int destBufferLength)
         {
             streamHeader = new AcmStreamHeaderStruct();
-            SourceBuffer = new byte[sourceBufferLength];
-            hSourceBuffer = GCHandle.Alloc(SourceBuffer, GCHandleType.Pinned);
+            sourceBuffer = new byte[sourceBufferLength];
+            hSourceBuffer = GCHandle.Alloc(sourceBuffer, GCHandleType.Pinned);
 
-            DestBuffer = new byte[destBufferLength];
-            hDestBuffer = GCHandle.Alloc(DestBuffer, GCHandleType.Pinned);
+            destBuffer = new byte[destBufferLength];
+            hDestBuffer = GCHandle.Alloc(destBuffer, GCHandleType.Pinned);
 
             this.streamHandle = streamHandle;
             firstTime = true;
             //Prepare();
         }
 
-        public byte[] SourceBuffer { get; private set; }
-
-        public byte[] DestBuffer { get; private set; }
-
         private void Prepare()
         {
             streamHeader.cbStruct = Marshal.SizeOf(streamHeader);
-            streamHeader.sourceBufferLength = SourceBuffer.Length;
+            streamHeader.sourceBufferLength = sourceBuffer.Length;
             streamHeader.sourceBufferPointer = hSourceBuffer.AddrOfPinnedObject();
-            streamHeader.destBufferLength = DestBuffer.Length;
+            streamHeader.destBufferLength = destBuffer.Length;
             streamHeader.destBufferPointer = hDestBuffer.AddrOfPinnedObject();
             MmException.Try(AcmInterop.acmStreamPrepareHeader(streamHandle, streamHeader, 0), "acmStreamPrepareHeader");
         }
 
         private void Unprepare()
         {
-            streamHeader.sourceBufferLength = SourceBuffer.Length;
+            streamHeader.sourceBufferLength = sourceBuffer.Length;
             streamHeader.sourceBufferPointer = hSourceBuffer.AddrOfPinnedObject();
-            streamHeader.destBufferLength = DestBuffer.Length;
+            streamHeader.destBufferLength = destBuffer.Length;
             streamHeader.destBufferPointer = hDestBuffer.AddrOfPinnedObject();
 
-            var result = AcmInterop.acmStreamUnprepareHeader(streamHandle, streamHeader, 0);
+            MmResult result = AcmInterop.acmStreamUnprepareHeader(streamHandle, streamHeader, 0);
             if (result != MmResult.NoError)
+            {
                 //if (result == MmResult.AcmHeaderUnprepared)
                 throw new MmException(result, "acmStreamUnprepareHeader");
+            }
         }
 
         public void Reposition()
@@ -66,12 +64,12 @@ namespace NAudio.Wave.Compression
             {
                 streamHeader.sourceBufferLength = bytesToConvert;
                 streamHeader.sourceBufferLengthUsed = bytesToConvert;
-                var flags = firstTime
-                    ? AcmStreamConvertFlags.Start | AcmStreamConvertFlags.BlockAlign
+                AcmStreamConvertFlags flags = firstTime
+                    ? (AcmStreamConvertFlags.Start | AcmStreamConvertFlags.BlockAlign)
                     : AcmStreamConvertFlags.BlockAlign;
                 MmException.Try(AcmInterop.acmStreamConvert(streamHandle, streamHeader, flags), "acmStreamConvert");
                 firstTime = false;
-                Debug.Assert(streamHeader.destBufferLength == DestBuffer.Length,
+                System.Diagnostics.Debug.Assert(streamHeader.destBufferLength == destBuffer.Length,
                     "Codecs should not change dest buffer length");
                 sourceBytesConverted = streamHeader.sourceBufferLengthUsed;
             }
@@ -83,9 +81,19 @@ namespace NAudio.Wave.Compression
             return streamHeader.destBufferLengthUsed;
         }
 
+        public byte[] SourceBuffer
+        {
+            get { return sourceBuffer; }
+        }
+
+        public byte[] DestBuffer
+        {
+            get { return destBuffer; }
+        }
+
         #region IDisposable Members
 
-        private bool disposed;
+        bool disposed = false;
 
         public void Dispose()
         {
@@ -98,18 +106,17 @@ namespace NAudio.Wave.Compression
             if (!disposed)
             {
                 //Unprepare();
-                SourceBuffer = null;
-                DestBuffer = null;
+                sourceBuffer = null;
+                destBuffer = null;
                 hSourceBuffer.Free();
                 hDestBuffer.Free();
             }
-
             disposed = true;
         }
 
         ~AcmStreamHeader()
         {
-            Debug.Assert(false, "AcmStreamHeader dispose was not called");
+            System.Diagnostics.Debug.Assert(false, "AcmStreamHeader dispose was not called");
             Dispose(false);
         }
 

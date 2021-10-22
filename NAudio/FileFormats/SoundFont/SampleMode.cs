@@ -1,27 +1,29 @@
-namespace NAudio.FileFormats.SoundFont
+using System;
+
+namespace NAudio.SoundFont
 {
     /// <summary>
-    ///     SoundFont sample modes
+    /// SoundFont sample modes
     /// </summary>
     public enum SampleMode
     {
         /// <summary>
-        ///     No loop
+        /// No loop
         /// </summary>
         NoLoop,
 
         /// <summary>
-        ///     Loop Continuously
+        /// Loop Continuously
         /// </summary>
         LoopContinuously,
 
         /// <summary>
-        ///     Reserved no loop
+        /// Reserved no loop
         /// </summary>
         ReservedNoLoop,
 
         /// <summary>
-        ///     Loop and continue
+        /// Loop and continue
         /// </summary>
         LoopAndContinue
     }

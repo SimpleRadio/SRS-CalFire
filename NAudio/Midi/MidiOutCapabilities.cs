@@ -1,86 +1,103 @@
 using System;
 using System.Runtime.InteropServices;
-using NAudio.Wave.MmeInterop;
 
 namespace NAudio.Midi
 {
     /// <summary>
-    ///     class representing the capabilities of a MIDI out device
-    ///     MIDIOUTCAPS: http://msdn.microsoft.com/en-us/library/dd798467%28VS.85%29.aspx
+    /// class representing the capabilities of a MIDI out device
+    /// MIDIOUTCAPS: http://msdn.microsoft.com/en-us/library/dd798467%28VS.85%29.aspx
     /// </summary>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
     public struct MidiOutCapabilities
     {
-        private readonly short manufacturerId;
-        private readonly int driverVersion;
+        Int16 manufacturerId;
+        Int16 productId;
+        int driverVersion;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = MaxProductNameLength)] string productName;
+        Int16 wTechnology;
+        Int16 wVoices;
+        Int16 wNotes;
+        UInt16 wChannelMask;
+        MidiOutCapabilityFlags dwSupport;
 
-        private readonly short wTechnology;
-        private readonly short wVoices;
-        private readonly short wNotes;
-        private readonly ushort wChannelMask;
-        private readonly MidiOutCapabilityFlags dwSupport;
-
-        private const int MaxProductNameLength = 32; // max product name length (including NULL)
+        const int MaxProductNameLength = 32; // max product name length (including NULL)
 
         [Flags]
-        private enum MidiOutCapabilityFlags
+        enum MidiOutCapabilityFlags
         {
             /// <summary>
-            ///     MIDICAPS_VOLUME
+            /// MIDICAPS_VOLUME
             /// </summary>
             Volume = 1,
 
             /// <summary>
-            ///     separate left-right volume control
-            ///     MIDICAPS_LRVOLUME
+            /// separate left-right volume control
+            /// MIDICAPS_LRVOLUME
             /// </summary>
             LeftRightVolume = 2,
 
             /// <summary>
-            ///     MIDICAPS_CACHE
+            /// MIDICAPS_CACHE
             /// </summary>
             PatchCaching = 4,
 
             /// <summary>
-            ///     MIDICAPS_STREAM
-            ///     driver supports midiStreamOut directly
+            /// MIDICAPS_STREAM
+            /// driver supports midiStreamOut directly
             /// </summary>
-            Stream = 8
+            Stream = 8,
         }
 
         /// <summary>
-        ///     Gets the manufacturer of this device
+        /// Gets the manufacturer of this device
         /// </summary>
-        public Manufacturers Manufacturer => (Manufacturers)manufacturerId;
+        public Manufacturers Manufacturer
+        {
+            get { return (Manufacturers) manufacturerId; }
+        }
 
         /// <summary>
-        ///     Gets the product identifier (manufacturer specific)
+        /// Gets the product identifier (manufacturer specific)
         /// </summary>
-        public short ProductId { get; }
+        public short ProductId
+        {
+            get { return productId; }
+        }
 
         /// <summary>
-        ///     Gets the product name
+        /// Gets the product name
         /// </summary>
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = MaxProductNameLength)]
-        public string ProductName { get; }
+        public String ProductName
+        {
+            get { return productName; }
+        }
 
         /// <summary>
-        ///     Returns the number of supported voices
+        /// Returns the number of supported voices
         /// </summary>
-        public int Voices => wVoices;
+        public int Voices
+        {
+            get { return wVoices; }
+        }
 
         /// <summary>
-        ///     Gets the polyphony of the device
+        /// Gets the polyphony of the device
         /// </summary>
-        public int Notes => wNotes;
+        public int Notes
+        {
+            get { return wNotes; }
+        }
 
         /// <summary>
-        ///     Returns true if the device supports all channels
+        /// Returns true if the device supports all channels
         /// </summary>
-        public bool SupportsAllChannels => wChannelMask == 0xFFFF;
+        public bool SupportsAllChannels
+        {
+            get { return wChannelMask == 0xFFFF; }
+        }
 
         /// <summary>
-        ///     Queries whether a particular channel is supported
+        /// Queries whether a particular channel is supported
         /// </summary>
         /// <param name="channel">Channel number to test</param>
         /// <returns>True if the channel is supported</returns>
@@ -90,28 +107,43 @@ namespace NAudio.Midi
         }
 
         /// <summary>
-        ///     Returns true if the device supports patch caching
+        /// Returns true if the device supports patch caching
         /// </summary>
-        public bool SupportsPatchCaching => (dwSupport & MidiOutCapabilityFlags.PatchCaching) != 0;
+        public bool SupportsPatchCaching
+        {
+            get { return (dwSupport & MidiOutCapabilityFlags.PatchCaching) != 0; }
+        }
 
         /// <summary>
-        ///     Returns true if the device supports separate left and right volume
+        /// Returns true if the device supports separate left and right volume
         /// </summary>
-        public bool SupportsSeparateLeftAndRightVolume => (dwSupport & MidiOutCapabilityFlags.LeftRightVolume) != 0;
+        public bool SupportsSeparateLeftAndRightVolume
+        {
+            get { return (dwSupport & MidiOutCapabilityFlags.LeftRightVolume) != 0; }
+        }
 
         /// <summary>
-        ///     Returns true if the device supports MIDI stream out
+        /// Returns true if the device supports MIDI stream out
         /// </summary>
-        public bool SupportsMidiStreamOut => (dwSupport & MidiOutCapabilityFlags.Stream) != 0;
+        public bool SupportsMidiStreamOut
+        {
+            get { return (dwSupport & MidiOutCapabilityFlags.Stream) != 0; }
+        }
 
         /// <summary>
-        ///     Returns true if the device supports volume control
+        /// Returns true if the device supports volume control
         /// </summary>
-        public bool SupportsVolumeControl => (dwSupport & MidiOutCapabilityFlags.Volume) != 0;
+        public bool SupportsVolumeControl
+        {
+            get { return (dwSupport & MidiOutCapabilityFlags.Volume) != 0; }
+        }
 
         /// <summary>
-        ///     Returns the type of technology used by this MIDI out device
+        /// Returns the type of technology used by this MIDI out device
         /// </summary>
-        public MidiOutTechnology Technology => (MidiOutTechnology)wTechnology;
+        public MidiOutTechnology Technology
+        {
+            get { return (MidiOutTechnology) wTechnology; }
+        }
     }
 }

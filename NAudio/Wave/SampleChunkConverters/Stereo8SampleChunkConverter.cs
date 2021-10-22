@@ -1,10 +1,11 @@
-﻿using NAudio.Utils;
-using NAudio.Wave.WaveFormats;
-using NAudio.Wave.WaveOutputs;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using NAudio.Utils;
 
-namespace NAudio.Wave.SampleChunkConverters
+namespace NAudio.Wave.SampleProviders
 {
-    internal class Stereo8SampleChunkConverter : ISampleChunkConverter
+    class Stereo8SampleChunkConverter : ISampleChunkConverter
     {
         private int offset;
         private byte[] sourceBuffer;
@@ -19,7 +20,7 @@ namespace NAudio.Wave.SampleChunkConverters
 
         public void LoadNextChunk(IWaveProvider source, int samplePairsRequired)
         {
-            var sourceBytesRequired = samplePairsRequired * 2;
+            int sourceBytesRequired = samplePairsRequired * 2;
             sourceBuffer = BufferHelpers.Ensure(sourceBuffer, sourceBytesRequired);
             sourceBytes = source.Read(sourceBuffer, 0, sourceBytesRequired);
             offset = 0;
@@ -33,10 +34,12 @@ namespace NAudio.Wave.SampleChunkConverters
                 sampleRight = sourceBuffer[offset++] / 256f;
                 return true;
             }
-
-            sampleLeft = 0.0f;
-            sampleRight = 0.0f;
-            return false;
+            else
+            {
+                sampleLeft = 0.0f;
+                sampleRight = 0.0f;
+                return false;
+            }
         }
     }
 }

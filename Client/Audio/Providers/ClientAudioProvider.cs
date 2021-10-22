@@ -7,6 +7,7 @@ using Ciribob.SRS.Common.PlayerState;
 using FragLabs.Audio.Codecs;
 using MathNet.Filtering;
 using NAudio.Dsp;
+using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NAudio.Wave.WaveFormats;
 using NLog;

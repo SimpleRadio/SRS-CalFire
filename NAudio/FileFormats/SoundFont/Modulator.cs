@@ -1,54 +1,82 @@
-namespace NAudio.FileFormats.SoundFont
+using System;
+
+namespace NAudio.SoundFont
 {
     /// <summary>
-    ///     Transform Types
+    /// Transform Types
     /// </summary>
     public enum TransformEnum
     {
         /// <summary>
-        ///     Linear
+        /// Linear
         /// </summary>
         Linear = 0
     }
 
     /// <summary>
-    ///     Modulator
+    /// Modulator
     /// </summary>
     public class Modulator
     {
-        /// <summary>
-        ///     Source Modulation data type
-        /// </summary>
-        public ModulatorType SourceModulationData { get; set; }
+        private ModulatorType sourceModulationData;
+        private GeneratorEnum destinationGenerator;
+        private short amount;
+        private ModulatorType sourceModulationAmount;
+        private TransformEnum sourceTransform;
 
         /// <summary>
-        ///     Destination generator type
+        /// Source Modulation data type
         /// </summary>
-        public GeneratorEnum DestinationGenerator { get; set; }
+        public ModulatorType SourceModulationData
+        {
+            get { return sourceModulationData; }
+            set { sourceModulationData = value; }
+        }
 
         /// <summary>
-        ///     Amount
+        /// Destination generator type
         /// </summary>
-        public short Amount { get; set; }
+        public GeneratorEnum DestinationGenerator
+        {
+            get { return destinationGenerator; }
+            set { destinationGenerator = value; }
+        }
 
         /// <summary>
-        ///     Source Modulation Amount Type
+        /// Amount
         /// </summary>
-        public ModulatorType SourceModulationAmount { get; set; }
+        public short Amount
+        {
+            get { return amount; }
+            set { amount = value; }
+        }
 
         /// <summary>
-        ///     Source Transform Type
+        /// Source Modulation Amount Type
         /// </summary>
-        public TransformEnum SourceTransform { get; set; }
+        public ModulatorType SourceModulationAmount
+        {
+            get { return sourceModulationAmount; }
+            set { sourceModulationAmount = value; }
+        }
 
         /// <summary>
-        ///     <see cref="object.ToString" />
+        /// Source Transform Type
+        /// </summary>
+        public TransformEnum SourceTransform
+        {
+            get { return sourceTransform; }
+            set { sourceTransform = value; }
+        }
+
+        /// <summary>
+        /// <see cref="Object.ToString"/>
         /// </summary>
         public override string ToString()
         {
-            return string.Format("Modulator {0} {1} {2} {3} {4}",
-                SourceModulationData, DestinationGenerator,
-                Amount, SourceModulationAmount, SourceTransform);
+            return String.Format("Modulator {0} {1} {2} {3} {4}",
+                sourceModulationData, destinationGenerator,
+                amount, sourceModulationAmount, sourceTransform);
         }
     }
 }

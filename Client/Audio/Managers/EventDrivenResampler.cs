@@ -2,8 +2,7 @@
 using NAudio.Dsp;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
-using NAudio.Wave.WaveFormats;
-using NAudio.Wave.WaveOutputs;
+
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 {

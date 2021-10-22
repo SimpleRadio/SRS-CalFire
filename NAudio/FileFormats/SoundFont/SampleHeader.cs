@@ -1,62 +1,64 @@
-namespace NAudio.FileFormats.SoundFont
+using System;
+
+namespace NAudio.SoundFont
 {
     /// <summary>
-    ///     A SoundFont Sample Header
+    /// A SoundFont Sample Header
     /// </summary>
     public class SampleHeader
     {
         /// <summary>
-        ///     End offset
-        /// </summary>
-        public uint End;
-
-        /// <summary>
-        ///     End loop point
-        /// </summary>
-        public uint EndLoop;
-
-        /// <summary>
-        ///     Original pitch
-        /// </summary>
-        public byte OriginalPitch;
-
-        /// <summary>
-        ///     Pitch correction
-        /// </summary>
-        public sbyte PitchCorrection;
-
-        /// <summary>
-        ///     Sample Link
-        /// </summary>
-        public ushort SampleLink;
-
-        /// <summary>
-        ///     The sample name
+        /// The sample name
         /// </summary>
         public string SampleName;
 
         /// <summary>
-        ///     Sample Rate
-        /// </summary>
-        public uint SampleRate;
-
-        /// <summary>
-        ///     SoundFont Sample Link Type
-        /// </summary>
-        public SFSampleLink SFSampleLink;
-
-        /// <summary>
-        ///     Start offset
+        /// Start offset
         /// </summary>
         public uint Start;
 
         /// <summary>
-        ///     Start loop point
+        /// End offset
+        /// </summary>
+        public uint End;
+
+        /// <summary>
+        /// Start loop point
         /// </summary>
         public uint StartLoop;
 
         /// <summary>
-        ///     <see cref="object.ToString" />
+        /// End loop point
+        /// </summary>
+        public uint EndLoop;
+
+        /// <summary>
+        /// Sample Rate
+        /// </summary>
+        public uint SampleRate;
+
+        /// <summary>
+        /// Original pitch
+        /// </summary>
+        public byte OriginalPitch;
+
+        /// <summary>
+        /// Pitch correction
+        /// </summary>
+        public sbyte PitchCorrection;
+
+        /// <summary>
+        /// Sample Link
+        /// </summary>
+        public ushort SampleLink;
+
+        /// <summary>
+        /// SoundFont Sample Link Type
+        /// </summary>
+        public SFSampleLink SFSampleLink;
+
+        /// <summary>
+        /// <see cref="Object.ToString"/>
         /// </summary>
         public override string ToString()
         {

@@ -21,38 +21,38 @@
 */
 
 using System;
-using System.Runtime.InteropServices;
 using NAudio.CoreAudioApi.Interfaces;
+using System.Runtime.InteropServices;
 
 namespace NAudio.CoreAudioApi
 {
     /// <summary>
-    ///     Audio Endpoint Volume Channel
+    /// Audio Endpoint Volume Channel
     /// </summary>
     public class AudioEndpointVolumeChannel
     {
-        private readonly IAudioEndpointVolume audioEndpointVolume;
         private readonly uint channel;
+        private readonly IAudioEndpointVolume audioEndpointVolume;
 
         private Guid notificationGuid = Guid.Empty;
 
+        /// <summary>
+        /// GUID to pass to AudioEndpointVolumeCallback
+        /// </summary>
+        public Guid NotificationGuid
+        {
+            get { return notificationGuid; }
+            set { notificationGuid = value; }
+        }
+
         internal AudioEndpointVolumeChannel(IAudioEndpointVolume parent, int channel)
         {
-            this.channel = (uint)channel;
+            this.channel = (uint) channel;
             audioEndpointVolume = parent;
         }
 
         /// <summary>
-        ///     GUID to pass to AudioEndpointVolumeCallback
-        /// </summary>
-        public Guid NotificationGuid
-        {
-            get => notificationGuid;
-            set => notificationGuid = value;
-        }
-
-        /// <summary>
-        ///     Volume Level
+        /// Volume Level
         /// </summary>
         public float VolumeLevel
         {
@@ -62,13 +62,15 @@ namespace NAudio.CoreAudioApi
                 Marshal.ThrowExceptionForHR(audioEndpointVolume.GetChannelVolumeLevel(channel, out result));
                 return result;
             }
-            set =>
+            set
+            {
                 Marshal.ThrowExceptionForHR(
-                    audioEndpointVolume.SetChannelVolumeLevel(channel, value, ref notificationGuid));
+                    audioEndpointVolume.SetChannelVolumeLevel(channel, value, ref this.notificationGuid));
+            }
         }
 
         /// <summary>
-        ///     Volume Level Scalar
+        /// Volume Level Scalar
         /// </summary>
         public float VolumeLevelScalar
         {
@@ -78,9 +80,11 @@ namespace NAudio.CoreAudioApi
                 Marshal.ThrowExceptionForHR(audioEndpointVolume.GetChannelVolumeLevelScalar(channel, out result));
                 return result;
             }
-            set =>
+            set
+            {
                 Marshal.ThrowExceptionForHR(
-                    audioEndpointVolume.SetChannelVolumeLevelScalar(channel, value, ref notificationGuid));
+                    audioEndpointVolume.SetChannelVolumeLevelScalar(channel, value, ref this.notificationGuid));
+            }
         }
     }
 }

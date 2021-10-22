@@ -1,18 +1,25 @@
+using System;
 using System.IO;
 
-namespace NAudio.FileFormats.SoundFont
+namespace NAudio.SoundFont
 {
-    internal class SampleDataChunk
+    class SampleDataChunk
     {
+        private byte[] sampleData;
+
         public SampleDataChunk(RiffChunk chunk)
         {
-            var header = chunk.ReadChunkID();
+            string header = chunk.ReadChunkID();
             if (header != "sdta")
-                throw new InvalidDataException(string.Format("Not a sample data chunk ({0})", header));
-
-            SampleData = chunk.GetData();
+            {
+                throw new InvalidDataException(String.Format("Not a sample data chunk ({0})", header));
+            }
+            sampleData = chunk.GetData();
         }
 
-        public byte[] SampleData { get; }
+        public byte[] SampleData
+        {
+            get { return sampleData; }
+        }
     }
 } // end of namespace

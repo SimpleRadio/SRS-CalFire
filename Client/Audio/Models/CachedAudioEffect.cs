@@ -1,8 +1,7 @@
 ﻿using System;
 using System.IO;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
-using NAudio.Wave.WaveFormats;
-using NAudio.Wave.WaveStreams;
+using NAudio.Wave;
 using NLog;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models

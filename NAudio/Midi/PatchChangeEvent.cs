@@ -1,15 +1,26 @@
 using System;
 using System.IO;
+using System.Text;
 
 namespace NAudio.Midi
 {
     /// <summary>
-    ///     Represents a MIDI patch change event
+    /// Represents a MIDI patch change event
     /// </summary>
     public class PatchChangeEvent : MidiEvent
     {
+        private byte patch;
+
+        /// <summary>
+        /// Gets the default MIDI instrument names
+        /// </summary>
+        public static string GetPatchName(int patchNumber)
+        {
+            return patchNames[patchNumber];
+        }
+
         // TODO: localize
-        private static readonly string[] patchNames =
+        private static readonly string[] patchNames = new string[]
         {
             "Acoustic Grand", "Bright Acoustic", "Electric Grand", "Honky-Tonk", "Electric Piano 1", "Electric Piano 2",
             "Harpsichord", "Clav",
@@ -41,22 +52,22 @@ namespace NAudio.Midi
             "Gunshot"
         };
 
-        private byte patch;
-
         /// <summary>
-        ///     Reads a new patch change event from a MIDI stream
+        /// Reads a new patch change event from a MIDI stream
         /// </summary>
         /// <param name="br">Binary reader for the MIDI stream</param>
         public PatchChangeEvent(BinaryReader br)
         {
             patch = br.ReadByte();
             if ((patch & 0x80) != 0)
+            {
                 // TODO: might be a follow-on
                 throw new FormatException("Invalid patch");
+            }
         }
 
         /// <summary>
-        ///     Creates a new patch change event
+        /// Creates a new patch change event
         /// </summary>
         /// <param name="absoluteTime">Time of the event</param>
         /// <param name="channel">Channel number</param>
@@ -64,56 +75,49 @@ namespace NAudio.Midi
         public PatchChangeEvent(long absoluteTime, int channel, int patchNumber)
             : base(absoluteTime, channel, MidiCommandCode.PatchChange)
         {
-            Patch = patchNumber;
+            this.Patch = patchNumber;
         }
 
         /// <summary>
-        ///     The Patch Number
+        /// The Patch Number
         /// </summary>
         public int Patch
         {
-            get => patch;
+            get { return patch; }
             set
             {
                 if (value < 0 || value > 127)
+                {
                     throw new ArgumentOutOfRangeException("value", "Patch number must be in the range 0-127");
-
-                patch = (byte)value;
+                }
+                patch = (byte) value;
             }
         }
 
         /// <summary>
-        ///     Gets the default MIDI instrument names
-        /// </summary>
-        public static string GetPatchName(int patchNumber)
-        {
-            return patchNames[patchNumber];
-        }
-
-        /// <summary>
-        ///     Describes this patch change event
+        /// Describes this patch change event
         /// </summary>
         /// <returns>String describing the patch change event</returns>
         public override string ToString()
         {
-            return string.Format("{0} {1}",
+            return String.Format("{0} {1}",
                 base.ToString(),
-                GetPatchName(patch));
+                GetPatchName(this.patch));
         }
 
         /// <summary>
-        ///     Gets as a short message for sending with the midiOutShortMsg API
+        /// Gets as a short message for sending with the midiOutShortMsg API
         /// </summary>
         /// <returns>short message</returns>
         public override int GetAsShortMessage()
         {
-            return base.GetAsShortMessage() + (patch << 8);
+            return base.GetAsShortMessage() + (this.patch << 8);
         }
 
         /// <summary>
-        ///     Calls base class export first, then exports the data
-        ///     specific to this event
-        ///     <seealso cref="MidiEvent.Export">MidiEvent.Export</seealso>
+        /// Calls base class export first, then exports the data 
+        /// specific to this event
+        /// <seealso cref="MidiEvent.Export">MidiEvent.Export</seealso>
         /// </summary>
         public override void Export(ref long absoluteTime, BinaryWriter writer)
         {

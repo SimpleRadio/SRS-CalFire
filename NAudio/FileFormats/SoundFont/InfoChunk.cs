@@ -1,23 +1,26 @@
+using System;
 using System.IO;
-using NAudio.FileFormats.SoundFont;
 
 // ReSharper disable once CheckNamespace
 namespace NAudio.SoundFont
 {
     /// <summary>
-    ///     A soundfont info chunk
+    /// A soundfont info chunk
     /// </summary>
     public class InfoChunk
     {
         internal InfoChunk(RiffChunk chunk)
         {
-            var ifilPresent = false;
-            var inamPresent = false;
-            if (chunk.ReadChunkID() != "INFO") throw new InvalidDataException("Not an INFO chunk");
-
+            bool ifilPresent = false;
+            bool inamPresent = false;
+            if (chunk.ReadChunkID() != "INFO")
+            {
+                throw new InvalidDataException("Not an INFO chunk");
+            }
             //this.chunk = chunk;
             RiffChunk c;
             while ((c = chunk.GetNextSubChunk()) != null)
+            {
                 switch (c.ChunkID)
                 {
                     case "ifil":
@@ -58,72 +61,77 @@ namespace NAudio.SoundFont
                     default:
                         throw new InvalidDataException($"Unknown chunk type {c.ChunkID}");
                 }
-
-            if (!ifilPresent) throw new InvalidDataException("Missing SoundFont version information");
-
+            }
+            if (!ifilPresent)
+            {
+                throw new InvalidDataException("Missing SoundFont version information");
+            }
             // n.b. issue #150 - it is valid for isng not to be present
-            if (!inamPresent) throw new InvalidDataException("Missing SoundFont name information");
+            if (!inamPresent)
+            {
+                throw new InvalidDataException("Missing SoundFont name information");
+            }
         }
 
         /// <summary>
-        ///     SoundFont Version
+        /// SoundFont Version
         /// </summary>
         public SFVersion SoundFontVersion { get; }
 
         /// <summary>
-        ///     WaveTable sound engine
+        /// WaveTable sound engine
         /// </summary>
         public string WaveTableSoundEngine { get; set; }
 
         /// <summary>
-        ///     Bank name
+        /// Bank name
         /// </summary>
         public string BankName { get; set; }
 
         /// <summary>
-        ///     Data ROM
+        /// Data ROM
         /// </summary>
         // ReSharper disable once InconsistentNaming
         public string DataROM { get; set; }
 
         /// <summary>
-        ///     Creation Date
+        /// Creation Date
         /// </summary>
         public string CreationDate { get; set; }
 
         /// <summary>
-        ///     Author
+        /// Author
         /// </summary>
         public string Author { get; set; }
 
         /// <summary>
-        ///     Target Product
+        /// Target Product
         /// </summary>
         public string TargetProduct { get; set; }
 
         /// <summary>
-        ///     Copyright
+        /// Copyright
         /// </summary>
         public string Copyright { get; set; }
 
         /// <summary>
-        ///     Comments
+        /// Comments
         /// </summary>
         public string Comments { get; set; }
 
         /// <summary>
-        ///     Tools
+        /// Tools
         /// </summary>
         public string Tools { get; set; }
 
         /// <summary>
-        ///     ROM Version
+        /// ROM Version
         /// </summary>
         // ReSharper disable once InconsistentNaming
         public SFVersion ROMVersion { get; set; }
 
         /// <summary>
-        ///     <see cref="object.ToString" />
+        /// <see cref="Object.ToString"/>
         /// </summary>
         public override string ToString()
         {

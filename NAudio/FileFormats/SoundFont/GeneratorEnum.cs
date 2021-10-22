@@ -1,7 +1,9 @@
-namespace NAudio.FileFormats.SoundFont
+using System;
+
+namespace NAudio.SoundFont
 {
     /// <summary>
-    ///     Generator types
+    /// Generator types
     /// </summary>
     public enum GeneratorEnum
     {

@@ -1,105 +1,108 @@
-namespace NAudio.FileFormats.SoundFont
+using System;
+
+namespace NAudio.SoundFont
 {
     /// <summary>
-    ///     Controller Sources
+    /// Controller Sources
     /// </summary>
     public enum ControllerSourceEnum
     {
         /// <summary>
-        ///     No Controller
+        /// No Controller
         /// </summary>
         NoController = 0,
 
         /// <summary>
-        ///     Note On Velocity
+        /// Note On Velocity
         /// </summary>
         NoteOnVelocity = 2,
 
         /// <summary>
-        ///     Note On Key Number
+        /// Note On Key Number
         /// </summary>
         NoteOnKeyNumber = 3,
 
         /// <summary>
-        ///     Poly Pressure
+        /// Poly Pressure
         /// </summary>
         PolyPressure = 10,
 
         /// <summary>
-        ///     Channel Pressure
+        /// Channel Pressure
         /// </summary>
         ChannelPressure = 13,
 
         /// <summary>
-        ///     Pitch Wheel
+        /// Pitch Wheel
         /// </summary>
         PitchWheel = 14,
 
         /// <summary>
-        ///     Pitch Wheel Sensitivity
+        /// Pitch Wheel Sensitivity
         /// </summary>
         PitchWheelSensitivity = 16
     }
 
     /// <summary>
-    ///     Source Types
+    /// Source Types
     /// </summary>
     public enum SourceTypeEnum
     {
         /// <summary>
-        ///     Linear
+        /// Linear
         /// </summary>
         Linear,
 
         /// <summary>
-        ///     Concave
+        /// Concave
         /// </summary>
         Concave,
 
         /// <summary>
-        ///     Convex
+        /// Convex
         /// </summary>
         Convex,
 
         /// <summary>
-        ///     Switch
+        /// Switch
         /// </summary>
         Switch
     }
 
     /// <summary>
-    ///     Modulator Type
+    /// Modulator Type
     /// </summary>
     public class ModulatorType
     {
-        private readonly ControllerSourceEnum controllerSource;
-        private bool direction;
-        private readonly bool midiContinuousController;
-        private readonly ushort midiContinuousControllerNumber;
-        private bool polarity;
-        private readonly SourceTypeEnum sourceType;
+        bool polarity;
+        bool direction;
+        bool midiContinuousController;
+        ControllerSourceEnum controllerSource;
+        SourceTypeEnum sourceType;
+        ushort midiContinuousControllerNumber;
 
         internal ModulatorType(ushort raw)
         {
             // TODO: map this to fields
-            polarity = (raw & 0x0200) == 0x0200;
-            direction = (raw & 0x0100) == 0x0100;
-            midiContinuousController = (raw & 0x0080) == 0x0080;
-            sourceType = (SourceTypeEnum)((raw & 0xFC00) >> 10);
+            polarity = ((raw & 0x0200) == 0x0200);
+            direction = ((raw & 0x0100) == 0x0100);
+            midiContinuousController = ((raw & 0x0080) == 0x0080);
+            sourceType = (SourceTypeEnum) ((raw & (0xFC00)) >> 10);
 
-            controllerSource = (ControllerSourceEnum)(raw & 0x007F);
-            midiContinuousControllerNumber = (ushort)(raw & 0x007F);
+            controllerSource = (ControllerSourceEnum) (raw & 0x007F);
+            midiContinuousControllerNumber = (ushort) (raw & 0x007F);
         }
 
         /// <summary>
-        ///     <see cref="object.ToString" />
+        /// <see cref="Object.ToString"/>
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
             if (midiContinuousController)
-                return string.Format("{0} CC{1}", sourceType, midiContinuousControllerNumber);
-            return string.Format("{0} {1}", sourceType, controllerSource);
+                return String.Format("{0} CC{1}", sourceType, midiContinuousControllerNumber);
+            else
+                return String.Format("{0} {1}", sourceType, controllerSource);
         }
     }
 }

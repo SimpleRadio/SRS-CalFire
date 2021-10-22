@@ -8,8 +8,6 @@ using FragLabs.Audio.Codecs;
 using FragLabs.Audio.Codecs.Opus;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
-using NAudio.Wave.MmeInterop;
-using NAudio.Wave.WaveFormats;
 using NLog;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers

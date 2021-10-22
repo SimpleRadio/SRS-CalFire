@@ -1,26 +1,24 @@
 ﻿using System;
-using System.Diagnostics;
 using NAudio.Utils;
-using NAudio.Wave.WaveFormats;
 
 // ReSharper disable once CheckNamespace
 namespace NAudio.Wave
 {
     /// <summary>
-    ///     Helper stream that lets us read from compressed audio files with large block alignment
-    ///     as though we could read any amount and reposition anywhere
+    /// Helper stream that lets us read from compressed audio files with large block alignment
+    /// as though we could read any amount and reposition anywhere
     /// </summary>
     public class BlockAlignReductionStream : WaveStream
     {
-        private readonly CircularBuffer circularBuffer;
-        private readonly object lockObject = new();
-        private long bufferStartPosition;
-        private long position;
-        private byte[] sourceBuffer;
         private WaveStream sourceStream;
+        private long position;
+        private readonly CircularBuffer circularBuffer;
+        private long bufferStartPosition;
+        private byte[] sourceBuffer;
+        private readonly object lockObject = new object();
 
         /// <summary>
-        ///     Creates a new BlockAlignReductionStream
+        /// Creates a new BlockAlignReductionStream
         /// </summary>
         /// <param name="sourceStream">the input stream</param>
         public BlockAlignReductionStream(WaveStream sourceStream)
@@ -29,29 +27,50 @@ namespace NAudio.Wave
             circularBuffer = new CircularBuffer(sourceStream.WaveFormat.AverageBytesPerSecond * 4);
         }
 
-        /// <summary>
-        ///     Block alignment of this stream
-        /// </summary>
-        public override int BlockAlign =>
-            // can position to sample level
-            WaveFormat.BitsPerSample / 8 * WaveFormat.Channels;
+        private byte[] GetSourceBuffer(int size)
+        {
+            if (sourceBuffer == null || sourceBuffer.Length < size)
+            {
+                // let's give ourselves some leeway
+                sourceBuffer = new byte[size * 2];
+            }
+            return sourceBuffer;
+        }
 
         /// <summary>
-        ///     Wave Format
+        /// Block alignment of this stream
         /// </summary>
-        public override WaveFormat WaveFormat => sourceStream.WaveFormat;
+        public override int BlockAlign
+        {
+            get
+            {
+                // can position to sample level
+                return (WaveFormat.BitsPerSample / 8) * WaveFormat.Channels;
+            }
+        }
 
         /// <summary>
-        ///     Length of this Stream
+        /// Wave Format
         /// </summary>
-        public override long Length => sourceStream.Length;
+        public override WaveFormat WaveFormat
+        {
+            get { return sourceStream.WaveFormat; }
+        }
 
         /// <summary>
-        ///     Current position within stream
+        /// Length of this Stream
+        /// </summary>
+        public override long Length
+        {
+            get { return sourceStream.Length; }
+        }
+
+        /// <summary>
+        /// Current position within stream
         /// </summary>
         public override long Position
         {
-            get => position;
+            get { return position; }
             set
             {
                 lock (lockObject)
@@ -60,33 +79,26 @@ namespace NAudio.Wave
                     {
                         if (position % BlockAlign != 0)
                             throw new ArgumentException("Position must be block aligned");
-                        var sourcePosition = value - value % sourceStream.BlockAlign;
+                        long sourcePosition = value - (value % sourceStream.BlockAlign);
                         if (sourceStream.Position != sourcePosition)
                         {
                             sourceStream.Position = sourcePosition;
                             circularBuffer.Reset();
                             bufferStartPosition = sourceStream.Position;
                         }
-
                         position = value;
                     }
                 }
             }
         }
 
-        private long BufferEndPosition => bufferStartPosition + circularBuffer.Count;
-
-        private byte[] GetSourceBuffer(int size)
+        private long BufferEndPosition
         {
-            if (sourceBuffer == null || sourceBuffer.Length < size)
-                // let's give ourselves some leeway
-                sourceBuffer = new byte[size * 2];
-
-            return sourceBuffer;
+            get { return bufferStartPosition + circularBuffer.Count; }
         }
 
         /// <summary>
-        ///     Disposes this WaveStream
+        /// Disposes this WaveStream
         /// </summary>
         protected override void Dispose(bool disposing)
         {
@@ -100,14 +112,13 @@ namespace NAudio.Wave
             }
             else
             {
-                Debug.Assert(false, "BlockAlignReductionStream was not Disposed");
+                System.Diagnostics.Debug.Assert(false, "BlockAlignReductionStream was not Disposed");
             }
-
             base.Dispose(disposing);
         }
 
         /// <summary>
-        ///     Reads data from this stream
+        /// Reads data from this stream
         /// </summary>
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
@@ -120,26 +131,30 @@ namespace NAudio.Wave
                 // 1. attempt to fill the circular buffer with enough data to meet our request
                 while (BufferEndPosition < position + count)
                 {
-                    var sourceReadCount = count;
+                    int sourceReadCount = count;
                     if (sourceReadCount % sourceStream.BlockAlign != 0)
-                        sourceReadCount = count + sourceStream.BlockAlign - count % sourceStream.BlockAlign;
+                    {
+                        sourceReadCount = (count + sourceStream.BlockAlign) - (count % sourceStream.BlockAlign);
+                    }
 
-                    var sourceRead = sourceStream.Read(GetSourceBuffer(sourceReadCount), 0, sourceReadCount);
+                    int sourceRead = sourceStream.Read(GetSourceBuffer(sourceReadCount), 0, sourceReadCount);
                     circularBuffer.Write(GetSourceBuffer(sourceReadCount), 0, sourceRead);
                     if (sourceRead == 0)
+                    {
                         // assume we have run out of data
                         break;
+                    }
                 }
 
                 // 2. discard any unnecessary stuff from the start
                 if (bufferStartPosition < position)
                 {
-                    circularBuffer.Advance((int)(position - bufferStartPosition));
+                    circularBuffer.Advance((int) (position - bufferStartPosition));
                     bufferStartPosition = position;
                 }
 
                 // 3. now whatever is in the buffer we can return
-                var bytesRead = circularBuffer.Read(buffer, offset, count);
+                int bytesRead = circularBuffer.Read(buffer, offset, count);
                 position += bytesRead;
                 // anything left in buffer is at start position
                 bufferStartPosition = position;

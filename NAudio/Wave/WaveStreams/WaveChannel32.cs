@@ -1,34 +1,29 @@
 using System;
-using System.Diagnostics;
-using NAudio.Wave.SampleChunkConverters;
-using NAudio.Wave.WaveFormats;
-using NAudio.Wave.WaveOutputs;
+using NAudio.Wave.SampleProviders;
 
-namespace NAudio.Wave.WaveStreams
+namespace NAudio.Wave
 {
     /// <summary>
-    ///     Represents Channel for the WaveMixerStream
-    ///     32 bit output and 16 bit input
-    ///     It's output is always stereo
-    ///     The input stream can be panned
+    /// Represents Channel for the WaveMixerStream
+    /// 32 bit output and 16 bit input
+    /// It's output is always stereo
+    /// The input stream can be panned
     /// </summary>
     public class WaveChannel32 : WaveStream, ISampleNotifier
     {
-        private readonly int destBytesPerSample;
+        private WaveStream sourceStream;
+        private readonly WaveFormat waveFormat;
         private readonly long length;
-        private readonly object lockObject = new();
-        private readonly ISampleChunkConverter sampleProvider;
+        private readonly int destBytesPerSample;
         private readonly int sourceBytesPerSample;
+        private volatile float volume;
         private volatile float pan;
         private long position;
-
-        // reuse the same object every time to avoid making lots of work for the garbage collector
-        private readonly SampleEventArgs sampleEventArgs = new(0, 0);
-        private WaveStream sourceStream;
-        private volatile float volume;
+        private readonly ISampleChunkConverter sampleProvider;
+        private readonly object lockObject = new object();
 
         /// <summary>
-        ///     Creates a new WaveChannel32
+        /// Creates a new WaveChannel32
         /// </summary>
         /// <param name="sourceStream">the source stream</param>
         /// <param name="volume">stream volume (1 is 0dB)</param>
@@ -46,19 +41,24 @@ namespace NAudio.Wave.WaveStreams
                 new Mono24SampleChunkConverter(),
                 new Stereo24SampleChunkConverter(),
                 new MonoFloatSampleChunkConverter(),
-                new StereoFloatSampleChunkConverter()
+                new StereoFloatSampleChunkConverter(),
             };
             foreach (var provider in providers)
+            {
                 if (provider.Supports(sourceStream.WaveFormat))
                 {
-                    sampleProvider = provider;
+                    this.sampleProvider = provider;
                     break;
                 }
+            }
 
-            if (sampleProvider == null) throw new ArgumentException("Unsupported sourceStream format");
+            if (this.sampleProvider == null)
+            {
+                throw new ArgumentException("Unsupported sourceStream format");
+            }
 
             // always outputs stereo 32 bit
-            WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(sourceStream.WaveFormat.SampleRate, 2);
+            waveFormat = WaveFormat.CreateIeeeFloatWaveFormat(sourceStream.WaveFormat.SampleRate, 2);
             destBytesPerSample = 8; // includes stereo factoring
 
             this.sourceStream = sourceStream;
@@ -70,8 +70,18 @@ namespace NAudio.Wave.WaveStreams
             position = 0;
         }
 
+        private long SourceToDest(long sourceBytes)
+        {
+            return (sourceBytes / sourceBytesPerSample) * destBytesPerSample;
+        }
+
+        private long DestToSource(long destBytes)
+        {
+            return (destBytes / destBytesPerSample) * sourceBytesPerSample;
+        }
+
         /// <summary>
-        ///     Creates a WaveChannel32 with default settings
+        /// Creates a WaveChannel32 with default settings
         /// </summary>
         /// <param name="sourceStream">The source stream</param>
         public WaveChannel32(WaveStream sourceStream)
@@ -81,85 +91,44 @@ namespace NAudio.Wave.WaveStreams
         }
 
         /// <summary>
-        ///     Gets the block alignment for this WaveStream
+        /// Gets the block alignment for this WaveStream
         /// </summary>
-        public override int BlockAlign => (int)SourceToDest(sourceStream.BlockAlign);
+        public override int BlockAlign => (int) SourceToDest(sourceStream.BlockAlign);
 
         /// <summary>
-        ///     Returns the stream length
+        /// Returns the stream length
         /// </summary>
         public override long Length => length;
 
         /// <summary>
-        ///     Gets or sets the current position in the stream
+        /// Gets or sets the current position in the stream
         /// </summary>
         public override long Position
         {
-            get => position;
+            get { return position; }
             set
             {
                 lock (lockObject)
                 {
                     // make sure we don't get out of sync
-                    value -= value % BlockAlign;
+                    value -= (value % BlockAlign);
                     if (value < 0)
+                    {
                         sourceStream.Position = 0;
+                    }
                     else
+                    {
                         sourceStream.Position = DestToSource(value);
-
+                    }
                     // source stream may not have accepted the reposition we gave it
                     position = SourceToDest(sourceStream.Position);
                 }
             }
         }
 
-        /// <summary>
-        ///     If true, Read always returns the number of bytes requested
-        /// </summary>
-        public bool PadWithZeroes { get; set; }
-
 
         /// <summary>
-        ///     <see cref="WaveStream.WaveFormat" />
-        /// </summary>
-        public override WaveFormat WaveFormat { get; }
-
-        /// <summary>
-        ///     Volume of this channel. 1.0 = full scale
-        /// </summary>
-        public float Volume
-        {
-            get => volume;
-            set => volume = value;
-        }
-
-        /// <summary>
-        ///     Pan of this channel (from -1 to 1)
-        /// </summary>
-        public float Pan
-        {
-            get => pan;
-            set => pan = value;
-        }
-
-        /// <summary>
-        ///     Sample
-        /// </summary>
-        public event EventHandler<SampleEventArgs> Sample;
-
-        private long SourceToDest(long sourceBytes)
-        {
-            return sourceBytes / sourceBytesPerSample * destBytesPerSample;
-        }
-
-        private long DestToSource(long destBytes)
-        {
-            return destBytes / destBytesPerSample * sourceBytesPerSample;
-        }
-
-
-        /// <summary>
-        ///     Reads bytes from this wave stream
+        /// Reads bytes from this wave stream
         /// </summary>
         /// <param name="destBuffer">The destination buffer</param>
         /// <param name="offset">Offset into the destination buffer</param>
@@ -169,28 +138,27 @@ namespace NAudio.Wave.WaveStreams
         {
             lock (lockObject)
             {
-                var bytesWritten = 0;
-                var destWaveBuffer = new WaveBuffer(destBuffer);
+                int bytesWritten = 0;
+                WaveBuffer destWaveBuffer = new WaveBuffer(destBuffer);
 
                 // 1. fill with silence
                 if (position < 0)
                 {
-                    bytesWritten = (int)Math.Min(numBytes, 0 - position);
-                    for (var n = 0; n < bytesWritten; n++)
+                    bytesWritten = (int) Math.Min(numBytes, 0 - position);
+                    for (int n = 0; n < bytesWritten; n++)
                         destBuffer[n + offset] = 0;
                 }
-
                 if (bytesWritten < numBytes)
                 {
                     sampleProvider.LoadNextChunk(sourceStream, (numBytes - bytesWritten) / 8);
                     float left, right;
 
-                    var outIndex = offset / 4 + bytesWritten / 4;
-                    while (sampleProvider.GetNextSample(out left, out right) && bytesWritten < numBytes)
+                    int outIndex = (offset / 4) + bytesWritten / 4;
+                    while (this.sampleProvider.GetNextSample(out left, out right) && bytesWritten < numBytes)
                     {
                         // implement better panning laws. 
-                        left = pan <= 0 ? left : left * (1 - pan) / 2.0f;
-                        right = pan >= 0 ? right : right * (pan + 1) / 2.0f;
+                        left = (pan <= 0) ? left : (left * (1 - pan) / 2.0f);
+                        right = (pan >= 0) ? right : (right * (pan + 1) / 2.0f);
                         left *= volume;
                         right *= volume;
                         destWaveBuffer.FloatBuffer[outIndex++] = left;
@@ -199,40 +167,66 @@ namespace NAudio.Wave.WaveStreams
                         if (Sample != null) RaiseSample(left, right);
                     }
                 }
-
                 // 3. Fill out with zeroes
                 if (PadWithZeroes && bytesWritten < numBytes)
                 {
                     Array.Clear(destBuffer, offset + bytesWritten, numBytes - bytesWritten);
                     bytesWritten = numBytes;
                 }
-
                 position += bytesWritten;
                 return bytesWritten;
             }
         }
 
         /// <summary>
-        ///     Determines whether this channel has any data to play
-        ///     to allow optimisation to not read, but bump position forward
+        /// If true, Read always returns the number of bytes requested
+        /// </summary>
+        public bool PadWithZeroes { get; set; }
+
+
+        /// <summary>
+        /// <see cref="WaveStream.WaveFormat"/>
+        /// </summary>
+        public override WaveFormat WaveFormat => waveFormat;
+
+        /// <summary>
+        /// Volume of this channel. 1.0 = full scale
+        /// </summary>
+        public float Volume
+        {
+            get { return volume; }
+            set { volume = value; }
+        }
+
+        /// <summary>
+        /// Pan of this channel (from -1 to 1)
+        /// </summary>
+        public float Pan
+        {
+            get { return pan; }
+            set { pan = value; }
+        }
+
+        /// <summary>
+        /// Determines whether this channel has any data to play
+        /// to allow optimisation to not read, but bump position forward
         /// </summary>
         public override bool HasData(int count)
         {
             // Check whether the source stream has data.
-            var sourceHasData = sourceStream.HasData(count);
+            bool sourceHasData = sourceStream.HasData(count);
 
             if (sourceHasData)
             {
                 if (position + count < 0)
                     return false;
-                return position < length && volume != 0;
+                return (position < length) && (volume != 0);
             }
-
             return false;
         }
 
         /// <summary>
-        ///     Disposes this WaveStream
+        /// Disposes this WaveStream
         /// </summary>
         protected override void Dispose(bool disposing)
         {
@@ -246,14 +240,21 @@ namespace NAudio.Wave.WaveStreams
             }
             else
             {
-                Debug.Assert(false, "WaveChannel32 was not Disposed");
+                System.Diagnostics.Debug.Assert(false, "WaveChannel32 was not Disposed");
             }
-
             base.Dispose(disposing);
         }
 
         /// <summary>
-        ///     Raise the sample event (no check for null because it has already been done)
+        /// Sample
+        /// </summary>
+        public event EventHandler<SampleEventArgs> Sample;
+
+        // reuse the same object every time to avoid making lots of work for the garbage collector
+        private SampleEventArgs sampleEventArgs = new SampleEventArgs(0, 0);
+
+        /// <summary>
+        /// Raise the sample event (no check for null because it has already been done)
         /// </summary>
         private void RaiseSample(float left, float right)
         {
