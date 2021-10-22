@@ -76,7 +76,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         private float _speakerBoost = 1.0f;
         private Preprocessor _speex;
 
-        private Stopwatch _stopwatch = new();
+        //private Stopwatch _stopwatch = new();
 
         private UDPClientAudioProcessor _udpClientAudioProcessor;
         private UDPVoiceHandler _udpVoiceHandler;
@@ -112,7 +112,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             }
         }
 
-
         public Task HandleAsync(SRClientUpdateMessage message, CancellationToken cancellationToken)
         {
             if (!message.Connected) RemoveClientBuffer(message.SrClient);
@@ -127,6 +126,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 speakers = WasapiOut.GetDefaultAudioEndpoint();
             else
                 speakers = (MMDevice)_audioOutputSingleton.SelectedAudioOutput.Value;
+
             _waveOut = new WasapiOut(speakers, AudioClientShareMode.Shared, true, 40, windowsN);
 
             //add final volume boost to all mixed audio

@@ -12,7 +12,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
     {
         private static volatile ClientStateSingleton _instance;
         private static readonly object _lock = new();
-        private bool _isConnected;
 
         private ClientStateSingleton()
         {
@@ -46,6 +45,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
                 return _instance;
             }
         }
+
+        //Load Radio Channels
+        //Reload function to attempt to load 
 
 
         public int ClientsOnFreq(double freq, Modulation modulation)

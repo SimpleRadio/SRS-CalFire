@@ -28,7 +28,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
-    <StartupObject>SRSClient.App</StartupObject>
+    <StartupObject>Ciribob.FS3D.SimpleRadio.Standalone.Client.App</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <NoWarn />

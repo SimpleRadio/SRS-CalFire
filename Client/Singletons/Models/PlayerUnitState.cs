@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Annotations;
 using Ciribob.SRS.Common.Network.Proxies;
 using Ciribob.SRS.Common.PlayerState;
 using Newtonsoft.Json;
@@ -8,7 +11,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
 {
     //TODO make a network proxy for PlayerRadioInfo with just the required fields
 
-    public class PlayerUnitState : PlayerUnitStateBase
+    public class PlayerUnitState : PlayerUnitStateBase, INotifyPropertyChanged
     {
         //HOTAS or IN COCKPIT controls
         public enum RadioSwitchControls
@@ -32,7 +35,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
 
         public bool inAircraft = false;
 
-        public volatile bool ptt;
 
         public bool
             simultaneousTransmission; // Global toggle enabling simultaneous transmission on multiple radios, activated via the AWACS panel
@@ -51,7 +53,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
 
         public short SelectedRadio { get; set; }
 
-
         public bool IntercomHotMic { get; set; } = false;
 
         public new List<Radio> Radios { get; set; } = new();
@@ -62,7 +63,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
         {
             Name = "";
             LatLng = new LatLngPosition();
-            ptt = false;
             SelectedRadio = 0;
             UnitType = "";
             simultaneousTransmission = false;
@@ -141,6 +141,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
             //  for (var i = 0; i < Radios.Count; i++) clone.Radios.Add(Radios[i].DeepCopy());
 
             return clone;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

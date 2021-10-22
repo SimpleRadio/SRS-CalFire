@@ -177,7 +177,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             var transmitting = new List<int>();
             if (!_serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_TX)) return transmitting;
 
-            if (!_ptt && !_clientStateSingleton.PlayerUnitState.ptt) return transmitting;
+            if (!_ptt) return transmitting;
 
             //Currently transmitting - PTT must be true - figure out if we can hear on those radios
 
@@ -287,7 +287,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             //so we have to figure out what you're transmitting on in SRS
             if (radioInfo.IntercomHotMic
                 && radioInfo.control == PlayerUnitState.RadioSwitchControls.IN_COCKPIT
-                && radioInfo.SelectedRadio != 0 && !_ptt && !radioInfo.ptt)
+                && radioInfo.SelectedRadio != 0 && !_ptt)
                 if (radioInfo.Radios[0].Modulation == Modulation.INTERCOM)
                 {
                     var intercom = new List<Radio>();
@@ -297,7 +297,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 }
 
             var transmittingRadios = new List<Radio>();
-            if (_ptt || _clientStateSingleton.PlayerUnitState.ptt)
+            if (_ptt)
             {
                 // Always add currently selected radio (if valid)
                 var currentSelected = _clientStateSingleton.PlayerUnitState.SelectedRadio;

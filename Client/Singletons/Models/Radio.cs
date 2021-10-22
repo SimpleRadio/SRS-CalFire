@@ -1,11 +1,16 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Annotations;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels;
+using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Proxies;
 using Ciribob.SRS.Common.PlayerState;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
 {
-    public class Radio : RadioBase
+    public class Radio : RadioBase, INotifyPropertyChanged
     {
         public RadioConfig Config { get; set; } = new();
         public string Name { get; set; } = "";
@@ -18,7 +23,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
         public bool SimultaneousTransmission { get; set; }
 
         //Channels
-        public List<PresetChannel> PresetChannels { get; }
+        public ObservableCollection<PresetChannel> PresetChannels { get; } = new ObservableCollection<PresetChannel>();
 
         /**
          * Used to determine if we should send an update to the server or not
@@ -88,6 +93,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
                 hashCode = (hashCode * 397) ^ (PresetChannels != null ? PresetChannels.GetHashCode() : 0);
                 return hashCode;
             }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
