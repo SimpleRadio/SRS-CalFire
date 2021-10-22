@@ -1,15 +1,10 @@
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using Ciribob.SRS.Common;
-using Ciribob.SRS.Common.Network;
 using Ciribob.SRS.Common.Network.Models;
 using NLog;
-using Timer = Cabhishek.Timers.Timer;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
 {
@@ -20,21 +15,20 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
         private readonly IPAddress _address;
 
         private readonly byte[] _guidAsciiBytes;
-        private readonly CancellationTokenSource _pingStop = new CancellationTokenSource();
+        private readonly CancellationTokenSource _pingStop = new();
         private readonly int _port;
-        private readonly PlayerUnitState gameState;
 
-        private readonly CancellationTokenSource _stopFlag = new CancellationTokenSource();
+        private readonly CancellationTokenSource _stopFlag = new();
+        private readonly PlayerUnitState gameState;
 
         //    private readonly JitterBuffer _jitterBuffer = new JitterBuffer();
         private UdpClient _listener;
 
         private ulong _packetNumber = 1;
 
-        private IPEndPoint _serverEndpoint;
+        private readonly IPEndPoint _serverEndpoint;
 
         private volatile bool _stop;
-
 
 
         public UdpVoiceHandler(string guid, IPAddress address, int port, PlayerUnitState gameState)
@@ -48,7 +42,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
             _serverEndpoint = new IPEndPoint(_address, _port);
         }
 
-     
+
         public void Start()
         {
             _listener = new UdpClient();
@@ -56,19 +50,21 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
             {
                 _listener.AllowNatTraversal(true);
             }
-            catch { }
+            catch
+            {
+            }
 
             _packetNumber = 1; //reset packet number
 
 
-            byte[] message = _guidAsciiBytes;
+            var message = _guidAsciiBytes;
 
-            Logger.Info($"Sending UDP Ping");
+            Logger.Info("Sending UDP Ping");
             // Force immediate ping once to avoid race condition before starting to listen
             _listener.Send(message, message.Length, _serverEndpoint);
 
             Thread.Sleep(3000);
-            Logger.Info($"Ping Sent");
+            Logger.Info("Ping Sent");
         }
 
         public void RequestStop()
@@ -87,10 +83,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
 
         public bool Send(byte[] bytes, int len, double[] freq, byte[] modulation)
         {
-            
             if (!_stop
                 && _listener != null
-                && (bytes != null))
+                && bytes != null)
                 //can only send if IL2 is connected
             {
                 try
@@ -100,32 +95,28 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
                     {
                         GuidBytes = _guidAsciiBytes,
                         AudioPart1Bytes = bytes,
-                        AudioPart1Length = (ushort) bytes.Length,
-                        Frequencies =freq,
+                        AudioPart1Length = (ushort)bytes.Length,
+                        Frequencies = freq,
                         UnitId = gameState.UnitId,
                         Modulations = modulation,
                         PacketNumber = _packetNumber++,
                         OriginalClientGuidBytes = _guidAsciiBytes,
                         RetransmissionCount = 0,
-                        Encryptions = new byte[]{0},
+                        Encryptions = new byte[] { 0 }
                     };
 
                     var encodedUdpVoicePacket = udpVoicePacket.EncodePacket();
 
-                    _listener?.Send(encodedUdpVoicePacket, encodedUdpVoicePacket.Length, new IPEndPoint(_address, _port));
+                    _listener?.Send(encodedUdpVoicePacket, encodedUdpVoicePacket.Length,
+                        new IPEndPoint(_address, _port));
                 }
                 catch (Exception e)
                 {
                     Logger.Error(e, "Exception Sending Audio Message " + e.Message);
                 }
             }
-            else
-            {
-               //couldnt send
-            }
 
             return false;
         }
-
     }
 }

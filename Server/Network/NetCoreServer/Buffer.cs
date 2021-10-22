@@ -2,112 +2,131 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace NetCoreServer
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.NetCoreServer
 {
     /// <summary>
-    /// Dynamic byte buffer
+    ///     Dynamic byte buffer
     /// </summary>
     public class Buffer
     {
-        private byte[] _data;
-        private long _size;
-        private long _offset;
+        /// <summary>
+        ///     Initialize a new expandable buffer with zero capacity
+        /// </summary>
+        public Buffer()
+        {
+            Data = new byte[0];
+            Size = 0;
+            Offset = 0;
+        }
 
         /// <summary>
-        /// Is the buffer empty?
+        ///     Initialize a new expandable buffer with the given capacity
         /// </summary>
-        public bool IsEmpty => (_data == null) || (_size == 0);
-        /// <summary>
-        /// Bytes memory buffer
-        /// </summary>
-        public byte[] Data => _data;
-        /// <summary>
-        /// Bytes memory buffer capacity
-        /// </summary>
-        public long Capacity => _data.Length;
-        /// <summary>
-        /// Bytes memory buffer size
-        /// </summary>
-        public long Size => _size;
-        /// <summary>
-        /// Bytes memory buffer offset
-        /// </summary>
-        public long Offset => _offset;
+        public Buffer(long capacity)
+        {
+            Data = new byte[capacity];
+            Size = 0;
+            Offset = 0;
+        }
 
         /// <summary>
-        /// Buffer indexer operator
+        ///     Initialize a new expandable buffer with the given data
         /// </summary>
-        public byte this[int index] => _data[index];
+        public Buffer(byte[] data)
+        {
+            Data = data;
+            Size = data.Length;
+            Offset = 0;
+        }
 
         /// <summary>
-        /// Initialize a new expandable buffer with zero capacity
+        ///     Is the buffer empty?
         /// </summary>
-        public Buffer() { _data = new byte[0]; _size = 0; _offset = 0; }
+        public bool IsEmpty => Data == null || Size == 0;
+
         /// <summary>
-        /// Initialize a new expandable buffer with the given capacity
+        ///     Bytes memory buffer
         /// </summary>
-        public Buffer(long capacity) { _data = new byte[capacity]; _size = 0; _offset = 0; }
+        public byte[] Data { get; private set; }
+
         /// <summary>
-        /// Initialize a new expandable buffer with the given data
+        ///     Bytes memory buffer capacity
         /// </summary>
-        public Buffer(byte[] data) { _data = data; _size = data.Length; _offset = 0; }
+        public long Capacity => Data.Length;
+
+        /// <summary>
+        ///     Bytes memory buffer size
+        /// </summary>
+        public long Size { get; private set; }
+
+        /// <summary>
+        ///     Bytes memory buffer offset
+        /// </summary>
+        public long Offset { get; private set; }
+
+        /// <summary>
+        ///     Buffer indexer operator
+        /// </summary>
+        public byte this[int index] => Data[index];
 
         #region Memory buffer methods
 
         // Clear the current buffer and its offset
         public void Clear()
         {
-            _size = 0;
-            _offset = 0;
+            Size = 0;
+            Offset = 0;
         }
 
         /// <summary>
-        /// Extract the string from buffer of the given offset and size
+        ///     Extract the string from buffer of the given offset and size
         /// </summary>
         public string ExtractString(long offset, long size)
         {
-            Debug.Assert(((offset + size) <= Size), "Invalid offset & size!");
-            if ((offset + size) > Size)
+            Debug.Assert(offset + size <= Size, "Invalid offset & size!");
+            if (offset + size > Size)
                 throw new ArgumentException("Invalid offset & size!", nameof(offset));
 
-            return Encoding.UTF8.GetString(_data, (int)offset, (int)size);
+            return Encoding.UTF8.GetString(Data, (int)offset, (int)size);
         }
 
         /// <summary>
-        /// Remove the buffer of the given offset and size
+        ///     Remove the buffer of the given offset and size
         /// </summary>
         public void Remove(long offset, long size)
         {
-            Debug.Assert(((offset + size) <= Size), "Invalid offset & size!");
-            if ((offset + size) > Size)
+            Debug.Assert(offset + size <= Size, "Invalid offset & size!");
+            if (offset + size > Size)
                 throw new ArgumentException("Invalid offset & size!", nameof(offset));
 
-            Array.Copy(_data, offset + size, _data, offset, _size - size - offset);
-            _size -= size;
-            if (_offset >= (offset + size))
-                _offset -= size;
-            else if (_offset >= offset)
+            Array.Copy(Data, offset + size, Data, offset, Size - size - offset);
+            Size -= size;
+            if (Offset >= offset + size)
             {
-                _offset -= _offset - offset;
-                if (_offset > Size)
-                    _offset = Size;
+                Offset -= size;
+            }
+            else if (Offset >= offset)
+            {
+                Offset -= Offset - offset;
+                if (Offset > Size)
+                    Offset = Size;
             }
         }
 
         /// <summary>
-        /// Reserve the buffer of the given capacity
+        ///     Reserve the buffer of the given capacity
         /// </summary>
         public void Reserve(long capacity)
         {
-            Debug.Assert((capacity >= 0), "Invalid reserve capacity!");
+            Debug.Assert(capacity >= 0, "Invalid reserve capacity!");
             if (capacity < 0)
                 throw new ArgumentException("Invalid reserve capacity!", nameof(capacity));
 
             if (capacity > Capacity)
             {
-                byte[] data = new byte[Math.Max(capacity, 2 * Capacity)];
-                Array.Copy(_data, 0, data, 0, _size);
-                _data = data;
+                var data = new byte[Math.Max(capacity, 2 * Capacity)];
+                Array.Copy(Data, 0, data, 0, Size);
+                Data = data;
             }
         }
 
@@ -115,35 +134,42 @@ namespace NetCoreServer
         public void Resize(long size)
         {
             Reserve(size);
-            _size = size;
-            if (_offset > _size)
-                _offset = _size;
+            Size = size;
+            if (Offset > Size)
+                Offset = Size;
         }
 
         // Shift the current buffer offset
-        public void Shift(long offset) { _offset += offset; }
+        public void Shift(long offset)
+        {
+            Offset += offset;
+        }
+
         // Unshift the current buffer offset
-        public void Unshift(long offset) { _offset -= offset; }
+        public void Unshift(long offset)
+        {
+            Offset -= offset;
+        }
 
         #endregion
 
         #region Buffer I/O methods
 
         /// <summary>
-        /// Append the given buffer
+        ///     Append the given buffer
         /// </summary>
         /// <param name="buffer">Buffer to append</param>
         /// <returns>Count of append bytes</returns>
         public long Append(byte[] buffer)
         {
-            Reserve(_size + buffer.Length);
-            Array.Copy(buffer, 0, _data, _size, buffer.Length);
-            _size += buffer.Length;
+            Reserve(Size + buffer.Length);
+            Array.Copy(buffer, 0, Data, Size, buffer.Length);
+            Size += buffer.Length;
             return buffer.Length;
         }
 
         /// <summary>
-        /// Append the given buffer fragment
+        ///     Append the given buffer fragment
         /// </summary>
         /// <param name="buffer">Buffer to append</param>
         /// <param name="offset">Buffer offset</param>
@@ -151,22 +177,22 @@ namespace NetCoreServer
         /// <returns>Count of append bytes</returns>
         public long Append(byte[] buffer, long offset, long size)
         {
-            Reserve(_size + size);
-            Array.Copy(buffer, offset, _data, _size, size);
-            _size += size;
+            Reserve(Size + size);
+            Array.Copy(buffer, offset, Data, Size, size);
+            Size += size;
             return size;
         }
 
         /// <summary>
-        /// Append the given text in UTF-8 encoding
+        ///     Append the given text in UTF-8 encoding
         /// </summary>
         /// <param name="text">Text to append</param>
         /// <returns>Count of append bytes</returns>
         public long Append(string text)
         {
-            Reserve(_size + Encoding.UTF8.GetMaxByteCount(text.Length));
-            long result = Encoding.UTF8.GetBytes(text, 0, text.Length, _data, (int)_size);
-            _size += result;
+            Reserve(Size + Encoding.UTF8.GetMaxByteCount(text.Length));
+            long result = Encoding.UTF8.GetBytes(text, 0, text.Length, Data, (int)Size);
+            Size += result;
             return result;
         }
 

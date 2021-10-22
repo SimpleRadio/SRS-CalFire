@@ -1,23 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using NAudio.Wave.WaveFormats;
 
-namespace NAudio.Wave
+namespace NAudio.Wave.WaveOutputs
 {
     /// <summary>
-    /// Like IWaveProvider, but makes it much simpler to put together a 32 bit floating
-    /// point mixing engine
+    ///     Like IWaveProvider, but makes it much simpler to put together a 32 bit floating
+    ///     point mixing engine
     /// </summary>
     public interface ISampleProvider
     {
         /// <summary>
-        /// Gets the WaveFormat of this Sample Provider.
+        ///     Gets the WaveFormat of this Sample Provider.
         /// </summary>
         /// <value>The wave format.</value>
         WaveFormat WaveFormat { get; }
 
         /// <summary>
-        /// Fill the specified buffer with 32 bit floating point samples
+        ///     Fill the specified buffer with 32 bit floating point samples
         /// </summary>
         /// <param name="buffer">The buffer to fill with samples.</param>
         /// <param name="offset">Offset into buffer</param>

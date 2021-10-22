@@ -6,28 +6,34 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace NetCoreServer
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.NetCoreServer
 {
     /// <summary>
-    /// TCP server is used to connect, disconnect and manage TCP sessions
+    ///     TCP server is used to connect, disconnect and manage TCP sessions
     /// </summary>
     /// <remarks>Thread-safe</remarks>
     public class TcpServer : IDisposable
     {
         /// <summary>
-        /// Initialize TCP server with a given IP address and port number
+        ///     Initialize TCP server with a given IP address and port number
         /// </summary>
         /// <param name="address">IP address</param>
         /// <param name="port">Port number</param>
-        public TcpServer(IPAddress address, int port) : this(new IPEndPoint(address, port)) {}
+        public TcpServer(IPAddress address, int port) : this(new IPEndPoint(address, port))
+        {
+        }
+
         /// <summary>
-        /// Initialize TCP server with a given IP address and port number
+        ///     Initialize TCP server with a given IP address and port number
         /// </summary>
         /// <param name="address">IP address</param>
         /// <param name="port">Port number</param>
-        public TcpServer(string address, int port) : this(new IPEndPoint(IPAddress.Parse(address), port)) {}
+        public TcpServer(string address, int port) : this(new IPEndPoint(IPAddress.Parse(address), port))
+        {
+        }
+
         /// <summary>
-        /// Initialize TCP server with a given IP endpoint
+        ///     Initialize TCP server with a given IP endpoint
         /// </summary>
         /// <param name="endpoint">IP endpoint</param>
         public TcpServer(IPEndPoint endpoint)
@@ -37,83 +43,154 @@ namespace NetCoreServer
         }
 
         /// <summary>
-        /// Server Id
+        ///     Server Id
         /// </summary>
         public Guid Id { get; }
 
         /// <summary>
-        /// IP endpoint
+        ///     IP endpoint
         /// </summary>
         public IPEndPoint Endpoint { get; private set; }
 
         /// <summary>
-        /// Number of sessions connected to the server
+        ///     Number of sessions connected to the server
         /// </summary>
-        public long ConnectedSessions { get { return Sessions.Count; } }
-        /// <summary>
-        /// Number of bytes pending sent by the server
-        /// </summary>
-        public long BytesPending { get { return _bytesPending; } }
-        /// <summary>
-        /// Number of bytes sent by the server
-        /// </summary>
-        public long BytesSent { get { return _bytesSent; } }
-        /// <summary>
-        /// Number of bytes received by the server
-        /// </summary>
-        public long BytesReceived { get { return _bytesReceived; } }
+        public long ConnectedSessions => Sessions.Count;
 
         /// <summary>
-        /// Option: acceptor backlog size
+        ///     Number of bytes pending sent by the server
+        /// </summary>
+        public long BytesPending => _bytesPending;
+
+        /// <summary>
+        ///     Number of bytes sent by the server
+        /// </summary>
+        public long BytesSent => _bytesSent;
+
+        /// <summary>
+        ///     Number of bytes received by the server
+        /// </summary>
+        public long BytesReceived => _bytesReceived;
+
+        /// <summary>
+        ///     Option: acceptor backlog size
         /// </summary>
         /// <remarks>
-        /// This option will set the listening socket's backlog size
+        ///     This option will set the listening socket's backlog size
         /// </remarks>
         public int OptionAcceptorBacklog { get; set; } = 1024;
+
         /// <summary>
-        /// Option: dual mode socket
+        ///     Option: dual mode socket
         /// </summary>
         /// <remarks>
-        /// Specifies whether the Socket is a dual-mode socket used for both IPv4 and IPv6.
-        /// Will work only if socket is bound on IPv6 address.
+        ///     Specifies whether the Socket is a dual-mode socket used for both IPv4 and IPv6.
+        ///     Will work only if socket is bound on IPv6 address.
         /// </remarks>
         public bool OptionDualMode { get; set; }
+
         /// <summary>
-        /// Option: keep alive
+        ///     Option: keep alive
         /// </summary>
         /// <remarks>
-        /// This option will setup SO_KEEPALIVE if the OS support this feature
+        ///     This option will setup SO_KEEPALIVE if the OS support this feature
         /// </remarks>
         public bool OptionKeepAlive { get; set; }
+
         /// <summary>
-        /// Option: no delay
+        ///     Option: no delay
         /// </summary>
         /// <remarks>
-        /// This option will enable/disable Nagle's algorithm for TCP protocol
+        ///     This option will enable/disable Nagle's algorithm for TCP protocol
         /// </remarks>
         public bool OptionNoDelay { get; set; }
+
         /// <summary>
-        /// Option: reuse address
+        ///     Option: reuse address
         /// </summary>
         /// <remarks>
-        /// This option will enable/disable SO_REUSEADDR if the OS support this feature
+        ///     This option will enable/disable SO_REUSEADDR if the OS support this feature
         /// </remarks>
         public bool OptionReuseAddress { get; set; }
+
         /// <summary>
-        /// Option: enables a socket to be bound for exclusive access
+        ///     Option: enables a socket to be bound for exclusive access
         /// </summary>
         /// <remarks>
-        /// This option will enable/disable SO_EXCLUSIVEADDRUSE if the OS support this feature
+        ///     This option will enable/disable SO_EXCLUSIVEADDRUSE if the OS support this feature
         /// </remarks>
         public bool OptionExclusiveAddressUse { get; set; }
+
         /// <summary>
-        /// Option: receive buffer size
+        ///     Option: receive buffer size
         /// </summary>
         public int OptionReceiveBufferSize { get; set; } = 8192;
+
         /// <summary>
-        /// Option: send buffer size
+        ///     Option: send buffer size
         /// </summary>
         public int OptionSendBufferSize { get; set; } = 8192;
+
+        #region Session factory
+
+        /// <summary>
+        ///     Create TCP session factory method
+        /// </summary>
+        /// <returns>TCP session</returns>
+        protected virtual TcpSession CreateSession()
+        {
+            return new TcpSession(this);
+        }
+
+        #endregion
+
+
+        /// <summary>
+        ///     Multicast data to all connected clients
+        /// </summary>
+        /// <param name="buffer">Buffer to multicast</param>
+        /// <param name="offset">Buffer offset</param>
+        /// <param name="size">Buffer size</param>
+        /// <returns>'true' if the data was successfully multicasted, 'false' if the data was not multicasted</returns>
+        public virtual bool MulticastAllExeceptOne(string text, Guid guid)
+        {
+            var bytes = Encoding.UTF8.GetBytes(text);
+
+            if (!IsStarted)
+                return false;
+
+            if (bytes.Length == 0)
+                return true;
+
+            // Multicast data to all sessions
+            foreach (var session in Sessions.Values)
+
+                if (!session.Id.Equals(guid))
+                    session.SendAsync(bytes, 0, bytes.Length);
+
+            return true;
+        }
+
+        #region Error handling
+
+        /// <summary>
+        ///     Send error notification
+        /// </summary>
+        /// <param name="error">Socket error code</param>
+        private void SendError(SocketError error)
+        {
+            // Skip disconnect errors
+            if (error == SocketError.ConnectionAborted ||
+                error == SocketError.ConnectionRefused ||
+                error == SocketError.ConnectionReset ||
+                error == SocketError.OperationAborted ||
+                error == SocketError.Shutdown)
+                return;
+
+            OnError(error);
+        }
+
+        #endregion
 
         #region Start/Stop server
 
@@ -127,16 +204,17 @@ namespace NetCoreServer
         internal long _bytesReceived;
 
         /// <summary>
-        /// Is the server started?
+        ///     Is the server started?
         /// </summary>
         public bool IsStarted { get; private set; }
+
         /// <summary>
-        /// Is the server accepting new clients?
+        ///     Is the server accepting new clients?
         /// </summary>
         public bool IsAccepting { get; private set; }
 
         /// <summary>
-        /// Start the server
+        ///     Start the server
         /// </summary>
         /// <returns>'true' if the server was successfully started, 'false' if the server failed to start</returns>
         public virtual bool Start()
@@ -156,9 +234,11 @@ namespace NetCoreServer
             IsSocketDisposed = false;
 
             // Apply the option: reuse address
-            _acceptorSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, OptionReuseAddress);
+            _acceptorSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress,
+                OptionReuseAddress);
             // Apply the option: exclusive address use
-            _acceptorSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ExclusiveAddressUse, OptionExclusiveAddressUse);
+            _acceptorSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ExclusiveAddressUse,
+                OptionExclusiveAddressUse);
             // Apply the option: dual mode (this option must be applied before listening)
             if (_acceptorSocket.AddressFamily == AddressFamily.InterNetworkV6)
                 _acceptorSocket.DualMode = OptionDualMode;
@@ -189,7 +269,7 @@ namespace NetCoreServer
         }
 
         /// <summary>
-        /// Stop the server
+        ///     Stop the server
         /// </summary>
         /// <returns>'true' if the server was successfully stopped, 'false' if the server is already stopped</returns>
         public virtual bool Stop()
@@ -229,7 +309,7 @@ namespace NetCoreServer
         }
 
         /// <summary>
-        /// Restart the server
+        ///     Restart the server
         /// </summary>
         /// <returns>'true' if the server was successfully restarted, 'false' if the server failed to restart</returns>
         public virtual bool Restart()
@@ -248,7 +328,7 @@ namespace NetCoreServer
         #region Accepting clients
 
         /// <summary>
-        /// Start accept a new client connection
+        ///     Start accept a new client connection
         /// </summary>
         private void StartAccept(SocketAsyncEventArgs e)
         {
@@ -261,7 +341,7 @@ namespace NetCoreServer
         }
 
         /// <summary>
-        /// Process accepted client connection
+        ///     Process accepted client connection
         /// </summary>
         private void ProcessAccept(SocketAsyncEventArgs e)
         {
@@ -277,7 +357,9 @@ namespace NetCoreServer
                 session.Connect(e.AcceptSocket);
             }
             else
+            {
                 SendError(e.SocketError);
+            }
 
             // Accept the next client connection
             if (IsAccepting)
@@ -285,8 +367,8 @@ namespace NetCoreServer
         }
 
         /// <summary>
-        /// This method is the callback method associated with Socket.AcceptAsync()
-        /// operations and is invoked when an accept operation is complete
+        ///     This method is the callback method associated with Socket.AcceptAsync()
+        ///     operations and is invoked when an accept operation is complete
         /// </summary>
         private void OnAsyncCompleted(object sender, SocketAsyncEventArgs e)
         {
@@ -295,23 +377,14 @@ namespace NetCoreServer
 
         #endregion
 
-        #region Session factory
-
-        /// <summary>
-        /// Create TCP session factory method
-        /// </summary>
-        /// <returns>TCP session</returns>
-        protected virtual TcpSession CreateSession() { return new TcpSession(this); }
-
-        #endregion
-
         #region Session management
 
         // Server sessions
-        protected readonly ConcurrentDictionary<Guid, TcpSession> Sessions = new ConcurrentDictionary<Guid, TcpSession>();
+        protected readonly ConcurrentDictionary<Guid, TcpSession> Sessions =
+            new();
 
         /// <summary>
-        /// Disconnect all connected sessions
+        ///     Disconnect all connected sessions
         /// </summary>
         /// <returns>'true' if all sessions were successfully disconnected, 'false' if the server is not started</returns>
         public virtual bool DisconnectAll()
@@ -327,18 +400,18 @@ namespace NetCoreServer
         }
 
         /// <summary>
-        /// Find a session with a given Id
+        ///     Find a session with a given Id
         /// </summary>
         /// <param name="id">Session Id</param>
         /// <returns>Session with a given Id or null if the session it not connected</returns>
         public TcpSession FindSession(Guid id)
         {
             // Try to find the required session
-            return Sessions.TryGetValue(id, out TcpSession result) ? result : null;
+            return Sessions.TryGetValue(id, out var result) ? result : null;
         }
 
         /// <summary>
-        /// Register a new session
+        ///     Register a new session
         /// </summary>
         /// <param name="session">Session to register</param>
         internal void RegisterSession(TcpSession session)
@@ -348,13 +421,13 @@ namespace NetCoreServer
         }
 
         /// <summary>
-        /// Unregister session by Id
+        ///     Unregister session by Id
         /// </summary>
         /// <param name="id">Session Id</param>
         internal void UnregisterSession(Guid id)
         {
             // Unregister session by Id
-            Sessions.TryRemove(id, out TcpSession temp);
+            Sessions.TryRemove(id, out var temp);
         }
 
         #endregion
@@ -362,14 +435,17 @@ namespace NetCoreServer
         #region Multicasting
 
         /// <summary>
-        /// Multicast data to all connected sessions
+        ///     Multicast data to all connected sessions
         /// </summary>
         /// <param name="buffer">Buffer to multicast</param>
         /// <returns>'true' if the data was successfully multicasted, 'false' if the data was not multicasted</returns>
-        public virtual bool Multicast(byte[] buffer) { return Multicast(buffer, 0, buffer.Length); }
+        public virtual bool Multicast(byte[] buffer)
+        {
+            return Multicast(buffer, 0, buffer.Length);
+        }
 
         /// <summary>
-        /// Multicast data to all connected clients
+        ///     Multicast data to all connected clients
         /// </summary>
         /// <param name="buffer">Buffer to multicast</param>
         /// <param name="offset">Buffer offset</param>
@@ -391,92 +467,66 @@ namespace NetCoreServer
         }
 
         /// <summary>
-        /// Multicast text to all connected clients
+        ///     Multicast text to all connected clients
         /// </summary>
         /// <param name="text">Text string to multicast</param>
         /// <returns>'true' if the text was successfully multicasted, 'false' if the text was not multicasted</returns>
-        public virtual bool Multicast(string text) { return Multicast(Encoding.UTF8.GetBytes(text)); }
+        public virtual bool Multicast(string text)
+        {
+            return Multicast(Encoding.UTF8.GetBytes(text));
+        }
 
         #endregion
-
-
-        /// <summary>
-        /// Multicast data to all connected clients
-        /// </summary>
-        /// <param name="buffer">Buffer to multicast</param>
-        /// <param name="offset">Buffer offset</param>
-        /// <param name="size">Buffer size</param>
-        /// <returns>'true' if the data was successfully multicasted, 'false' if the data was not multicasted</returns>
-        public virtual bool MulticastAllExeceptOne(string text, Guid guid)
-        {
-            byte[] bytes = Encoding.UTF8.GetBytes(text);
-
-            if (!IsStarted)
-                return false;
-
-            if (bytes.Length == 0)
-                return true;
-
-            // Multicast data to all sessions
-            foreach (var session in Sessions.Values)
-
-                if (!session.Id.Equals(guid))
-                    session.SendAsync(bytes, 0, bytes.Length);
-
-            return true;
-        }
 
 
         #region Server handlers
 
         /// <summary>
-        /// Handle server started notification
+        ///     Handle server started notification
         /// </summary>
-        protected virtual void OnStarted() {}
-        /// <summary>
-        /// Handle server stopped notification
-        /// </summary>
-        protected virtual void OnStopped() {}
+        protected virtual void OnStarted()
+        {
+        }
 
         /// <summary>
-        /// Handle session connected notification
+        ///     Handle server stopped notification
+        /// </summary>
+        protected virtual void OnStopped()
+        {
+        }
+
+        /// <summary>
+        ///     Handle session connected notification
         /// </summary>
         /// <param name="session">Connected session</param>
-        protected virtual void OnConnected(TcpSession session) {}
+        protected virtual void OnConnected(TcpSession session)
+        {
+        }
+
         /// <summary>
-        /// Handle session disconnected notification
+        ///     Handle session disconnected notification
         /// </summary>
         /// <param name="session">Disconnected session</param>
-        protected virtual void OnDisconnected(TcpSession session) {}
-
-        /// <summary>
-        /// Handle error notification
-        /// </summary>
-        /// <param name="error">Socket error code</param>
-        protected virtual void OnError(SocketError error) {}
-
-        internal void OnConnectedInternal(TcpSession session) { OnConnected(session); }
-        internal void OnDisconnectedInternal(TcpSession session) { OnDisconnected(session); }
-
-        #endregion
-
-        #region Error handling
-
-        /// <summary>
-        /// Send error notification
-        /// </summary>
-        /// <param name="error">Socket error code</param>
-        private void SendError(SocketError error)
+        protected virtual void OnDisconnected(TcpSession session)
         {
-            // Skip disconnect errors
-            if ((error == SocketError.ConnectionAborted) ||
-                (error == SocketError.ConnectionRefused) ||
-                (error == SocketError.ConnectionReset) ||
-                (error == SocketError.OperationAborted) ||
-                (error == SocketError.Shutdown))
-                return;
+        }
 
-            OnError(error);
+        /// <summary>
+        ///     Handle error notification
+        /// </summary>
+        /// <param name="error">Socket error code</param>
+        protected virtual void OnError(SocketError error)
+        {
+        }
+
+        internal void OnConnectedInternal(TcpSession session)
+        {
+            OnConnected(session);
+        }
+
+        internal void OnDisconnectedInternal(TcpSession session)
+        {
+            OnDisconnected(session);
         }
 
         #endregion
@@ -484,12 +534,12 @@ namespace NetCoreServer
         #region IDisposable implementation
 
         /// <summary>
-        /// Disposed flag
+        ///     Disposed flag
         /// </summary>
         public bool IsDisposed { get; private set; }
 
         /// <summary>
-        /// Acceptor socket disposed flag
+        ///     Acceptor socket disposed flag
         /// </summary>
         public bool IsSocketDisposed { get; private set; } = true;
 
@@ -517,10 +567,8 @@ namespace NetCoreServer
             if (!IsDisposed)
             {
                 if (disposingManagedResources)
-                {
                     // Dispose managed resources here...
                     Stop();
-                }
 
                 // Dispose unmanaged resources here...
 

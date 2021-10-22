@@ -1,9 +1,7 @@
-using System;
-
-namespace NAudio
+namespace NAudio.Wave.MmeInterop
 {
     /// <summary>
-    /// Windows multimedia error codes from mmsystem.h.
+    ///     Windows multimedia error codes from mmsystem.h.
     /// </summary>
     public enum MmResult
     {
@@ -108,6 +106,6 @@ namespace NAudio
         MixerInvalidControl = 1025,
 
         /// <summary>invalid value (MIXERR_INVALVALUE)</summary>
-        MixerInvalidValue = 1026,
+        MixerInvalidValue = 1026
     }
 }

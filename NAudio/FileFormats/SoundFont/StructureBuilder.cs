@@ -1,12 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Collections;
 
-namespace NAudio.SoundFont
+namespace NAudio.FileFormats.SoundFont
 {
     /// <summary>
-    /// base class for structures that can read themselves
+    ///     base class for structures that can read themselves
     /// </summary>
     internal abstract class StructureBuilder<T>
     {
@@ -17,18 +15,16 @@ namespace NAudio.SoundFont
             Reset();
         }
 
+        public abstract int Length { get; }
+
+        public T[] Data => data.ToArray();
+
         public abstract T Read(BinaryReader br);
         public abstract void Write(BinaryWriter bw, T o);
-        public abstract int Length { get; }
 
         public void Reset()
         {
             data = new List<T>();
-        }
-
-        public T[] Data
-        {
-            get { return data.ToArray(); }
         }
     }
 }

@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace NAudio.Codecs
+﻿namespace NAudio.Codecs
 {
     /// <summary>
-    /// A-law encoder
+    ///     A-law encoder
     /// </summary>
     public static class ALawEncoder
     {
@@ -33,7 +29,7 @@ namespace NAudio.Codecs
         };
 
         /// <summary>
-        /// Encodes a single 16 bit sample to a-law
+        ///     Encodes a single 16 bit sample to a-law
         /// </summary>
         /// <param name="sample">16 bit PCM sample</param>
         /// <returns>a-law encoded byte</returns>
@@ -44,22 +40,23 @@ namespace NAudio.Codecs
             int mantissa;
             byte compressedByte;
 
-            sign = ((~sample) >> 8) & 0x80;
+            sign = (~sample >> 8) & 0x80;
             if (sign == 0)
-                sample = (short) -sample;
+                sample = (short)-sample;
             if (sample > cClip)
                 sample = cClip;
             if (sample >= 256)
             {
-                exponent = (int) ALawCompressTable[(sample >> 8) & 0x7F];
+                exponent = ALawCompressTable[(sample >> 8) & 0x7F];
                 mantissa = (sample >> (exponent + 3)) & 0x0F;
-                compressedByte = (byte) ((exponent << 4) | mantissa);
+                compressedByte = (byte)((exponent << 4) | mantissa);
             }
             else
             {
-                compressedByte = (byte) (sample >> 4);
+                compressedByte = (byte)(sample >> 4);
             }
-            compressedByte ^= (byte) (sign ^ 0x55);
+
+            compressedByte ^= (byte)(sign ^ 0x55);
             return compressedByte;
         }
     }

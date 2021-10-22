@@ -1,8 +1,7 @@
 ﻿using System;
-using Ciribob.SRS.Common.DCSState;
 using Ciribob.SRS.Common.PlayerState;
 
-namespace Ciribob.SRS.Common
+namespace Ciribob.SRS.Common.Helpers
 {
     public class RadioCalculator
     {
@@ -63,23 +62,23 @@ namespace Ciribob.SRS.Common
 
         public static double CalculateDistanceHaversine(LatLngPosition myLatLng, LatLngPosition clientLatLng)
         {
-            if (myLatLng.lat == clientLatLng.lat || myLatLng.lng == clientLatLng.lng)
+            if (myLatLng.Lat == clientLatLng.Lat || myLatLng.Lng == clientLatLng.Lng)
                 //the above will cause a divide by 0 error so this is protection against that....
                 //should be *almost* impossible...
-                return Math.Abs(myLatLng.alt - clientLatLng.alt);
+                return Math.Abs(myLatLng.Alt - clientLatLng.Alt);
 
             const double R = 6371e3; // meters
-            var φ1 = DegreeToRadian(myLatLng.lat);
-            var φ2 = DegreeToRadian(clientLatLng.lat);
-            var Δφ = DegreeToRadian(clientLatLng.lat - myLatLng.lat);
-            var Δλ = DegreeToRadian(clientLatLng.lng - myLatLng.lng);
+            var φ1 = DegreeToRadian(myLatLng.Lat);
+            var φ2 = DegreeToRadian(clientLatLng.Lat);
+            var Δφ = DegreeToRadian(clientLatLng.Lat - myLatLng.Lat);
+            var Δλ = DegreeToRadian(clientLatLng.Lng - myLatLng.Lng);
 
             var a = Math.Sin(Δφ / 2) * Math.Sin(Δφ / 2) +
                     Math.Cos(φ1) * Math.Cos(φ2) *
                     Math.Sin(Δλ / 2) * Math.Sin(Δλ / 2);
             var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
             var d = R * c;
-            return Math.Abs(PythagDistance(d, myLatLng.alt - clientLatLng.alt));
+            return Math.Abs(PythagDistance(d, myLatLng.Alt - clientLatLng.Alt));
         }
 
         //we have haversine great circle distance - but as they're aircraft we need to offset for height as that gives the real distance

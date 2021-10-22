@@ -4,12 +4,12 @@ using System.Reflection;
 namespace NAudio.Utils
 {
     /// <summary>
-    /// Helper to get descriptions
+    ///     Helper to get descriptions
     /// </summary>
     public static class FieldDescriptionHelper
     {
         /// <summary>
-        /// Describes the Guid  by looking for a FieldDescription attribute on the specified class
+        ///     Describes the Guid  by looking for a FieldDescription attribute on the specified class
         /// </summary>
         public static string Describe(Type t, Guid guid)
         {
@@ -20,21 +20,18 @@ namespace NAudio.Utils
 #else
                 .GetFields(BindingFlags.Static | BindingFlags.Public))
 #endif
-            {
-                if (f.IsPublic && f.IsStatic && f.FieldType == typeof(Guid) && (Guid) f.GetValue(null) == guid)
+                if (f.IsPublic && f.IsStatic && f.FieldType == typeof(Guid) && (Guid)f.GetValue(null) == guid)
                 {
                     foreach (var a in f.GetCustomAttributes(false))
                     {
                         var d = a as FieldDescriptionAttribute;
-                        if (d != null)
-                        {
-                            return d.Description;
-                        }
+                        if (d != null) return d.Description;
                     }
+
                     // no attribute, return the name
                     return f.Name;
                 }
-            }
+
             return guid.ToString();
         }
     }

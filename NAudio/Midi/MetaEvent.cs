@@ -1,34 +1,24 @@
 using System;
 using System.IO;
-using System.Text;
 
 namespace NAudio.Midi
 {
     /// <summary>
-    /// Represents a MIDI meta event
+    ///     Represents a MIDI meta event
     /// </summary>
     public class MetaEvent : MidiEvent
     {
-        private MetaEventType metaEvent;
         internal int metaDataLength;
 
         /// <summary>
-        /// Gets the type of this meta event
-        /// </summary>
-        public MetaEventType MetaEventType
-        {
-            get { return metaEvent; }
-        }
-
-        /// <summary>
-        /// Empty constructor
+        ///     Empty constructor
         /// </summary>
         protected MetaEvent()
         {
         }
 
         /// <summary>
-        /// Custom constructor for use by derived types, who will manage the data themselves
+        ///     Custom constructor for use by derived types, who will manage the data themselves
         /// </summary>
         /// <param name="metaEventType">Meta event type</param>
         /// <param name="metaDataLength">Meta data length</param>
@@ -36,26 +26,34 @@ namespace NAudio.Midi
         public MetaEvent(MetaEventType metaEventType, int metaDataLength, long absoluteTime)
             : base(absoluteTime, 1, MidiCommandCode.MetaEvent)
         {
-            this.metaEvent = metaEventType;
+            MetaEventType = metaEventType;
             this.metaDataLength = metaDataLength;
         }
 
         /// <summary>
-        /// Creates a deep clone of this MIDI event.
+        ///     Gets the type of this meta event
         /// </summary>
-        public override MidiEvent Clone() => new MetaEvent(metaEvent, metaDataLength, AbsoluteTime);
+        public MetaEventType MetaEventType { get; private set; }
 
         /// <summary>
-        /// Reads a meta-event from a stream
+        ///     Creates a deep clone of this MIDI event.
+        /// </summary>
+        public override MidiEvent Clone()
+        {
+            return new MetaEvent(MetaEventType, metaDataLength, AbsoluteTime);
+        }
+
+        /// <summary>
+        ///     Reads a meta-event from a stream
         /// </summary>
         /// <param name="br">A binary reader based on the stream of MIDI data</param>
         /// <returns>A new MetaEvent object</returns>
         public static MetaEvent ReadMetaEvent(BinaryReader br)
         {
-            MetaEventType metaEvent = (MetaEventType) br.ReadByte();
-            int length = ReadVarInt(br);
+            var metaEvent = (MetaEventType)br.ReadByte();
+            var length = ReadVarInt(br);
 
-            MetaEvent me = new MetaEvent();
+            var me = new MetaEvent();
             switch (metaEvent)
             {
                 case MetaEventType.TrackSequenceNumber: // Sets the track's sequence number.
@@ -73,10 +71,8 @@ namespace NAudio.Midi
                     me = new TextEvent(br, length);
                     break;
                 case MetaEventType.EndTrack: // This event must come at the end of each track
-                    if (length != 0)
-                    {
-                        throw new FormatException("End track length");
-                    }
+                    if (length != 0) throw new FormatException("End track length");
+
                     break;
                 case MetaEventType.SetTempo: // Set tempo
                     me = new TempoEvent(br, length);
@@ -96,33 +92,32 @@ namespace NAudio.Midi
                 default:
 //System.Windows.Forms.MessageBox.Show(String.Format("Unsupported MetaEvent {0} length {1} pos {2}",metaEvent,length,br.BaseStream.Position));
                     var data = br.ReadBytes(length);
-                    if (data.Length != length)
-                    {
-                        throw new FormatException("Failed to read metaevent's data fully");
-                    }
-                    return new RawMetaEvent(metaEvent, default(long), data);
+                    if (data.Length != length) throw new FormatException("Failed to read metaevent's data fully");
+
+                    return new RawMetaEvent(metaEvent, default, data);
             }
-            me.metaEvent = metaEvent;
+
+            me.MetaEventType = metaEvent;
             me.metaDataLength = length;
 
             return me;
         }
 
         /// <summary>
-        /// Describes this meta event
+        ///     Describes this meta event
         /// </summary>
         public override string ToString()
         {
-            return $"{AbsoluteTime} {metaEvent}";
+            return $"{AbsoluteTime} {MetaEventType}";
         }
 
         /// <summary>
-        /// <see cref="MidiEvent.Export"/>
+        ///     <see cref="MidiEvent.Export" />
         /// </summary>
         public override void Export(ref long absoluteTime, BinaryWriter writer)
         {
             base.Export(ref absoluteTime, writer);
-            writer.Write((byte) metaEvent);
+            writer.Write((byte)MetaEventType);
             WriteVarInt(writer, metaDataLength);
         }
     }

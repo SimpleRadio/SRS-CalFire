@@ -8,54 +8,50 @@ namespace NAudio.Dmo
     // CLSID_CMP3DecMediaObject
 
     /// <summary>
-    /// implements IMediaObject  (DirectX Media Object)
-    /// implements IMFTransform (Media Foundation Transform)
-    /// On Windows XP, it is always an MM (if present at all)
+    ///     implements IMediaObject  (DirectX Media Object)
+    ///     implements IMFTransform (Media Foundation Transform)
+    ///     On Windows XP, it is always an MM (if present at all)
     /// </summary>
-    [ComImport, Guid("bbeea841-0a63-4f52-a7ab-a9b3a84ed38a")]
-    class WindowsMediaMp3DecoderComObject
+    [ComImport]
+    [Guid("bbeea841-0a63-4f52-a7ab-a9b3a84ed38a")]
+    internal class WindowsMediaMp3DecoderComObject
     {
     }
 
     /// <summary>
-    /// Windows Media MP3 Decoder (as a DMO)
-    /// WORK IN PROGRESS - DO NOT USE!
+    ///     Windows Media MP3 Decoder (as a DMO)
+    ///     WORK IN PROGRESS - DO NOT USE!
     /// </summary>
     public class WindowsMediaMp3Decoder : IDisposable
     {
-        MediaObject mediaObject;
-
-        IPropertyStore propertyStoreInterface;
-
         //IWMResamplerProps resamplerPropsInterface;
-        WindowsMediaMp3DecoderComObject mediaComObject;
+        private WindowsMediaMp3DecoderComObject mediaComObject;
+
+        private IPropertyStore propertyStoreInterface;
 
         /// <summary>
-        /// Creates a new Resampler based on the DMO Resampler
+        ///     Creates a new Resampler based on the DMO Resampler
         /// </summary>
         public WindowsMediaMp3Decoder()
         {
             mediaComObject = new WindowsMediaMp3DecoderComObject();
-            mediaObject = new MediaObject((IMediaObject) mediaComObject);
-            propertyStoreInterface = (IPropertyStore) mediaComObject;
+            MediaObject = new MediaObject((IMediaObject)mediaComObject);
+            propertyStoreInterface = (IPropertyStore)mediaComObject;
             //resamplerPropsInterface = (IWMResamplerProps)mediaComObject;
         }
 
         /// <summary>
-        /// Media Object
+        ///     Media Object
         /// </summary>
-        public MediaObject MediaObject
-        {
-            get { return mediaObject; }
-        }
+        public MediaObject MediaObject { get; private set; }
 
 
         #region IDisposable Members
 
         /// <summary>
-        /// Dispose code - experimental at the moment
-        /// Was added trying to track down why Resampler crashes NUnit
-        /// This code not currently being called by ResamplerDmoStream
+        ///     Dispose code - experimental at the moment
+        ///     Was added trying to track down why Resampler crashes NUnit
+        ///     This code not currently being called by ResamplerDmoStream
         /// </summary>
         public void Dispose()
         {
@@ -64,16 +60,18 @@ namespace NAudio.Dmo
                 Marshal.ReleaseComObject(propertyStoreInterface);
                 propertyStoreInterface = null;
             }
+
             /*if(resamplerPropsInterface != null)
             {
                 Marshal.ReleaseComObject(resamplerPropsInterface);
                 resamplerPropsInterface = null;
             }*/
-            if (mediaObject != null)
+            if (MediaObject != null)
             {
-                mediaObject.Dispose();
-                mediaObject = null;
+                MediaObject.Dispose();
+                MediaObject = null;
             }
+
             if (mediaComObject != null)
             {
                 Marshal.ReleaseComObject(mediaComObject);

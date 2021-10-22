@@ -1,32 +1,74 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace NAudio.Wave
+namespace NAudio.FileFormats.Mp3
 {
     /// <summary>
-    /// Represents a Xing VBR header
+    ///     Represents a Xing VBR header
     /// </summary>
     public class XingHeader
     {
-        [Flags]
-        enum XingHeaderOptions
-        {
-            Frames = 1,
-            Bytes = 2,
-            Toc = 4,
-            VbrScale = 8
-        }
-
-        private static int[] sr_table = {44100, 48000, 32000, 99999};
-        private int vbrScale = -1;
-        private int startOffset;
+        private static int[] sr_table = { 44100, 48000, 32000, 99999 };
+        private int bytesOffset = -1;
         private int endOffset;
+        private int framesOffset = -1;
+        private int startOffset;
 
         private int tocOffset = -1;
-        private int framesOffset = -1;
-        private int bytesOffset = -1;
-        private Mp3Frame frame;
+
+        /// <summary>
+        ///     Sees if a frame contains a Xing header
+        /// </summary>
+        private XingHeader()
+        {
+        }
+
+        /// <summary>
+        ///     Number of frames
+        /// </summary>
+        public int Frames
+        {
+            get
+            {
+                if (framesOffset == -1)
+                    return -1;
+                return ReadBigEndian(Mp3Frame.RawData, framesOffset);
+            }
+            set
+            {
+                if (framesOffset == -1)
+                    throw new InvalidOperationException("Frames flag is not set");
+                WriteBigEndian(Mp3Frame.RawData, framesOffset, value);
+            }
+        }
+
+        /// <summary>
+        ///     Number of bytes
+        /// </summary>
+        public int Bytes
+        {
+            get
+            {
+                if (bytesOffset == -1)
+                    return -1;
+                return ReadBigEndian(Mp3Frame.RawData, bytesOffset);
+            }
+            set
+            {
+                if (framesOffset == -1)
+                    throw new InvalidOperationException("Bytes flag is not set");
+                WriteBigEndian(Mp3Frame.RawData, bytesOffset, value);
+            }
+        }
+
+        /// <summary>
+        ///     VBR Scale property
+        /// </summary>
+        public int VbrScale { get; private set; } = -1;
+
+        /// <summary>
+        ///     The MP3 frame
+        /// </summary>
+        public Mp3Frame Mp3Frame { get; private set; }
 
         private static int ReadBigEndian(byte[] buffer, int offset)
         {
@@ -45,23 +87,20 @@ namespace NAudio.Wave
 
         private void WriteBigEndian(byte[] buffer, int offset, int value)
         {
-            byte[] littleEndian = BitConverter.GetBytes(value);
-            for (int n = 0; n < 4; n++)
-            {
-                buffer[offset + 3 - n] = littleEndian[n];
-            }
+            var littleEndian = BitConverter.GetBytes(value);
+            for (var n = 0; n < 4; n++) buffer[offset + 3 - n] = littleEndian[n];
         }
 
         /// <summary>
-        /// Load Xing Header
+        ///     Load Xing Header
         /// </summary>
         /// <param name="frame">Frame</param>
         /// <returns>Xing Header</returns>
         public static XingHeader LoadXingHeader(Mp3Frame frame)
         {
-            XingHeader xingHeader = new XingHeader();
-            xingHeader.frame = frame;
-            int offset = 0;
+            var xingHeader = new XingHeader();
+            xingHeader.Mp3Frame = frame;
+            var offset = 0;
 
             if (frame.MpegVersion == MpegVersion.Version1)
             {
@@ -83,10 +122,10 @@ namespace NAudio.Wave
                 // throw new FormatException("Unsupported MPEG Version");
             }
 
-            if ((frame.RawData[offset + 0] == 'X') &&
-                (frame.RawData[offset + 1] == 'i') &&
-                (frame.RawData[offset + 2] == 'n') &&
-                (frame.RawData[offset + 3] == 'g'))
+            if (frame.RawData[offset + 0] == 'X' &&
+                frame.RawData[offset + 1] == 'i' &&
+                frame.RawData[offset + 2] == 'n' &&
+                frame.RawData[offset + 3] == 'g')
             {
                 xingHeader.startOffset = offset;
                 offset += 4;
@@ -96,7 +135,7 @@ namespace NAudio.Wave
                 return null;
             }
 
-            XingHeaderOptions flags = (XingHeaderOptions) ReadBigEndian(frame.RawData, offset);
+            var flags = (XingHeaderOptions)ReadBigEndian(frame.RawData, offset);
             offset += 4;
 
             if ((flags & XingHeaderOptions.Frames) != 0)
@@ -104,84 +143,36 @@ namespace NAudio.Wave
                 xingHeader.framesOffset = offset;
                 offset += 4;
             }
+
             if ((flags & XingHeaderOptions.Bytes) != 0)
             {
                 xingHeader.bytesOffset = offset;
                 offset += 4;
             }
+
             if ((flags & XingHeaderOptions.Toc) != 0)
             {
                 xingHeader.tocOffset = offset;
                 offset += 100;
             }
+
             if ((flags & XingHeaderOptions.VbrScale) != 0)
             {
-                xingHeader.vbrScale = ReadBigEndian(frame.RawData, offset);
+                xingHeader.VbrScale = ReadBigEndian(frame.RawData, offset);
                 offset += 4;
             }
+
             xingHeader.endOffset = offset;
             return xingHeader;
         }
 
-        /// <summary>
-        /// Sees if a frame contains a Xing header
-        /// </summary>
-        private XingHeader()
+        [Flags]
+        private enum XingHeaderOptions
         {
-        }
-
-        /// <summary>
-        /// Number of frames
-        /// </summary>
-        public int Frames
-        {
-            get
-            {
-                if (framesOffset == -1)
-                    return -1;
-                return ReadBigEndian(frame.RawData, framesOffset);
-            }
-            set
-            {
-                if (framesOffset == -1)
-                    throw new InvalidOperationException("Frames flag is not set");
-                WriteBigEndian(frame.RawData, framesOffset, value);
-            }
-        }
-
-        /// <summary>
-        /// Number of bytes
-        /// </summary>
-        public int Bytes
-        {
-            get
-            {
-                if (bytesOffset == -1)
-                    return -1;
-                return ReadBigEndian(frame.RawData, bytesOffset);
-            }
-            set
-            {
-                if (framesOffset == -1)
-                    throw new InvalidOperationException("Bytes flag is not set");
-                WriteBigEndian(frame.RawData, bytesOffset, value);
-            }
-        }
-
-        /// <summary>
-        /// VBR Scale property
-        /// </summary>
-        public int VbrScale
-        {
-            get { return vbrScale; }
-        }
-
-        /// <summary>
-        /// The MP3 frame
-        /// </summary>
-        public Mp3Frame Mp3Frame
-        {
-            get { return frame; }
+            Frames = 1,
+            Bytes = 2,
+            Toc = 4,
+            VbrScale = 8
         }
     }
 }

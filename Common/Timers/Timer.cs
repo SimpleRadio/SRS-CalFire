@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Cabhishek.Timers
+namespace Ciribob.SRS.Common.Timers
 {
     /// <summary>
-    /// Source: https://github.com/cabhishek
-    /// This timer class uses unmanaged DLL for better accuracy at short frequencies.
-    /// This class is not thread safe.
-    /// http://stackoverflow.com/questions/416522/c-sharp-why-are-timer-frequencies-extremely-off
+    ///     Source: https://github.com/cabhishek
+    ///     This timer class uses unmanaged DLL for better accuracy at short frequencies.
+    ///     This class is not thread safe.
+    ///     http://stackoverflow.com/questions/416522/c-sharp-why-are-timer-frequencies-extremely-off
     /// </summary>
     public class Timer : IDisposable, ITimer
     {

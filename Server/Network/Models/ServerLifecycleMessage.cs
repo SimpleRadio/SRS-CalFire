@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Ciribob.SRS.Common;
-using Ciribob.SRS.Common.Network;
 using Ciribob.SRS.Common.Network.Models;
 
-namespace Ciribob.SRS.Server.Network
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models
 {
     public class StartServerMessage
     {
@@ -25,9 +23,9 @@ namespace Ciribob.SRS.Server.Network
         }
 
         //SUPER SAFE
-        public ReadOnlyCollection<SRClient> Clients => new ReadOnlyCollection<SRClient>(_srClients);
+        public ReadOnlyCollection<SRClient> Clients => new(_srClients);
 
-        public bool IsRunning { get; private set; }
+        public bool IsRunning { get; }
         public int Count => _srClients.Count;
     }
 
@@ -59,6 +57,5 @@ namespace Ciribob.SRS.Server.Network
     {
         public string TestFrequencies { get; set; }
         public string GlobalLobbyFrequencies { get; set; }
-
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Ciribob.SRS.Common.Helpers;
 using Newtonsoft.Json;
 
-namespace Ciribob.SRS.Common.PlayerState
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
 {
     public class RadioSendingState : PropertyChangedBase
     {

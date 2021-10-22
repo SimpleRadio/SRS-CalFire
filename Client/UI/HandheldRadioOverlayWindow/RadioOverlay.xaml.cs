@@ -1,34 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common.PresetChannels;
-using NLog;
-using Ciribob.SRS.Common;
-using Ciribob.SRS.Common.Network.Proxies;
-using Ciribob.SRS.Common.Network.Singletons;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models;
 using Ciribob.SRS.Common.PlayerState;
 using Newtonsoft.Json;
+using NLog;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Overlay
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWindow
 {
     /// <summary>
     ///     Interaction logic for RadioOverlayWindow.xaml
     /// </summary>
     public partial class RadioOverlayWindow : Window
     {
-        private double _aspectRatio;
-        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-        private readonly RadioControlGroup radio;
-
-        private readonly DispatcherTimer _updateTimer;
+        private static readonly string HANDHELD_RADIO_JSON = "handheld-radio.json";
 
         private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
 
@@ -36,7 +26,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Overlay
 
         private readonly double _originalMinHeight;
 
-        private static readonly string HANDHELD_RADIO_JSON = "handheld-radio.json";
+        private readonly DispatcherTimer _updateTimer;
+        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+        private readonly RadioControlGroup radio;
+        private double _aspectRatio;
 
         public RadioOverlayWindow()
         {
@@ -104,7 +98,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Overlay
                 for (var i = 0; i < 11; i++)
                     handheldRadio[i] = new Radio
                     {
-                        Config = new RadioConfig()
+                        Config = new RadioConfig
                         {
                             MinimumFrequency = 1,
                             MaxFrequency = 1,
@@ -120,7 +114,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Overlay
                 handheldRadio[1] = new Radio
                 {
                     Freq = 1.51e+8,
-                    Config = new RadioConfig()
+                    Config = new RadioConfig
                     {
                         MinimumFrequency = 1.0e+8,
                         MaxFrequency = 3.51e+8,
@@ -243,6 +237,19 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Overlay
             // Console.WriteLine(this.Height +" width:"+ this.Width);
         }
 
+        private void RadioOverlayWindow_OnMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            try
+            {
+                if (e.ChangedButton == MouseButton.Left)
+                    DragMove();
+            }
+            catch (Exception ex)
+            {
+                //can throw an error if its somehow caused when the left mouse button isnt down
+            }
+        }
+
         #region ScaleValue Depdency Property //StackOverflow: http://stackoverflow.com/questions/3193339/tips-on-developing-resolution-independent-application/5000120#5000120
 
         public static readonly DependencyProperty ScaleValueProperty = DependencyProperty.Register("ScaleValue",
@@ -286,18 +293,5 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Overlay
         }
 
         #endregion
-
-        private void RadioOverlayWindow_OnMouseDown(object sender, MouseButtonEventArgs e)
-        {
-            try
-            {
-                if (e.ChangedButton == MouseButton.Left)
-                    DragMove();
-            }
-            catch (Exception ex)
-            {
-                //can throw an error if its somehow caused when the left mouse button isnt down
-            }
-        }
     }
 }

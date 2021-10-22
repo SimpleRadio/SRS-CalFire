@@ -2,22 +2,23 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using NAudio.Wave.WaveFormats;
 
-namespace NAudio.Wave
+namespace NAudio.Wave.WaveOutputs
 {
     /// <summary>
-    /// Broadcast WAVE File Writer
+    ///     Broadcast WAVE File Writer
     /// </summary>
     public class BwfWriter : IDisposable
     {
+        private readonly long dataChunkSizePosition;
         private readonly WaveFormat format;
         private readonly BinaryWriter writer;
-        private readonly long dataChunkSizePosition;
         private long dataLength;
         private bool isDisposed;
 
         /// <summary>
-        /// Createa a new BwfWriter
+        ///     Createa a new BwfWriter
         /// </summary>
         /// <param name="filename">Rarget filename</param>
         /// <param name="format">WaveFormat</param>
@@ -57,7 +58,7 @@ namespace NAudio.Wave
             writer.Write(bextChunkInfo.Reserved); // for version 1 this is 190 bytes
             writer.Write(codingHistory);
             if (codingHistory.Length % 2 != 0)
-                writer.Write((byte) 0);
+                writer.Write((byte)0);
             Debug.Assert(writer.BaseStream.Position == bextStart + bextLength, "Invalid bext chunk size");
 
             // write the format chunk
@@ -71,7 +72,20 @@ namespace NAudio.Wave
         }
 
         /// <summary>
-        /// Write audio data to this BWF
+        ///     Disposes this writer
+        /// </summary>
+        public void Dispose()
+        {
+            if (!isDisposed)
+            {
+                FixUpChunkSizes(false);
+                writer.Close();
+                isDisposed = true;
+            }
+        }
+
+        /// <summary>
+        ///     Write audio data to this BWF
         /// </summary>
         public void Write(byte[] buffer, int offset, int count)
         {
@@ -81,7 +95,7 @@ namespace NAudio.Wave
         }
 
         /// <summary>
-        /// Flush writer, and fix up header sizes
+        ///     Flush writer, and fix up header sizes
         /// </summary>
         public void Flush()
         {
@@ -93,11 +107,11 @@ namespace NAudio.Wave
         private void FixUpChunkSizes(bool restorePosition)
         {
             var pos = writer.BaseStream.Position;
-            var isLarge = dataLength > Int32.MaxValue;
+            var isLarge = dataLength > int.MaxValue;
             var riffSize = writer.BaseStream.Length - 8;
             if (isLarge)
             {
-                var bytesPerSample = (format.BitsPerSample / 8) * format.Channels;
+                var bytesPerSample = format.BitsPerSample / 8 * format.Channels;
                 writer.BaseStream.Position = 0;
                 writer.Write(Encoding.UTF8.GetBytes("RF64"));
                 writer.Write(-1);
@@ -114,28 +128,13 @@ namespace NAudio.Wave
             {
                 // fix up the RIFF size
                 writer.BaseStream.Position = 4;
-                writer.Write((uint) riffSize);
+                writer.Write((uint)riffSize);
                 // fix up the data chunk size
                 writer.BaseStream.Position = dataChunkSizePosition;
-                writer.Write((uint) dataLength);
+                writer.Write((uint)dataLength);
             }
-            if (restorePosition)
-            {
-                writer.BaseStream.Position = pos;
-            }
-        }
 
-        /// <summary>
-        /// Disposes this writer
-        /// </summary>
-        public void Dispose()
-        {
-            if (!isDisposed)
-            {
-                FixUpChunkSizes(false);
-                writer.Close();
-                isDisposed = true;
-            }
+            if (restorePosition) writer.BaseStream.Position = pos;
         }
 
         private static byte[] GetAsBytes(string message, int byteSize)

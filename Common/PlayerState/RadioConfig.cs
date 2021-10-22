@@ -1,17 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Ciribob.SRS.Common.PlayerState
+﻿namespace Ciribob.SRS.Common.PlayerState
 {
-    public partial class RadioConfig
+    public class RadioConfig
     {
-        public enum VolumeMode
+        public enum EncryptionMode
         {
-            COCKPIT = 0,
-            OVERLAY = 1
+            NO_ENCRYPTION = 0,
+            ENCRYPTION_JUST_OVERLAY = 1,
+            ENCRYPTION_FULL = 2,
+            ENCRYPTION_COCKPIT_TOGGLE_OVERLAY_CODE = 3
+
+            // 0  is no controls
+            // 1 is FC3 Gui Toggle + Gui Enc key setting
+            // 2 is InCockpit toggle + Incockpit Enc setting
+            // 3 is Incockpit toggle + Gui Enc Key setting
         }
 
         public enum FreqMode
@@ -27,17 +28,10 @@ namespace Ciribob.SRS.Common.PlayerState
             DISABLED = 2
         }
 
-        public enum EncryptionMode
+        public enum VolumeMode
         {
-            NO_ENCRYPTION = 0,
-            ENCRYPTION_JUST_OVERLAY = 1,
-            ENCRYPTION_FULL = 2,
-            ENCRYPTION_COCKPIT_TOGGLE_OVERLAY_CODE = 3
-
-            // 0  is no controls
-            // 1 is FC3 Gui Toggle + Gui Enc key setting
-            // 2 is InCockpit toggle + Incockpit Enc setting
-            // 3 is Incockpit toggle + Gui Enc Key setting
+            COCKPIT = 0,
+            OVERLAY = 1
         }
 
 
@@ -51,9 +45,9 @@ namespace Ciribob.SRS.Common.PlayerState
         public double MaxFrequency { get; set; } = 1;
         public double MinimumFrequency { get; set; } = 1;
 
-        internal RadioConfig DeepCopy()
+        public RadioConfig DeepCopy()
         {
-            return new RadioConfig()
+            return new RadioConfig
             {
                 MaxFrequency = MaxFrequency,
                 MinimumFrequency = MinimumFrequency,

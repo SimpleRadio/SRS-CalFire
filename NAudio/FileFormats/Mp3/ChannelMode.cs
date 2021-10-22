@@ -1,31 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace NAudio.Wave
+﻿namespace NAudio.FileFormats.Mp3
 {
     /// <summary>
-    /// Channel Mode
+    ///     Channel Mode
     /// </summary>
     public enum ChannelMode
     {
         /// <summary>
-        /// Stereo
+        ///     Stereo
         /// </summary>
         Stereo,
 
         /// <summary>
-        /// Joint Stereo
+        ///     Joint Stereo
         /// </summary>
         JointStereo,
 
         /// <summary>
-        /// Dual Channel
+        ///     Dual Channel
         /// </summary>
         DualChannel,
 
         /// <summary>
-        /// Mono
+        ///     Mono
         /// </summary>
         Mono
     }

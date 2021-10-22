@@ -3,28 +3,14 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 
-namespace NAudio.Wave
+namespace NAudio.Wave.WaveStreams
 {
     /// <summary>
-    /// Implementation of Com IStream
+    ///     Implementation of Com IStream
     /// </summary>
-    class ComStream : Stream, IStream
+    internal class ComStream : Stream, IStream
     {
         private Stream stream;
-
-        public override bool CanRead => stream.CanRead;
-
-        public override bool CanSeek => stream.CanSeek;
-
-        public override bool CanWrite => stream.CanWrite;
-
-        public override long Length => stream.Length;
-
-        public override long Position
-        {
-            get { return stream.Position; }
-            set { stream.Position = value; }
-        }
 
         public ComStream(Stream stream)
             : this(stream, true)
@@ -38,6 +24,20 @@ namespace NAudio.Wave
             if (synchronizeStream)
                 stream = Synchronized(stream);
             this.stream = stream;
+        }
+
+        public override bool CanRead => stream.CanRead;
+
+        public override bool CanSeek => stream.CanSeek;
+
+        public override bool CanWrite => stream.CanWrite;
+
+        public override long Length => stream.Length;
+
+        public override long Position
+        {
+            get => stream.Position;
+            set => stream.Position = value;
         }
 
         void IStream.Clone(out IStream ppstm)
@@ -62,7 +62,7 @@ namespace NAudio.Wave
         {
             if (!CanRead)
                 throw new InvalidOperationException("Stream is not readable.");
-            int val = Read(pv, 0, cb);
+            var val = Read(pv, 0, cb);
             if (pcbRead != IntPtr.Zero)
                 Marshal.WriteInt32(pcbRead, val);
         }
@@ -73,8 +73,8 @@ namespace NAudio.Wave
 
         void IStream.Seek(long dlibMove, int dwOrigin, IntPtr plibNewPosition)
         {
-            SeekOrigin origin = (SeekOrigin) dwOrigin;
-            long val = Seek(dlibMove, origin);
+            var origin = (SeekOrigin)dwOrigin;
+            var val = Seek(dlibMove, origin);
             if (plibNewPosition != IntPtr.Zero)
                 Marshal.WriteInt64(plibNewPosition, val);
         }
@@ -84,13 +84,13 @@ namespace NAudio.Wave
             SetLength(libNewSize);
         }
 
-        void IStream.Stat(out System.Runtime.InteropServices.ComTypes.STATSTG pstatstg, int grfStatFlag)
+        void IStream.Stat(out STATSTG pstatstg, int grfStatFlag)
         {
             const int STGM_READ = 0x00000000;
             const int STGM_WRITE = 0x00000001;
             const int STGM_READWRITE = 0x00000002;
 
-            var tmp = new System.Runtime.InteropServices.ComTypes.STATSTG {type = 2, cbSize = Length, grfMode = 0};
+            var tmp = new STATSTG { type = 2, cbSize = Length, grfMode = 0 };
 
             if (CanWrite && CanRead)
                 tmp.grfMode |= STGM_READWRITE;

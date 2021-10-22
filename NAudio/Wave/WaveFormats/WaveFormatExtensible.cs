@@ -1,58 +1,56 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.IO;
 using System.Runtime.InteropServices;
 using NAudio.Dmo;
 
-namespace NAudio.Wave
+namespace NAudio.Wave.WaveFormats
 {
     /// <summary>
-    /// WaveFormatExtensible
-    /// http://www.microsoft.com/whdc/device/audio/multichaud.mspx
+    ///     WaveFormatExtensible
+    ///     http://www.microsoft.com/whdc/device/audio/multichaud.mspx
     /// </summary>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 2)]
     public class WaveFormatExtensible : WaveFormat
     {
-        short wValidBitsPerSample; // bits of precision, or is wSamplesPerBlock if wBitsPerSample==0
-        int dwChannelMask; // which channels are present in stream
-        Guid subFormat;
+        private readonly int dwChannelMask; // which channels are present in stream
+        private Guid subFormat;
+        private readonly short wValidBitsPerSample; // bits of precision, or is wSamplesPerBlock if wBitsPerSample==0
 
         /// <summary>
-        /// Parameterless constructor for marshalling
+        ///     Parameterless constructor for marshalling
         /// </summary>
-        WaveFormatExtensible()
+        private WaveFormatExtensible()
         {
         }
 
         /// <summary>
-        /// Creates a new WaveFormatExtensible for PCM or IEEE
+        ///     Creates a new WaveFormatExtensible for PCM or IEEE
         /// </summary>
         public WaveFormatExtensible(int rate, int bits, int channels)
             : base(rate, bits, channels)
         {
             waveFormatTag = WaveFormatEncoding.Extensible;
             extraSize = 22;
-            wValidBitsPerSample = (short) bits;
-            for (int n = 0; n < channels; n++)
-            {
-                dwChannelMask |= (1 << n);
-            }
+            wValidBitsPerSample = (short)bits;
+            for (var n = 0; n < channels; n++) dwChannelMask |= 1 << n;
+
             if (bits == 32)
-            {
                 // KSDATAFORMAT_SUBTYPE_IEEE_FLOAT
                 subFormat = AudioMediaSubtypes.MEDIASUBTYPE_IEEE_FLOAT;
-            }
             else
-            {
                 // KSDATAFORMAT_SUBTYPE_PCM
                 subFormat = AudioMediaSubtypes.MEDIASUBTYPE_PCM;
-            }
         }
 
         /// <summary>
-        /// WaveFormatExtensible for PCM or floating point can be awkward to work with
-        /// This creates a regular WaveFormat structure representing the same audio format
-        /// Returns the WaveFormat unchanged for non PCM or IEEE float
+        ///     SubFormat (may be one of AudioMediaSubtypes)
+        /// </summary>
+        public Guid SubFormat => subFormat;
+
+        /// <summary>
+        ///     WaveFormatExtensible for PCM or floating point can be awkward to work with
+        ///     This creates a regular WaveFormat structure representing the same audio format
+        ///     Returns the WaveFormat unchanged for non PCM or IEEE float
         /// </summary>
         /// <returns></returns>
         public WaveFormat ToStandardWaveFormat()
@@ -66,32 +64,24 @@ namespace NAudio.Wave
         }
 
         /// <summary>
-        /// SubFormat (may be one of AudioMediaSubtypes)
-        /// </summary>
-        public Guid SubFormat
-        {
-            get { return subFormat; }
-        }
-
-        /// <summary>
-        /// Serialize
+        ///     Serialize
         /// </summary>
         /// <param name="writer"></param>
-        public override void Serialize(System.IO.BinaryWriter writer)
+        public override void Serialize(BinaryWriter writer)
         {
             base.Serialize(writer);
             writer.Write(wValidBitsPerSample);
             writer.Write(dwChannelMask);
-            byte[] guid = subFormat.ToByteArray();
+            var guid = subFormat.ToByteArray();
             writer.Write(guid, 0, guid.Length);
         }
 
         /// <summary>
-        /// String representation
+        ///     String representation
         /// </summary>
         public override string ToString()
         {
-            return String.Format("{0} wBitsPerSample:{1} dwChannelMask:{2} subFormat:{3} extraSize:{4}",
+            return string.Format("{0} wBitsPerSample:{1} dwChannelMask:{2} subFormat:{3} extraSize:{4}",
                 base.ToString(),
                 wValidBitsPerSample,
                 dwChannelMask,

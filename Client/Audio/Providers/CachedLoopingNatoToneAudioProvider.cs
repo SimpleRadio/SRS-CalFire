@@ -1,21 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
+﻿using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.SRS.Common;
-using NAudio.Wave;
+using Ciribob.SRS.Common.Helpers;
+using NAudio.Wave.WaveFormats;
+using NAudio.Wave.WaveOutputs;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
 {
     public class CachedLoopingNatoToneAudioProvider : IWaveProvider
     {
-        private int _position = 0;
-
         private readonly short[] _audioEffectShort;
-        private IWaveProvider source;
+        private int _position;
+        private readonly IWaveProvider source;
 
         public CachedLoopingNatoToneAudioProvider(IWaveProvider source, WaveFormat waveFormat)
         {

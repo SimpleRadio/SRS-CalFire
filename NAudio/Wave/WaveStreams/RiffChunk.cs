@@ -5,12 +5,12 @@ using System.Text;
 namespace NAudio.Wave
 {
     /// <summary>
-    /// Holds information about a RIFF file chunk
+    ///     Holds information about a RIFF file chunk
     /// </summary>
     public class RiffChunk
     {
         /// <summary>
-        /// Creates a RiffChunk object
+        ///     Creates a RiffChunk object
         /// </summary>
         public RiffChunk(int identifier, int length, long streamPosition)
         {
@@ -20,23 +20,23 @@ namespace NAudio.Wave
         }
 
         /// <summary>
-        /// The chunk identifier
+        ///     The chunk identifier
         /// </summary>
         public int Identifier { get; }
 
         /// <summary>
-        /// The chunk identifier converted to a string
+        ///     The chunk identifier converted to a string
         /// </summary>
         public string IdentifierAsString => Encoding.UTF8.GetString(BitConverter.GetBytes(Identifier));
 
         /// <summary>
-        /// The chunk length
+        ///     The chunk length
         /// </summary>
-        public int Length { get; private set; }
+        public int Length { get; }
 
         /// <summary>
-        /// The stream position this chunk is located at
+        ///     The stream position this chunk is located at
         /// </summary>
-        public long StreamPosition { get; private set; }
+        public long StreamPosition { get; }
     }
 }

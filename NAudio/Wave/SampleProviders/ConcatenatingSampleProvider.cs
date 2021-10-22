@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using NAudio.Wave.WaveFormats;
+using NAudio.Wave.WaveOutputs;
 
 namespace NAudio.Wave.SampleProviders
 {
     /// <summary>
-    /// Sample Provider to concatenate multiple sample providers together
+    ///     Sample Provider to concatenate multiple sample providers together
     /// </summary>
     public class ConcatenatingSampleProvider : ISampleProvider
     {
@@ -13,9 +15,12 @@ namespace NAudio.Wave.SampleProviders
         private int currentProviderIndex;
 
         /// <summary>
-        /// Creates a new ConcatenatingSampleProvider
+        ///     Creates a new ConcatenatingSampleProvider
         /// </summary>
-        /// <param name="providers">The source providers to play one after the other. Must all share the same sample rate and channel count</param>
+        /// <param name="providers">
+        ///     The source providers to play one after the other. Must all share the same sample rate and
+        ///     channel count
+        /// </param>
         public ConcatenatingSampleProvider(IEnumerable<ISampleProvider> providers)
         {
             if (providers == null) throw new ArgumentNullException(nameof(providers));
@@ -29,12 +34,12 @@ namespace NAudio.Wave.SampleProviders
         }
 
         /// <summary>
-        /// The WaveFormat of this Sample Provider
+        ///     The WaveFormat of this Sample Provider
         /// </summary>
         public WaveFormat WaveFormat => providers[0].WaveFormat;
 
         /// <summary>
-        /// Read Samples from this sample provider
+        ///     Read Samples from this sample provider
         /// </summary>
         public int Read(float[] buffer, int offset, int count)
         {
@@ -46,6 +51,7 @@ namespace NAudio.Wave.SampleProviders
                 read += readThisTime;
                 if (readThisTime == 0) currentProviderIndex++;
             }
+
             return read;
         }
     }

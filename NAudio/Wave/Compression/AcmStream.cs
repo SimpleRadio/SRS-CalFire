@@ -1,22 +1,25 @@
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using NAudio.Wave.MmeInterop;
+using NAudio.Wave.WaveFormats;
 
 namespace NAudio.Wave.Compression
 {
     /// <summary>
-    /// AcmStream encapsulates an Audio Compression Manager Stream
-    /// used to convert audio from one format to another
+    ///     AcmStream encapsulates an Audio Compression Manager Stream
+    ///     used to convert audio from one format to another
     /// </summary>
     public class AcmStream : IDisposable
     {
-        private IntPtr streamHandle;
-        private IntPtr driverHandle;
-        private AcmStreamHeader streamHeader;
         private readonly WaveFormat sourceFormat;
+        private IntPtr driverHandle;
+        private IntPtr streamHandle;
+        private AcmStreamHeader streamHeader;
 
         /// <summary>
-        /// Creates a new ACM stream to convert one format to another. Note that
-        /// not all conversions can be done in one step
+        ///     Creates a new ACM stream to convert one format to another. Note that
+        ///     not all conversions can be done in one step
         /// </summary>
         /// <param name="sourceFormat">The source audio format</param>
         /// <param name="destFormat">The destination audio format</param>
@@ -26,13 +29,13 @@ namespace NAudio.Wave.Compression
             {
                 streamHandle = IntPtr.Zero;
                 this.sourceFormat = sourceFormat;
-                int sourceBufferSize = Math.Max(65536, sourceFormat.AverageBytesPerSecond);
-                sourceBufferSize -= (sourceBufferSize % sourceFormat.BlockAlign);
+                var sourceBufferSize = Math.Max(65536, sourceFormat.AverageBytesPerSecond);
+                sourceBufferSize -= sourceBufferSize % sourceFormat.BlockAlign;
                 MmException.Try(
                     AcmInterop.acmStreamOpen(out streamHandle, IntPtr.Zero, sourceFormat, destFormat, null, IntPtr.Zero,
                         IntPtr.Zero, AcmStreamOpenFlags.NonRealTime), "acmStreamOpen");
 
-                int destBufferSize = SourceToDest(sourceBufferSize);
+                var destBufferSize = SourceToDest(sourceBufferSize);
                 streamHeader = new AcmStreamHeader(streamHandle, sourceBufferSize, destBufferSize);
                 driverHandle = IntPtr.Zero;
             }
@@ -45,17 +48,17 @@ namespace NAudio.Wave.Compression
         }
 
         /// <summary>
-        /// Creates a new ACM stream to convert one format to another, using a 
-        /// specified driver identified and wave filter
+        ///     Creates a new ACM stream to convert one format to another, using a
+        ///     specified driver identified and wave filter
         /// </summary>
         /// <param name="driverId">the driver identifier</param>
         /// <param name="sourceFormat">the source format</param>
         /// <param name="waveFilter">the wave filter</param>
         public AcmStream(IntPtr driverId, WaveFormat sourceFormat, WaveFilter waveFilter)
         {
-            int sourceBufferSize = Math.Max(16384, sourceFormat.AverageBytesPerSecond);
+            var sourceBufferSize = Math.Max(16384, sourceFormat.AverageBytesPerSecond);
             this.sourceFormat = sourceFormat;
-            sourceBufferSize -= (sourceBufferSize % sourceFormat.BlockAlign);
+            sourceBufferSize -= sourceBufferSize % sourceFormat.BlockAlign;
             MmException.Try(AcmInterop.acmDriverOpen(out driverHandle, driverId, 0), "acmDriverOpen");
             MmException.Try(AcmInterop.acmStreamOpen(out streamHandle, driverHandle,
                     sourceFormat, sourceFormat, waveFilter, IntPtr.Zero, IntPtr.Zero, AcmStreamOpenFlags.NonRealTime),
@@ -63,9 +66,20 @@ namespace NAudio.Wave.Compression
             streamHeader = new AcmStreamHeader(streamHandle, sourceBufferSize, SourceToDest(sourceBufferSize));
         }
 
+        /// <summary>
+        ///     Returns the Source Buffer. Fill this with data prior to calling convert
+        /// </summary>
+        public byte[] SourceBuffer => streamHeader.SourceBuffer;
 
         /// <summary>
-        /// Returns the number of output bytes for a given number of input bytes
+        ///     Returns the Destination buffer. This will contain the converted data
+        ///     after a successful call to Convert
+        /// </summary>
+        public byte[] DestBuffer => streamHeader.DestBuffer;
+
+
+        /// <summary>
+        ///     Returns the number of output bytes for a given number of input bytes
         /// </summary>
         /// <param name="source">Number of input bytes</param>
         /// <returns>Number of output bytes</returns>
@@ -81,7 +95,7 @@ namespace NAudio.Wave.Compression
         }
 
         /// <summary>
-        /// Returns the number of source bytes for a given number of destination bytes
+        ///     Returns the number of source bytes for a given number of destination bytes
         /// </summary>
         /// <param name="dest">Number of destination bytes</param>
         /// <returns>Number of source bytes</returns>
@@ -97,15 +111,15 @@ namespace NAudio.Wave.Compression
         }
 
         /// <summary>
-        /// Suggests an appropriate PCM format that the compressed format can be converted
-        /// to in one step
+        ///     Suggests an appropriate PCM format that the compressed format can be converted
+        ///     to in one step
         /// </summary>
         /// <param name="compressedFormat">The compressed format</param>
         /// <returns>The PCM format</returns>
         public static WaveFormat SuggestPcmFormat(WaveFormat compressedFormat)
         {
             // create a PCM format
-            WaveFormat suggestedFormat = new WaveFormat(compressedFormat.SampleRate, 16, compressedFormat.Channels);
+            var suggestedFormat = new WaveFormat(compressedFormat.SampleRate, 16, compressedFormat.Channels);
             MmException.Try(
                 AcmInterop.acmFormatSuggest(IntPtr.Zero, compressedFormat, suggestedFormat,
                     Marshal.SizeOf(suggestedFormat), AcmFormatSuggestFlags.FormatTag), "acmFormatSuggest");
@@ -123,18 +137,7 @@ namespace NAudio.Wave.Compression
         }
 
         /// <summary>
-        /// Returns the Source Buffer. Fill this with data prior to calling convert
-        /// </summary>
-        public byte[] SourceBuffer => streamHeader.SourceBuffer;
-
-        /// <summary>
-        /// Returns the Destination buffer. This will contain the converted data
-        /// after a successful call to Convert
-        /// </summary>
-        public byte[] DestBuffer => streamHeader.DestBuffer;
-
-        /// <summary>
-        /// Report that we have repositioned in the source stream
+        ///     Report that we have repositioned in the source stream
         /// </summary>
         public void Reposition()
         {
@@ -142,39 +145,42 @@ namespace NAudio.Wave.Compression
         }
 
         /// <summary>
-        /// Converts the contents of the SourceBuffer into the DestinationBuffer
+        ///     Converts the contents of the SourceBuffer into the DestinationBuffer
         /// </summary>
-        /// <param name="bytesToConvert">The number of bytes in the SourceBuffer
-        /// that need to be converted</param>
+        /// <param name="bytesToConvert">
+        ///     The number of bytes in the SourceBuffer
+        ///     that need to be converted
+        /// </param>
         /// <param name="sourceBytesConverted">The number of source bytes actually converted</param>
         /// <returns>The number of converted bytes in the DestinationBuffer</returns>
         public int Convert(int bytesToConvert, out int sourceBytesConverted)
         {
             if (bytesToConvert % sourceFormat.BlockAlign != 0)
             {
-                System.Diagnostics.Debug.WriteLine(String.Format("Not a whole number of blocks: {0} ({1})",
+                Debug.WriteLine(string.Format("Not a whole number of blocks: {0} ({1})",
                     bytesToConvert, sourceFormat.BlockAlign));
-                bytesToConvert -= (bytesToConvert % sourceFormat.BlockAlign);
+                bytesToConvert -= bytesToConvert % sourceFormat.BlockAlign;
             }
 
             return streamHeader.Convert(bytesToConvert, out sourceBytesConverted);
         }
 
         /// <summary>
-        /// Converts the contents of the SourceBuffer into the DestinationBuffer
+        ///     Converts the contents of the SourceBuffer into the DestinationBuffer
         /// </summary>
-        /// <param name="bytesToConvert">The number of bytes in the SourceBuffer
-        /// that need to be converted</param>
+        /// <param name="bytesToConvert">
+        ///     The number of bytes in the SourceBuffer
+        ///     that need to be converted
+        /// </param>
         /// <returns>The number of converted bytes in the DestinationBuffer</returns>
         [Obsolete("Call the version returning sourceBytesConverted instead")]
         public int Convert(int bytesToConvert)
         {
             int sourceBytesConverted;
-            int destBytes = Convert(bytesToConvert, out sourceBytesConverted);
+            var destBytes = Convert(bytesToConvert, out sourceBytesConverted);
             if (sourceBytesConverted != bytesToConvert)
-            {
                 throw new MmException(MmResult.NotSupported, "AcmStreamHeader.Convert didn't convert everything");
-            }
+
             return destBytes;
         }
 
@@ -188,7 +194,7 @@ namespace NAudio.Wave.Compression
         #region IDisposable Members
 
         /// <summary>
-        /// Frees resources associated with this ACM Stream
+        ///     Frees resources associated with this ACM Stream
         /// </summary>
         public void Dispose()
         {
@@ -197,31 +203,27 @@ namespace NAudio.Wave.Compression
         }
 
         /// <summary>
-        /// Frees resources associated with this ACM Stream
+        ///     Frees resources associated with this ACM Stream
         /// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
-            {
                 // Free other state (managed objects).
                 if (streamHeader != null)
                 {
                     streamHeader.Dispose();
                     streamHeader = null;
                 }
-            }
 
             // Free your own state (unmanaged objects).
 
             if (streamHandle != IntPtr.Zero)
             {
-                MmResult result = AcmInterop.acmStreamClose(streamHandle, 0);
+                var result = AcmInterop.acmStreamClose(streamHandle, 0);
                 streamHandle = IntPtr.Zero;
-                if (result != MmResult.NoError)
-                {
-                    throw new MmException(result, "acmStreamClose");
-                }
+                if (result != MmResult.NoError) throw new MmException(result, "acmStreamClose");
             }
+
             // Set large fields to null.
             if (driverHandle != IntPtr.Zero)
             {
@@ -231,12 +233,12 @@ namespace NAudio.Wave.Compression
         }
 
         /// <summary>
-        /// Frees resources associated with this ACM Stream
+        ///     Frees resources associated with this ACM Stream
         /// </summary>
         ~AcmStream()
         {
             // Simply call Dispose(false).
-            System.Diagnostics.Debug.Assert(false, "AcmStream Dispose was not called");
+            Debug.Assert(false, "AcmStream Dispose was not called");
             Dispose(false);
         }
 

@@ -1,18 +1,16 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
+using System.Security;
 
 namespace NAudio.Dmo
 {
     /// <summary>
-    /// defined in mediaobj.h
+    ///     defined in mediaobj.h
     /// </summary>
-    [ComImport,
-#if !NETFX_CORE
-     System.Security.SuppressUnmanagedCodeSecurity,
-#endif
-     Guid("d8ad0f58-5494-4102-97c5-ec798e59bcf4"),
-     InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    interface IMediaObject
+    [ComImport]
+    [SuppressUnmanagedCodeSecurity]
+    [Guid("d8ad0f58-5494-4102-97c5-ec798e59bcf4")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    internal interface IMediaObject
     {
         [PreserveSig]
         int GetStreamCount(out int inputStreams, out int outputStreams);
@@ -75,7 +73,8 @@ namespace NAudio.Dmo
         [PreserveSig]
         int ProcessOutput(DmoProcessOutputFlags flags,
             int outputBufferCount,
-            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] DmoOutputDataBuffer[] outputBuffers,
+            [In] [Out] [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)]
+            DmoOutputDataBuffer[] outputBuffers,
             out int statusReserved);
 
         [PreserveSig]

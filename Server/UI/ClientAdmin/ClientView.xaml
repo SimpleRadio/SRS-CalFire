@@ -29,9 +29,9 @@
                 VerticalAlignment="Center"
                 Content="Kick" />
         <ToggleButton x:Name="ToggleClientMute"
-            Margin="2"
-            VerticalAlignment="Center"
-            IsChecked="{Binding ClientMuted, Mode=OneWay}"
-            Content="Mute" />
+                      Margin="2"
+                      VerticalAlignment="Center"
+                      IsChecked="{Binding ClientMuted, Mode=OneWay}"
+                      Content="Mute" />
     </StackPanel>
 </UserControl>

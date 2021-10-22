@@ -12,7 +12,7 @@ namespace NAudio.Wave.Asio
     // -------------------------------------------------------------------------------
 
     /// <summary>
-    /// ASIO common Exception.
+    ///     ASIO common Exception.
     /// </summary>
     internal class AsioException : Exception
     {
@@ -34,7 +34,7 @@ namespace NAudio.Wave.Asio
 
         public AsioError Error
         {
-            get { return error; }
+            get => error;
             set
             {
                 error = value;
@@ -43,11 +43,11 @@ namespace NAudio.Wave.Asio
         }
 
         /// <summary>
-        /// Gets the name of the error.
+        ///     Gets the name of the error.
         /// </summary>
         /// <param name="error">The error.</param>
         /// <returns>the name of the error</returns>
-        public static String getErrorName(AsioError error)
+        public static string getErrorName(AsioError error)
         {
             return Enum.GetName(typeof(AsioError), error);
         }
@@ -68,7 +68,7 @@ namespace NAudio.Wave.Asio
 
         public IntPtr Buffer(int bufferIndex)
         {
-            return (bufferIndex == 0) ? pBuffer0 : pBuffer1;
+            return bufferIndex == 0 ? pBuffer0 : pBuffer1;
         }
     }
 
@@ -85,7 +85,9 @@ namespace NAudio.Wave.Asio
         public Asio64Bit timeCodeSamples; // time in samples
 
         public AsioTimeCodeFlags flags; // some information flags (see below)
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)] public string future;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
+        public string future;
     }
 
     [Flags]
@@ -97,7 +99,7 @@ namespace NAudio.Wave.Asio
         kTcOnspeed = 1 << 3,
         kTcStill = 1 << 4,
         kTcSpeedValid = 1 << 8
-    };
+    }
 
     [StructLayout(LayoutKind.Sequential, Pack = 4, CharSet = CharSet.Ansi)]
     internal struct AsioTimeInfo
@@ -107,7 +109,9 @@ namespace NAudio.Wave.Asio
         public Asio64Bit samplePosition;
         public double sampleRate; // current rate
         public AsioTimeInfoFlags flags; // (see below)
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 12)] public string reserved;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 12)]
+        public string reserved;
     }
 
     [Flags]

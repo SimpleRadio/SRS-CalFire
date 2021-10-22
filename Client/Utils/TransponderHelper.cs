@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
-using Ciribob.SRS.Common;
-using Ciribob.SRS.Common.DCSState;
-using Ciribob.SRS.Common.Network.Singletons;
+﻿using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models;
+using Ciribob.SRS.Common.Network.Proxies;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 {
@@ -14,7 +8,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
     {
         public static Transponder GetTransponder(bool onlyIfOverlayControls = false)
         {
-            var dcsPlayerRadioInfo = (PlayerUnitState) ClientStateSingleton.Instance.PlayerUnitState;
+            var dcsPlayerRadioInfo = ClientStateSingleton.Instance.PlayerUnitState;
 
             var transponder = (Transponder)dcsPlayerRadioInfo.Transponder;
 
@@ -42,18 +36,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
             // ClientStateSingleton.Instance.LastSent = 0;
             var trans = GetTransponder(true);
 
-            if (trans != null && trans.status != Transponder.IFFStatus.OFF)
+            if (trans != null && trans.status != TransponderBase.IFFStatus.OFF)
             {
-                if (trans.status == Transponder.IFFStatus.NORMAL)
+                if (trans.status == TransponderBase.IFFStatus.NORMAL)
                 {
-                    trans.status = Transponder.IFFStatus.IDENT;
+                    trans.status = TransponderBase.IFFStatus.IDENT;
                     return true;
                 }
-                else
-                {
-                    trans.status = Transponder.IFFStatus.NORMAL;
-                    return true;
-                }
+
+                trans.status = TransponderBase.IFFStatus.NORMAL;
+                return true;
             }
 
             return false;

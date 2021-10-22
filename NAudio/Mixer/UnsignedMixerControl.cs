@@ -2,12 +2,12 @@
 
 using System;
 using System.Runtime.InteropServices;
-using NAudio.Wave;
+using NAudio.Wave.MmeInterop;
 
 namespace NAudio.Mixer
 {
     /// <summary>
-    /// Represents an unsigned mixer control
+    ///     Represents an unsigned mixer control
     /// </summary>
     public class UnsignedMixerControl : MixerControl
     {
@@ -20,26 +20,12 @@ namespace NAudio.Mixer
             this.mixerHandle = mixerHandle;
             this.mixerHandleType = mixerHandleType;
             this.nChannels = nChannels;
-            this.mixerControlDetails = new MixerInterop.MIXERCONTROLDETAILS();
+            mixerControlDetails = new MixerInterop.MIXERCONTROLDETAILS();
             GetControlDetails();
         }
 
         /// <summary>
-        /// Gets the details for this control
-        /// </summary>
-        protected override void GetDetails(IntPtr pDetails)
-        {
-            unsignedDetails = new MixerInterop.MIXERCONTROLDETAILS_UNSIGNED[nChannels];
-            for (int channel = 0; channel < nChannels; channel++)
-            {
-                unsignedDetails[channel] =
-                    (MixerInterop.MIXERCONTROLDETAILS_UNSIGNED) Marshal.PtrToStructure(mixerControlDetails.paDetails,
-                        typeof(MixerInterop.MIXERCONTROLDETAILS_UNSIGNED));
-            }
-        }
-
-        /// <summary>
-        /// The control value
+        ///     The control value
         /// </summary>
         public uint Value
         {
@@ -50,15 +36,16 @@ namespace NAudio.Mixer
             }
             set
             {
-                int structSize = Marshal.SizeOf(unsignedDetails[0]);
+                var structSize = Marshal.SizeOf(unsignedDetails[0]);
 
                 mixerControlDetails.paDetails = Marshal.AllocHGlobal(structSize * nChannels);
-                for (int channel = 0; channel < nChannels; channel++)
+                for (var channel = 0; channel < nChannels; channel++)
                 {
                     unsignedDetails[channel].dwValue = value;
-                    long pointer = mixerControlDetails.paDetails.ToInt64() + (structSize * channel);
-                    Marshal.StructureToPtr(unsignedDetails[channel], (IntPtr) pointer, false);
+                    var pointer = mixerControlDetails.paDetails.ToInt64() + structSize * channel;
+                    Marshal.StructureToPtr(unsignedDetails[channel], (IntPtr)pointer, false);
                 }
+
                 MmException.Try(
                     MixerInterop.mixerSetControlDetails(mixerHandle, ref mixerControlDetails,
                         MixerFlags.Value | mixerHandleType), "mixerSetControlDetails");
@@ -67,36 +54,42 @@ namespace NAudio.Mixer
         }
 
         /// <summary>
-        /// The control's minimum value
+        ///     The control's minimum value
         /// </summary>
-        public UInt32 MinValue
-        {
-            get { return (uint) mixerControl.Bounds.minimum; }
-        }
+        public uint MinValue => (uint)mixerControl.Bounds.minimum;
 
         /// <summary>
-        /// The control's maximum value
+        ///     The control's maximum value
         /// </summary>
-        public UInt32 MaxValue
-        {
-            get { return (uint) mixerControl.Bounds.maximum; }
-        }
+        public uint MaxValue => (uint)mixerControl.Bounds.maximum;
 
         /// <summary>
-        /// Value of the control represented as a percentage
+        ///     Value of the control represented as a percentage
         /// </summary>
         public double Percent
         {
-            get { return 100.0 * (Value - MinValue) / (double) (MaxValue - MinValue); }
-            set { Value = (uint) (MinValue + (value / 100.0) * (MaxValue - MinValue)); }
+            get => 100.0 * (Value - MinValue) / (MaxValue - MinValue);
+            set => Value = (uint)(MinValue + value / 100.0 * (MaxValue - MinValue));
         }
 
         /// <summary>
-        /// String Representation for debugging purposes
+        ///     Gets the details for this control
+        /// </summary>
+        protected override void GetDetails(IntPtr pDetails)
+        {
+            unsignedDetails = new MixerInterop.MIXERCONTROLDETAILS_UNSIGNED[nChannels];
+            for (var channel = 0; channel < nChannels; channel++)
+                unsignedDetails[channel] =
+                    (MixerInterop.MIXERCONTROLDETAILS_UNSIGNED)Marshal.PtrToStructure(mixerControlDetails.paDetails,
+                        typeof(MixerInterop.MIXERCONTROLDETAILS_UNSIGNED));
+        }
+
+        /// <summary>
+        ///     String Representation for debugging purposes
         /// </summary>
         public override string ToString()
         {
-            return String.Format("{0} {1}%", base.ToString(), Percent);
+            return string.Format("{0} {1}%", base.ToString(), Percent);
         }
     }
 }

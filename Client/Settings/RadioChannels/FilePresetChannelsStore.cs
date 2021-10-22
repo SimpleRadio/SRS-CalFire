@@ -2,11 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI;
 using NLog;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels
@@ -48,7 +44,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels
                             }
 
                             var frequency = double.Parse(frequencyText, CultureInfo.InvariantCulture);
-                            channels.Add(new PresetChannel()
+                            channels.Add(new PresetChannel
                             {
                                 Text = channelName ?? frequencyText, //use channel name if not null
                                 Value = frequency * MHz

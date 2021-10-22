@@ -8,29 +8,29 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using Caliburn.Micro;
-using Ciribob.SRS.Common;
-using Ciribob.SRS.Common.Network;
-using Ciribob.SRS.Common.Setting;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.PlayerState;
 using NLog;
 using LogManager = NLog.LogManager;
 
-namespace Ciribob.SRS.Server.Network
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
 {
-    class UDPPositionHandler
+    internal class UDPPositionHandler
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly ConcurrentDictionary<string, SRClient> _clientsList;
 
-        private readonly BlockingCollection<OutgoingUDPPackets> _outGoing = new BlockingCollection<OutgoingUDPPackets>();
-        private readonly CancellationTokenSource _outgoingCancellationToken = new CancellationTokenSource();
+        private readonly BlockingCollection<OutgoingUDPPackets>
+            _outGoing = new();
 
-        private readonly CancellationTokenSource _pendingProcessingCancellationToken = new CancellationTokenSource();
+        private readonly CancellationTokenSource _outgoingCancellationToken = new();
+
+        private readonly CancellationTokenSource _pendingProcessingCancellationToken = new();
 
         private readonly BlockingCollection<PendingPacket> _pendingProcessingPackets =
-            new BlockingCollection<PendingPacket>();
+            new();
 
         private readonly ServerSettingsStore _serverSettings = ServerSettingsStore.Instance;
         private UdpClient _listener;
@@ -43,7 +43,6 @@ namespace Ciribob.SRS.Server.Network
         }
 
 
-
         public void Listen()
         {
             //start threads
@@ -52,13 +51,15 @@ namespace Ciribob.SRS.Server.Network
             //outgoing packets
             new Thread(SendPendingPackets).Start();
 
-            var port = _serverSettings.GetServerPort() +1;
+            var port = _serverSettings.GetServerPort() + 1;
             _listener = new UdpClient();
             try
             {
                 _listener.AllowNatTraversal(true);
             }
-            catch { }
+            catch
+            {
+            }
 
             _listener.DontFragment = true;
             _listener.Client.DontFragment = true;
@@ -70,7 +71,6 @@ namespace Ciribob.SRS.Server.Network
                     var rawBytes = _listener.Receive(ref groupEP);
 
                     if (rawBytes?.Length == 22)
-                    {
                         try
                         {
                             //lookup guid here
@@ -91,14 +91,12 @@ namespace Ciribob.SRS.Server.Network
                         {
                             //dont log because it slows down thread too much...
                         }
-                    }
                     else if (rawBytes?.Length > 22)
                         _pendingProcessingPackets.Add(new PendingPacket
                         {
                             RawBytes = rawBytes,
                             ReceivedFrom = groupEP
                         });
-
                 }
                 catch (Exception e)
                 {
@@ -160,7 +158,7 @@ namespace Ciribob.SRS.Server.Network
                                     //decode
                                     var udpVoicePacket = UDPVoicePacket.DecodeVoicePacket(udpPacket.RawBytes);
 
-                                    if ((udpVoicePacket != null))
+                                    if (udpVoicePacket != null)
                                     {
                                         var outgoingVoice = GenerateOutgoingPacket(udpVoicePacket, udpPacket, client);
 
@@ -170,23 +168,20 @@ namespace Ciribob.SRS.Server.Network
                                             _outGoing.Add(outgoingVoice);
 
                                             //mark as transmitting for the UI
-                                            double mainFrequency = udpVoicePacket.Frequencies.FirstOrDefault();
+                                            var mainFrequency = udpVoicePacket.Frequencies.FirstOrDefault();
                                             // Only trigger transmitting frequency update for "proper" packets (excluding invalid frequencies)
                                             if (mainFrequency > 0)
                                             {
-                                                Modulation mainModulation = (Modulation)udpVoicePacket.Modulations[0];
+                                                var mainModulation = (Modulation)udpVoicePacket.Modulations[0];
                                                 if (mainModulation == Modulation.INTERCOM)
-                                                {
                                                     client.TransmittingFrequency = "INTERCOM";
-                                                }
                                                 else
-                                                {
-                                                    client.TransmittingFrequency = $"{(mainFrequency / 1000000).ToString("0.000", CultureInfo.InvariantCulture)} {mainModulation}";
-                                                }
+                                                    client.TransmittingFrequency =
+                                                        $"{(mainFrequency / 1000000).ToString("0.000", CultureInfo.InvariantCulture)} {mainModulation}";
+
                                                 client.LastTransmissionReceived = DateTime.Now;
                                             }
                                         }
-
                                     }
                                 }
                                 catch (Exception)
@@ -242,30 +237,19 @@ namespace Ciribob.SRS.Server.Network
             var guid = fromClient.ClientGuid;
 
             foreach (var client in _clientsList)
-            {
                 if (!client.Key.Equals(guid))
                 {
                     var ip = client.Value.VoipPort;
-                    if (ip != null)
-                    {
-                        outgoingList.Add(ip);
-                    }
+                    if (ip != null) outgoingList.Add(ip);
                 }
-            }
 
             if (outgoingList.Count > 0)
-            {
                 return new OutgoingUDPPackets
                 {
                     OutgoingEndPoints = outgoingList.ToList(),
                     ReceivedPacket = pendingPacket.RawBytes
                 };
-            }
-            else
-            {
-                return null;
-            }
+            return null;
         }
-
     }
 }

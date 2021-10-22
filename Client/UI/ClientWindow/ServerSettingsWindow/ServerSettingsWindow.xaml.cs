@@ -7,7 +7,7 @@ using Ciribob.SRS.Common.Setting;
 using MahApps.Metro.Controls;
 using NLog;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ServerSettingsWindow
 {
     /// <summary>
     ///     Interaction logic for ServerSettingsWindow.xaml
@@ -15,9 +15,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
     public partial class ServerSettingsWindow : MetroWindow
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        private readonly DispatcherTimer _updateTimer;
 
         private readonly SyncedServerSettings _serverSettings = SyncedServerSettings.Instance;
+        private readonly DispatcherTimer _updateTimer;
 
         public ServerSettingsWindow()
         {

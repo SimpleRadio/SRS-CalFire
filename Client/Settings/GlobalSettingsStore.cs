@@ -4,8 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Windows;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.SRS.Common.Network;
 using NLog;
 using SharpConfig;
 
@@ -183,17 +181,81 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         private static readonly string PREVIOUS_CFG_FILE_NAME = "client.cfg";
 
-        private static readonly object _lock = new object();
+        private static readonly object _lock = new();
 
-        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private static GlobalSettingsStore _instance;
         private readonly Configuration _configuration;
 
-        public string ConfigFileName { get; } = CFG_FILE_NAME;
+        private readonly Dictionary<string, string[]> defaultArraySettings = new()
+        {
+            { GlobalSettingsKeys.SettingsProfiles.ToString(), new[] { "default.cfg" } }
+        };
 
-        private ProfileSettingsStore _profileSettingsStore;
-        public ProfileSettingsStore ProfileSettingsStore => _profileSettingsStore;
+        private readonly Dictionary<string, string> defaultGlobalSettings = new()
+        {
+            { GlobalSettingsKeys.AutoConnect.ToString(), "true" },
+            { GlobalSettingsKeys.AutoConnectPrompt.ToString(), "false" },
+            { GlobalSettingsKeys.AutoConnectMismatchPrompt.ToString(), "true" },
+            { GlobalSettingsKeys.RadioOverlayTaskbarHide.ToString(), "false" },
+            { GlobalSettingsKeys.ExpandControls.ToString(), "false" },
 
-        public string Path { get; } = "";
+            { GlobalSettingsKeys.MinimiseToTray.ToString(), "false" },
+            { GlobalSettingsKeys.StartMinimised.ToString(), "false" },
+
+
+            { GlobalSettingsKeys.AudioInputDeviceId.ToString(), "" },
+            { GlobalSettingsKeys.AudioOutputDeviceId.ToString(), "" },
+            { GlobalSettingsKeys.MicAudioOutputDeviceId.ToString(), "" },
+
+            { GlobalSettingsKeys.LastServer.ToString(), "127.0.0.1" },
+
+            { GlobalSettingsKeys.MicBoost.ToString(), "0.514" },
+            { GlobalSettingsKeys.SpeakerBoost.ToString(), "0.514" },
+
+            { GlobalSettingsKeys.RadioX.ToString(), "300" },
+            { GlobalSettingsKeys.RadioY.ToString(), "300" },
+            { GlobalSettingsKeys.RadioSize.ToString(), "1.0" },
+            { GlobalSettingsKeys.RadioOpacity.ToString(), "1.0" },
+
+            { GlobalSettingsKeys.RadioWidth.ToString(), "122" },
+            { GlobalSettingsKeys.RadioHeight.ToString(), "270" },
+
+            { GlobalSettingsKeys.ClientX.ToString(), "200" },
+            { GlobalSettingsKeys.ClientY.ToString(), "200" },
+
+            { GlobalSettingsKeys.AwacsX.ToString(), "300" },
+            { GlobalSettingsKeys.AwacsY.ToString(), "300" },
+
+            //    {GlobalSettingsKeys.CliendIdShort.ToString(), ShortGuid.NewGuid().ToString()},
+            { GlobalSettingsKeys.ClientIdLong.ToString(), Guid.NewGuid().ToString() },
+
+            { GlobalSettingsKeys.AGC.ToString(), "true" },
+            { GlobalSettingsKeys.AGCTarget.ToString(), "30000" },
+            { GlobalSettingsKeys.AGCDecrement.ToString(), "-60" },
+            { GlobalSettingsKeys.AGCLevelMax.ToString(), "68" },
+
+            { GlobalSettingsKeys.Denoise.ToString(), "true" },
+            { GlobalSettingsKeys.DenoiseAttenuation.ToString(), "-30" },
+
+            { GlobalSettingsKeys.LastSeenName.ToString(), "" },
+
+            { GlobalSettingsKeys.CheckForBetaUpdates.ToString(), "false" },
+
+            { GlobalSettingsKeys.AllowMultipleInstances.ToString(), "false" },
+
+            { GlobalSettingsKeys.DisableWindowVisibilityCheck.ToString(), "false" },
+            { GlobalSettingsKeys.PlayConnectionSounds.ToString(), "true" },
+
+            { GlobalSettingsKeys.RequireAdmin.ToString(), "true" },
+
+            { GlobalSettingsKeys.AutoSelectSettingsProfile.ToString(), "false" },
+
+            { GlobalSettingsKeys.ShowTransmitterName.ToString(), "true" },
+
+            { GlobalSettingsKeys.IdleTimeOut.ToString(), "600" } // 10 mins
+        };
+
+        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         private GlobalSettingsStore()
         {
@@ -262,7 +324,24 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                 Save();
             }
 
-            _profileSettingsStore = new ProfileSettingsStore(this);
+            ProfileSettingsStore = new ProfileSettingsStore(this);
+        }
+
+        public string ConfigFileName { get; } = CFG_FILE_NAME;
+        public ProfileSettingsStore ProfileSettingsStore { get; }
+
+        public string Path { get; } = "";
+
+        public static GlobalSettingsStore Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = new GlobalSettingsStore();
+
+                //stops cyclic init
+                return _instance;
+            }
         }
 
         public static bool IsFileLocked(FileInfo file)
@@ -306,91 +385,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             }
         }
 
-        public static GlobalSettingsStore Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    _instance = new GlobalSettingsStore();
-
-                //stops cyclic init
-                return _instance;
-            }
-        }
-
         public void SetClientSetting(GlobalSettingsKeys key, string[] strArray)
         {
             SetSetting("Client Settings", key.ToString(), strArray);
         }
-
-        private readonly Dictionary<string, string> defaultGlobalSettings = new Dictionary<string, string>()
-        {
-            { GlobalSettingsKeys.AutoConnect.ToString(), "true" },
-            { GlobalSettingsKeys.AutoConnectPrompt.ToString(), "false" },
-            { GlobalSettingsKeys.AutoConnectMismatchPrompt.ToString(), "true" },
-            { GlobalSettingsKeys.RadioOverlayTaskbarHide.ToString(), "false" },
-            { GlobalSettingsKeys.ExpandControls.ToString(), "false" },
-
-            { GlobalSettingsKeys.MinimiseToTray.ToString(), "false" },
-            { GlobalSettingsKeys.StartMinimised.ToString(), "false" },
-
-
-            { GlobalSettingsKeys.AudioInputDeviceId.ToString(), "" },
-            { GlobalSettingsKeys.AudioOutputDeviceId.ToString(), "" },
-            { GlobalSettingsKeys.MicAudioOutputDeviceId.ToString(), "" },
-
-            { GlobalSettingsKeys.LastServer.ToString(), "127.0.0.1" },
-
-            { GlobalSettingsKeys.MicBoost.ToString(), "0.514" },
-            { GlobalSettingsKeys.SpeakerBoost.ToString(), "0.514" },
-
-            { GlobalSettingsKeys.RadioX.ToString(), "300" },
-            { GlobalSettingsKeys.RadioY.ToString(), "300" },
-            { GlobalSettingsKeys.RadioSize.ToString(), "1.0" },
-            { GlobalSettingsKeys.RadioOpacity.ToString(), "1.0" },
-
-            { GlobalSettingsKeys.RadioWidth.ToString(), "122" },
-            { GlobalSettingsKeys.RadioHeight.ToString(), "270" },
-
-            { GlobalSettingsKeys.ClientX.ToString(), "200" },
-            { GlobalSettingsKeys.ClientY.ToString(), "200" },
-
-            { GlobalSettingsKeys.AwacsX.ToString(), "300" },
-            { GlobalSettingsKeys.AwacsY.ToString(), "300" },
-
-            //    {GlobalSettingsKeys.CliendIdShort.ToString(), ShortGuid.NewGuid().ToString()},
-            { GlobalSettingsKeys.ClientIdLong.ToString(), Guid.NewGuid().ToString() },
-
-            { GlobalSettingsKeys.AGC.ToString(), "true" },
-            { GlobalSettingsKeys.AGCTarget.ToString(), "30000" },
-            { GlobalSettingsKeys.AGCDecrement.ToString(), "-60" },
-            { GlobalSettingsKeys.AGCLevelMax.ToString(), "68" },
-
-            { GlobalSettingsKeys.Denoise.ToString(), "true" },
-            { GlobalSettingsKeys.DenoiseAttenuation.ToString(), "-30" },
-
-            { GlobalSettingsKeys.LastSeenName.ToString(), "" },
-
-            { GlobalSettingsKeys.CheckForBetaUpdates.ToString(), "false" },
-
-            { GlobalSettingsKeys.AllowMultipleInstances.ToString(), "false" },
-
-            { GlobalSettingsKeys.DisableWindowVisibilityCheck.ToString(), "false" },
-            { GlobalSettingsKeys.PlayConnectionSounds.ToString(), "true" },
-
-            { GlobalSettingsKeys.RequireAdmin.ToString(), "true" },
-
-            { GlobalSettingsKeys.AutoSelectSettingsProfile.ToString(), "false" },
-
-            { GlobalSettingsKeys.ShowTransmitterName.ToString(), "true" },
-
-            { GlobalSettingsKeys.IdleTimeOut.ToString(), "600" } // 10 mins
-        };
-
-        private readonly Dictionary<string, string[]> defaultArraySettings = new Dictionary<string, string[]>()
-        {
-            { GlobalSettingsKeys.SettingsProfiles.ToString(), new string[] { "default.cfg" } }
-        };
 
         public Setting GetPositionSetting(GlobalSettingsKeys key)
         {
@@ -499,8 +497,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
             Save();
         }
-
-        private static GlobalSettingsStore _instance;
 
         private void Save()
         {

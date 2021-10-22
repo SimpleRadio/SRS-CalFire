@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Threading;
-using Ciribob.SRS.Common;
-using Ciribob.SRS.Common.DCSState;
-using Ciribob.SRS.Common.Network;
 using Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Audio;
 using Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network;
@@ -11,7 +8,7 @@ using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Singletons;
 using Ciribob.SRS.Common.PlayerState;
 using NLog;
-using Timer = Cabhishek.Timers.Timer;
+using Timer = Ciribob.SRS.Common.Timers.Timer;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
 {
@@ -19,32 +16,28 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private double[] freq;
-        private Modulation[] modulation;
-        private byte[] modulationBytes;
-
         private readonly string Guid = ShortGuid.NewGuid();
 
-        private CancellationTokenSource finished = new CancellationTokenSource();
+        private readonly CancellationTokenSource finished = new();
+
+        private readonly double[] freq;
         private PlayerUnitState gameState;
+        private readonly Modulation[] modulation;
+        private readonly byte[] modulationBytes;
+        private readonly Program.Options opts;
         private UdpVoiceHandler udpVoiceHandler;
-        private Program.Options opts;
 
         public ExternalAudioClient(double[] freq, Modulation[] modulation, Program.Options opts)
         {
             this.freq = freq;
             this.modulation = modulation;
             this.opts = opts;
-            this.modulationBytes = new byte[modulation.Length];
-            for (int i = 0; i < modulationBytes.Length; i++)
-            {
-                modulationBytes[i] = (byte)modulation[i];
-            }
+            modulationBytes = new byte[modulation.Length];
+            for (var i = 0; i < modulationBytes.Length; i++) modulationBytes[i] = (byte)modulation[i];
         }
 
         public void Start()
         {
-
             EventBus.Instance.Subscribe<ReadyMessage>(ReadyToSend);
             EventBus.Instance.Subscribe<DisconnectedMessage>(Disconnected);
 
@@ -53,20 +46,17 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
             gameState.Radios[1].Freq = freq[0]; // get into Hz
             gameState.Radios[1].Name = opts.Name;
 
-            Logger.Info($"Starting with params:");
-            for (int i = 0; i < freq.Length; i++)
-            {
-                Logger.Info($"Frequency: {freq[i]} Hz - {modulation[i]} ");
-            }
+            Logger.Info("Starting with params:");
+            for (var i = 0; i < freq.Length; i++) Logger.Info($"Frequency: {freq[i]} Hz - {modulation[i]} ");
 
-            LatLngPosition position = new LatLngPosition()
+            var position = new LatLngPosition
             {
-                alt = opts.Altitude,
-                lat = opts.Latitude,
-                lng = opts.Longitude
+                Alt = opts.Altitude,
+                Lat = opts.Latitude,
+                Lng = opts.Longitude
             };
 
-            var srsClientSyncHandler = new SRSClientSyncHandler(Guid, gameState,opts.Name, opts.Coalition,position);
+            var srsClientSyncHandler = new SRSClientSyncHandler(Guid, gameState, opts.Name, opts.Coalition, position);
 
             srsClientSyncHandler.TryConnect(new IPEndPoint(IPAddress.Loopback, opts.Port));
 
@@ -84,7 +74,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
         {
             if (udpVoiceHandler == null)
             {
-                Logger.Info($"Connecting UDP VoIP");
+                Logger.Info("Connecting UDP VoIP");
                 udpVoiceHandler = new UdpVoiceHandler(Guid, IPAddress.Loopback, opts.Port, gameState);
                 udpVoiceHandler.Start();
                 new Thread(SendAudio).Start();
@@ -99,11 +89,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
         private void SendAudio()
         {
             Logger.Info("Sending Audio... Please Wait");
-            AudioGenerator audioGenerator = new AudioGenerator(opts);
+            var audioGenerator = new AudioGenerator(opts);
             var opusBytes = audioGenerator.GetOpusBytes();
-            int count = 0;
+            var count = 0;
 
-            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            var tokenSource = new CancellationTokenSource();
 
             //get all the audio as Opus frames of 40 ms
             //send on 40 ms timer 
@@ -112,7 +102,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
             //user timer for accurate sending
             var _timer = new Timer(() =>
             {
-
                 if (!finished.IsCancellationRequested)
                 {
                     if (count < opusBytes.Count)
@@ -121,9 +110,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
                         count++;
 
                         if (count % 50 == 0)
-                        {
-                            Logger.Info($"Playing audio - sent {count * 40}ms - {((float)count / (float)opusBytes.Count) * 100.0:F0}% ");
-                        }
+                            Logger.Info(
+                                $"Playing audio - sent {count * 40}ms - {count / (float)opusBytes.Count * 100.0:F0}% ");
                     }
                     else
                     {
@@ -134,9 +122,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
                 {
                     Logger.Error("Client Disconnected");
                     tokenSource.Cancel();
-                    return;
                 }
-
             }, TimeSpan.FromMilliseconds(40));
             _timer.Start();
 

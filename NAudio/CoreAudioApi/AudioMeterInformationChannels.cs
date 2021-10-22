@@ -21,20 +21,25 @@
 */
 
 using System;
-using NAudio.CoreAudioApi.Interfaces;
 using System.Runtime.InteropServices;
+using NAudio.CoreAudioApi.Interfaces;
 
 namespace NAudio.CoreAudioApi
 {
     /// <summary>
-    /// Audio Meter Information Channels
+    ///     Audio Meter Information Channels
     /// </summary>
     public class AudioMeterInformationChannels
     {
         private readonly IAudioMeterInformation audioMeterInformation;
 
+        internal AudioMeterInformationChannels(IAudioMeterInformation parent)
+        {
+            audioMeterInformation = parent;
+        }
+
         /// <summary>
-        /// Metering Channel Count
+        ///     Metering Channel Count
         /// </summary>
         public int Count
         {
@@ -47,7 +52,7 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        /// Get Peak value
+        ///     Get Peak value
         /// </summary>
         /// <param name="index">Channel index</param>
         /// <returns>Peak value</returns>
@@ -57,10 +62,9 @@ namespace NAudio.CoreAudioApi
             {
                 var channels = Count;
                 if (index >= channels)
-                {
                     throw new ArgumentOutOfRangeException(nameof(index),
                         $"Peak index cannot be greater than number of channels ({channels})");
-                }
+
                 var peakValues = new float[Count];
                 var Params = GCHandle.Alloc(peakValues, GCHandleType.Pinned);
                 Marshal.ThrowExceptionForHR(
@@ -68,11 +72,6 @@ namespace NAudio.CoreAudioApi
                 Params.Free();
                 return peakValues[index];
             }
-        }
-
-        internal AudioMeterInformationChannels(IAudioMeterInformation parent)
-        {
-            audioMeterInformation = parent;
         }
     }
 }

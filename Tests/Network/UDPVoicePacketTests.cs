@@ -1,22 +1,20 @@
-﻿
-using System.Text;
-using Ciribob.SRS.Common.Network;
+﻿using System.Text;
 using Ciribob.SRS.Common.Network.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Ciribob.SRS.Common.Tests
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Tests.Network
 {
-    [TestClass()]
+    [TestClass]
     public class UDPVoicePacketTests
     {
-        [TestMethod()]
+        [TestMethod]
         public void EncodeInitialVoicePacket()
         {
             var udpVoicePacket = new UDPVoicePacket
             {
                 GuidBytes = Encoding.ASCII.GetBytes("ufYS_WlLVkmFPjqCgxz6GA"),
                 AudioPart1Bytes = new byte[] { 0, 1, 2, 3, 4, 5 },
-                AudioPart1Length = (ushort)6,
+                AudioPart1Length = 6,
                 Frequencies = new double[] { 100 },
                 UnitId = 1,
                 Encryptions = new byte[] { 0 },
@@ -31,7 +29,8 @@ namespace Ciribob.SRS.Common.Tests
             Assert.AreEqual(79, udpVoicePacket.PacketLength);
             Assert.AreEqual(79, encodedUdpVoicePacket.Length);
 
-            var expectedEncodedUdpVoicePacket = new byte[79] {
+            var expectedEncodedUdpVoicePacket = new byte[79]
+            {
                 // Total packet length
                 79, 0,
                 // Length of audio part
@@ -58,17 +57,17 @@ namespace Ciribob.SRS.Common.Tests
                 117, 102, 89, 83, 95, 87, 108, 76, 86, 107, 109, 70, 80, 106, 113, 67, 103, 120, 122, 54, 71, 65
             };
 
-            for (int i = 0; i < expectedEncodedUdpVoicePacket.Length;i++)
-            {
+            for (var i = 0; i < expectedEncodedUdpVoicePacket.Length; i++)
                 Assert.AreEqual(expectedEncodedUdpVoicePacket[i], encodedUdpVoicePacket[i]);
-            }
+
             CollectionAssert.AreEqual(expectedEncodedUdpVoicePacket, encodedUdpVoicePacket);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void DecodeInitialVoicePacket()
         {
-            var encodedUdpVoicePacket = new byte[79] {
+            var encodedUdpVoicePacket = new byte[79]
+            {
                 // Total packet length
                 79, 0,
                 // Length of audio part
@@ -110,29 +109,30 @@ namespace Ciribob.SRS.Common.Tests
             Assert.AreEqual("ufYS_WlLVkmFPjqCgxz6GA", udpVoicePacket.OriginalClientGuid);
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void EncodeMultipleFrequencyVoicePacket()
         {
             var udpVoicePacket = new UDPVoicePacket
             {
                 GuidBytes = Encoding.ASCII.GetBytes("ufYS_WlLVkmFPjqCgxz6GA"),
                 AudioPart1Bytes = new byte[] { 0, 1, 2, 3, 4, 5 },
-                AudioPart1Length = (ushort)6,
+                AudioPart1Length = 6,
                 Frequencies = new double[] { 251000000, 30000000, 251000000 },
                 UnitId = 1,
                 Encryptions = new byte[] { 0, 0, 1 },
                 Modulations = new byte[] { 0, 1, 0 },
                 PacketNumber = 1,
                 OriginalClientGuidBytes = Encoding.ASCII.GetBytes("ufYS_WlLVkmFPjqCgxz6GA"),
-                RetransmissionCount = (byte)254u,
+                RetransmissionCount = (byte)254u
             };
-        
+
             var encodedUdpVoicePacket = udpVoicePacket.EncodePacket();
-        
+
             Assert.AreEqual(99, udpVoicePacket.PacketLength);
             Assert.AreEqual(99, encodedUdpVoicePacket.Length);
-        
-            var expectedEncodedUdpVoicePacket = new byte[99] {
+
+            var expectedEncodedUdpVoicePacket = new byte[99]
+            {
                 // Total packet length
                 99, 0,
                 // Length of audio part
@@ -170,14 +170,15 @@ namespace Ciribob.SRS.Common.Tests
                 // Client GUID
                 117, 102, 89, 83, 95, 87, 108, 76, 86, 107, 109, 70, 80, 106, 113, 67, 103, 120, 122, 54, 71, 65
             };
-        
+
             CollectionAssert.AreEqual(expectedEncodedUdpVoicePacket, encodedUdpVoicePacket);
         }
-        
-        [TestMethod()]
+
+        [TestMethod]
         public void DecodeMultipleFrequencyVoicePacket()
         {
-            var encodedUdpVoicePacket = new byte[99] {
+            var encodedUdpVoicePacket = new byte[99]
+            {
                 // Total packet length
                 99, 0,
                 // Length of audio part
@@ -214,9 +215,9 @@ namespace Ciribob.SRS.Common.Tests
                 // Client GUID
                 117, 102, 89, 83, 95, 87, 108, 76, 86, 107, 109, 70, 80, 106, 113, 67, 103, 120, 122, 54, 71, 65
             };
-        
+
             var udpVoicePacket = UDPVoicePacket.DecodeVoicePacket(encodedUdpVoicePacket);
-        
+
             Assert.AreEqual("ufYS_WlLVkmFPjqCgxz6GA", udpVoicePacket.Guid);
             Assert.AreEqual("ufYS_WlLVkmFPjqCgxz6GA", udpVoicePacket.OriginalClientGuid);
             CollectionAssert.AreEqual(new byte[] { 0, 1, 2, 3, 4, 5 }, udpVoicePacket.AudioPart1Bytes);

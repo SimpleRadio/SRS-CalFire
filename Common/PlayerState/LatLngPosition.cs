@@ -2,18 +2,18 @@
 {
     public class LatLngPosition
     {
-        public double lat;
-        public double lng;
-        public double alt;
+        public double Lat { get; set; }
+        public double Lng { get; set; }
+        public double Alt { get; set; }
 
-        public bool isValid()
+        public bool IsValid()
         {
-            return lat != 0 && lng != 0;
+            return Lat != 0 && Lng != 0;
         }
 
         public override string ToString()
         {
-            return $"Pos:[{lat},{lng},{alt}]";
+            return $"Pos:[{Lat},{Lng},{Alt}]";
         }
     }
 }

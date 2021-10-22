@@ -20,20 +20,17 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-using System;
 using System.Runtime.InteropServices;
 using NAudio.CoreAudioApi.Interfaces;
 
 namespace NAudio.CoreAudioApi
 {
     /// <summary>
-    /// Audio Meter Information
+    ///     Audio Meter Information
     /// </summary>
     public class AudioMeterInformation
     {
         private readonly IAudioMeterInformation audioMeterInformation;
-        private readonly EEndpointHardwareSupport hardwareSupport;
-        private readonly AudioMeterInformationChannels channels;
 
         internal AudioMeterInformation(IAudioMeterInformation realInterface)
         {
@@ -41,28 +38,22 @@ namespace NAudio.CoreAudioApi
 
             audioMeterInformation = realInterface;
             Marshal.ThrowExceptionForHR(audioMeterInformation.QueryHardwareSupport(out hardwareSupp));
-            hardwareSupport = (EEndpointHardwareSupport) hardwareSupp;
-            channels = new AudioMeterInformationChannels(audioMeterInformation);
+            HardwareSupport = (EEndpointHardwareSupport)hardwareSupp;
+            PeakValues = new AudioMeterInformationChannels(audioMeterInformation);
         }
 
         /// <summary>
-        /// Peak Values
+        ///     Peak Values
         /// </summary>
-        public AudioMeterInformationChannels PeakValues
-        {
-            get { return channels; }
-        }
+        public AudioMeterInformationChannels PeakValues { get; }
 
         /// <summary>
-        /// Hardware Support
+        ///     Hardware Support
         /// </summary>
-        public EEndpointHardwareSupport HardwareSupport
-        {
-            get { return hardwareSupport; }
-        }
+        public EEndpointHardwareSupport HardwareSupport { get; }
 
         /// <summary>
-        /// Master Peak Value
+        ///     Master Peak Value
         /// </summary>
         public float MasterPeakValue
         {

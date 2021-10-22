@@ -1,7 +1,7 @@
 ﻿using System.Net.Sockets;
 using System.Text;
 
-namespace Ciribob.SRS.Server.Network.Models
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models
 {
     public class ConnectionStateObject
     {
@@ -14,7 +14,7 @@ namespace Ciribob.SRS.Server.Network.Models
         public string guid;
 
         // Received data string.
-        public StringBuilder sb = new StringBuilder();
+        public StringBuilder sb = new();
 
         // Client  socket.
         public Socket workSocket;

@@ -6,11 +6,10 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Caliburn.Micro;
-using Ciribob.SRS.Common;
-using Ciribob.SRS.Common.Setting;
-using Ciribob.SRS.Server.Network;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.ClientAdmin;
+using Ciribob.SRS.Common.Setting;
 using NLog;
 using LogManager = NLog.LogManager;
 
@@ -22,6 +21,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
         private readonly IEventAggregator _eventAggregator;
         private readonly IWindowManager _windowManager;
         private readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+        private string _testFrequencies =
+            ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.TEST_FREQUENCIES).StringValue;
+
+        private DispatcherTimer _testFrequenciesDebounceTimer;
+
         public MainViewModel(IWindowManager windowManager, IEventAggregator eventAggregator,
             ClientAdminViewModel clientAdminViewModel)
         {
@@ -30,7 +35,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
             _clientAdminViewModel = clientAdminViewModel;
             _eventAggregator.Subscribe(this);
 
-            DisplayName = $"SRS Server - {UpdaterChecker.VERSION} - {ListeningPort}" ;
+            DisplayName = $"SRS Server - {UpdaterChecker.VERSION} - {ListeningPort}";
 
             Logger.Info("SRS Server Running - " + UpdaterChecker.VERSION);
         }
@@ -41,7 +46,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public int NodeLimit
         {
-            get => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.RETRANSMISSION_NODE_LIMIT).IntValue;
+            get => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.RETRANSMISSION_NODE_LIMIT)
+                .IntValue;
             set
             {
                 ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.RETRANSMISSION_NODE_LIMIT,
@@ -56,22 +62,21 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
             => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.LOS_ENABLED).BoolValue ? "ON" : "OFF";
 
         public string DistanceLimitText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.DISTANCE_ENABLED).BoolValue ? "ON" : "OFF";
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.DISTANCE_ENABLED).BoolValue
+                ? "ON"
+                : "OFF";
 
         public string RealRadioText
             => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.IRL_RADIO_TX).BoolValue ? "ON" : "OFF";
 
         public string IRLRadioRxText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE).BoolValue ? "ON" : "OFF";
-
-        private string _testFrequencies =
-            ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.TEST_FREQUENCIES).StringValue;
-
-        private DispatcherTimer _testFrequenciesDebounceTimer;
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE).BoolValue
+                ? "ON"
+                : "OFF";
 
         public string TestFrequencies
         {
-            get { return _testFrequencies; }
+            get => _testFrequencies;
             set
             {
                 _testFrequencies = value.Trim();
@@ -92,7 +97,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
         }
 
         public string TunedCountText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.SHOW_TUNED_COUNT).BoolValue ? "ON" : "OFF";
+            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.SHOW_TUNED_COUNT).BoolValue
+                ? "ON"
+                : "OFF";
+
         public string ListeningPort
             => ServerSettingsStore.Instance.GetServerSetting(ServerSettingsKeys.SERVER_PORT).StringValue;
 
@@ -107,21 +115,17 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
         public void ServerStartStop()
         {
             if (IsServerRunning)
-            {
                 _eventAggregator.PublishOnBackgroundThreadAsync(new StopServerMessage());
-            }
             else
-            {
                 _eventAggregator.PublishOnBackgroundThreadAsync(new StartServerMessage());
-            }
         }
 
         public void ShowClientList()
         {
             IDictionary<string, object> settings = new Dictionary<string, object>
             {
-                {"Icon", new BitmapImage(new Uri("pack://application:,,,/SRS-Server;component/server-10.ico"))},
-                {"ResizeMode", ResizeMode.CanMinimize}
+                { "Icon", new BitmapImage(new Uri("pack://application:,,,/SRS-Server;component/server-10.ico")) },
+                { "ResizeMode", ResizeMode.CanMinimize }
             };
             _windowManager.ShowWindowAsync(_clientAdminViewModel, null, settings);
         }
@@ -168,7 +172,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
         {
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.TEST_FREQUENCIES, _testFrequencies);
 
-            _eventAggregator.PublishOnBackgroundThreadAsync(new ServerFrequenciesChanged()
+            _eventAggregator.PublishOnBackgroundThreadAsync(new ServerFrequenciesChanged
             {
                 TestFrequencies = _testFrequencies
             });
@@ -187,6 +191,5 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
 
             _eventAggregator.PublishOnBackgroundThreadAsync(new ServerSettingsChangedMessage());
         }
-
     }
 }

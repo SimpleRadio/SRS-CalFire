@@ -1,20 +1,20 @@
-using System;
+using System.Collections;
 using System.Collections.Generic;
 using NAudio.Utils;
 
 namespace NAudio.Midi
 {
     /// <summary>
-    /// A helper class to manage collection of MIDI events
-    /// It has the ability to organise them in tracks
+    ///     A helper class to manage collection of MIDI events
+    ///     It has the ability to organise them in tracks
     /// </summary>
     public class MidiEventCollection : IEnumerable<IList<MidiEvent>>
     {
-        private int midiFileType;
         private readonly List<IList<MidiEvent>> trackEvents;
+        private int midiFileType;
 
         /// <summary>
-        /// Creates a new Midi Event collection
+        ///     Creates a new Midi Event collection
         /// </summary>
         /// <param name="midiFileType">Initial file type</param>
         /// <param name="deltaTicksPerQuarterNote">Delta Ticks Per Quarter Note</param>
@@ -27,82 +27,30 @@ namespace NAudio.Midi
         }
 
         /// <summary>
-        /// The number of tracks
+        ///     The number of tracks
         /// </summary>
         public int Tracks => trackEvents.Count;
 
         /// <summary>
-        /// The absolute time that should be considered as time zero
-        /// Not directly used here, but useful for timeshifting applications
+        ///     The absolute time that should be considered as time zero
+        ///     Not directly used here, but useful for timeshifting applications
         /// </summary>
         public long StartAbsoluteTime { get; set; }
 
         /// <summary>
-        /// The number of ticks per quarter note
+        ///     The number of ticks per quarter note
         /// </summary>
         public int DeltaTicksPerQuarterNote { get; }
 
         /// <summary>
-        /// Gets events on a specified track
-        /// </summary>
-        /// <param name="trackNumber">Track number</param>
-        /// <returns>The list of events</returns>
-        public IList<MidiEvent> GetTrackEvents(int trackNumber)
-        {
-            return trackEvents[trackNumber];
-        }
-
-        /// <summary>
-        /// Gets events on a specific track
+        ///     Gets events on a specific track
         /// </summary>
         /// <param name="trackNumber">Track number</param>
         /// <returns>The list of events</returns>
         public IList<MidiEvent> this[int trackNumber] => trackEvents[trackNumber];
 
         /// <summary>
-        /// Adds a new track
-        /// </summary>
-        /// <returns>The new track event list</returns>
-        public IList<MidiEvent> AddTrack()
-        {
-            return AddTrack(null);
-        }
-
-        /// <summary>
-        /// Adds a new track
-        /// </summary>
-        /// <param name="initialEvents">Initial events to add to the new track</param>
-        /// <returns>The new track event list</returns>
-        public IList<MidiEvent> AddTrack(IList<MidiEvent> initialEvents)
-        {
-            List<MidiEvent> events = new List<MidiEvent>();
-            if (initialEvents != null)
-            {
-                events.AddRange(initialEvents);
-            }
-            trackEvents.Add(events);
-            return events;
-        }
-
-        /// <summary>
-        /// Removes a track
-        /// </summary>
-        /// <param name="track">Track number to remove</param>
-        public void RemoveTrack(int track)
-        {
-            trackEvents.RemoveAt(track);
-        }
-
-        /// <summary>
-        /// Clears all events
-        /// </summary>
-        public void Clear()
-        {
-            trackEvents.Clear();
-        }
-
-        /// <summary>
-        /// The MIDI file type
+        ///     The MIDI file type
         /// </summary>
         public int MidiFileType
         {
@@ -115,27 +63,91 @@ namespace NAudio.Midi
                     midiFileType = value;
 
                     if (value == 0)
-                    {
                         FlattenToOneTrack();
-                    }
                     else
-                    {
                         ExplodeToManyTracks();
-                    }
                 }
             }
         }
 
         /// <summary>
-        /// Adds an event to the appropriate track depending on file type
+        ///     Gets an enumerator for the lists of track events
+        /// </summary>
+        public IEnumerator<IList<MidiEvent>> GetEnumerator()
+        {
+            return trackEvents.GetEnumerator();
+        }
+
+        /// <summary>
+        ///     Gets an enumerator for the lists of track events
+        /// </summary>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return trackEvents.GetEnumerator();
+        }
+
+        /// <summary>
+        ///     Gets events on a specified track
+        /// </summary>
+        /// <param name="trackNumber">Track number</param>
+        /// <returns>The list of events</returns>
+        public IList<MidiEvent> GetTrackEvents(int trackNumber)
+        {
+            return trackEvents[trackNumber];
+        }
+
+        /// <summary>
+        ///     Adds a new track
+        /// </summary>
+        /// <returns>The new track event list</returns>
+        public IList<MidiEvent> AddTrack()
+        {
+            return AddTrack(null);
+        }
+
+        /// <summary>
+        ///     Adds a new track
+        /// </summary>
+        /// <param name="initialEvents">Initial events to add to the new track</param>
+        /// <returns>The new track event list</returns>
+        public IList<MidiEvent> AddTrack(IList<MidiEvent> initialEvents)
+        {
+            var events = new List<MidiEvent>();
+            if (initialEvents != null) events.AddRange(initialEvents);
+
+            trackEvents.Add(events);
+            return events;
+        }
+
+        /// <summary>
+        ///     Removes a track
+        /// </summary>
+        /// <param name="track">Track number to remove</param>
+        public void RemoveTrack(int track)
+        {
+            trackEvents.RemoveAt(track);
+        }
+
+        /// <summary>
+        ///     Clears all events
+        /// </summary>
+        public void Clear()
+        {
+            trackEvents.Clear();
+        }
+
+        /// <summary>
+        ///     Adds an event to the appropriate track depending on file type
         /// </summary>
         /// <param name="midiEvent">The event to be added</param>
         /// <param name="originalTrack">The original (or desired) track number</param>
-        /// <remarks>When adding events in type 0 mode, the originalTrack parameter
-        /// is ignored. If in type 1 mode, it will use the original track number to
-        /// store the new events. If the original track was 0 and this is a channel based
-        /// event, it will create new tracks if necessary and put it on the track corresponding
-        /// to its channel number</remarks>
+        /// <remarks>
+        ///     When adding events in type 0 mode, the originalTrack parameter
+        ///     is ignored. If in type 1 mode, it will use the original track number to
+        ///     store the new events. If the original track was 0 and this is a channel based
+        ///     event, it will create new tracks if necessary and put it on the track corresponding
+        ///     to its channel number
+        /// </remarks>
         public void AddEvent(MidiEvent midiEvent, int originalTrack)
         {
             if (midiFileType == 0)
@@ -179,49 +191,36 @@ namespace NAudio.Midi
 
         private void EnsureTracks(int count)
         {
-            for (int n = trackEvents.Count; n < count; n++)
-            {
-                trackEvents.Add(new List<MidiEvent>());
-            }
+            for (var n = trackEvents.Count; n < count; n++) trackEvents.Add(new List<MidiEvent>());
         }
 
         private void ExplodeToManyTracks()
         {
-            IList<MidiEvent> originalList = trackEvents[0];
+            var originalList = trackEvents[0];
             Clear();
-            foreach (MidiEvent midiEvent in originalList)
-            {
-                AddEvent(midiEvent, 0);
-            }
+            foreach (var midiEvent in originalList) AddEvent(midiEvent, 0);
+
             PrepareForExport();
         }
 
         private void FlattenToOneTrack()
         {
-            bool eventsAdded = false;
-            for (int track = 1; track < trackEvents.Count; track++)
-            {
-                foreach (MidiEvent midiEvent in trackEvents[track])
-                {
+            var eventsAdded = false;
+            for (var track = 1; track < trackEvents.Count; track++)
+                foreach (var midiEvent in trackEvents[track])
                     if (!MidiEvent.IsEndTrack(midiEvent))
                     {
                         trackEvents[0].Add(midiEvent);
                         eventsAdded = true;
                     }
-                }
-            }
-            for (int track = trackEvents.Count - 1; track > 0; track--)
-            {
-                RemoveTrack(track);
-            }
-            if (eventsAdded)
-            {
-                PrepareForExport();
-            }
+
+            for (var track = trackEvents.Count - 1; track > 0; track--) RemoveTrack(track);
+
+            if (eventsAdded) PrepareForExport();
         }
 
         /// <summary>
-        /// Sorts, removes empty tracks and adds end track markers
+        ///     Sorts, removes empty tracks and adds end track markers
         /// </summary>
         public void PrepareForExport()
         {
@@ -232,21 +231,15 @@ namespace NAudio.Midi
                 MergeSort.Sort(list, comparer);
 
                 // 2. remove all End track events except one at the very end
-                int index = 0;
+                var index = 0;
                 while (index < list.Count - 1)
-                {
                     if (MidiEvent.IsEndTrack(list[index]))
-                    {
                         list.RemoveAt(index);
-                    }
                     else
-                    {
                         index++;
-                    }
-                }
             }
 
-            int track = 0;
+            var track = 0;
             // 3. remove empty tracks and add missing
             while (track < trackEvents.Count)
             {
@@ -264,29 +257,12 @@ namespace NAudio.Midi
                     else
                     {
                         if (!MidiEvent.IsEndTrack(list[list.Count - 1]))
-                        {
                             list.Add(new MetaEvent(MetaEventType.EndTrack, 0, list[list.Count - 1].AbsoluteTime));
-                        }
+
                         track++;
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Gets an enumerator for the lists of track events
-        /// </summary>
-        public IEnumerator<IList<MidiEvent>> GetEnumerator()
-        {
-            return trackEvents.GetEnumerator();
-        }
-
-        /// <summary>
-        /// Gets an enumerator for the lists of track events
-        /// </summary>
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return trackEvents.GetEnumerator();
         }
     }
 }

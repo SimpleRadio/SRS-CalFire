@@ -1,15 +1,15 @@
-﻿using System;
+﻿using NAudio.Wave.WaveOutputs;
 
 namespace NAudio.Wave.SampleProviders
 {
     /// <summary>
-    /// Converts an IWaveProvider containing 8 bit PCM to an
-    /// ISampleProvider
+    ///     Converts an IWaveProvider containing 8 bit PCM to an
+    ///     ISampleProvider
     /// </summary>
     public class Pcm8BitToSampleProvider : SampleProviderConverterBase
     {
         /// <summary>
-        /// Initialises a new instance of Pcm8BitToSampleProvider
+        ///     Initialises a new instance of Pcm8BitToSampleProvider
         /// </summary>
         /// <param name="source">Source wave provider</param>
         public Pcm8BitToSampleProvider(IWaveProvider source) :
@@ -18,7 +18,7 @@ namespace NAudio.Wave.SampleProviders
         }
 
         /// <summary>
-        /// Reads samples from this sample provider
+        ///     Reads samples from this sample provider
         /// </summary>
         /// <param name="buffer">Sample buffer</param>
         /// <param name="offset">Offset into sample buffer</param>
@@ -26,14 +26,12 @@ namespace NAudio.Wave.SampleProviders
         /// <returns>Number of samples read</returns>
         public override int Read(float[] buffer, int offset, int count)
         {
-            int sourceBytesRequired = count;
+            var sourceBytesRequired = count;
             EnsureSourceBuffer(sourceBytesRequired);
-            int bytesRead = source.Read(sourceBuffer, 0, sourceBytesRequired);
-            int outIndex = offset;
-            for (int n = 0; n < bytesRead; n++)
-            {
-                buffer[outIndex++] = sourceBuffer[n] / 128f - 1.0f;
-            }
+            var bytesRead = source.Read(sourceBuffer, 0, sourceBytesRequired);
+            var outIndex = offset;
+            for (var n = 0; n < bytesRead; n++) buffer[outIndex++] = sourceBuffer[n] / 128f - 1.0f;
+
             return bytesRead;
         }
     }

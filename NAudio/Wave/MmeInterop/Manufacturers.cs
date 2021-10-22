@@ -1,9 +1,7 @@
-using System;
-
-namespace NAudio
+namespace NAudio.Wave.MmeInterop
 {
     /// <summary>
-    /// Manufacturer codes from mmreg.h
+    ///     Manufacturer codes from mmreg.h
     /// </summary>
     public enum Manufacturers
     {
@@ -434,7 +432,7 @@ namespace NAudio
         S3 = 164,
 
         /// <summary>Fraunhofer</summary>
-        FraunhoferIis = 172,
+        FraunhoferIis = 172
 
         /*
         public static String GetName(int manufacturerId) {

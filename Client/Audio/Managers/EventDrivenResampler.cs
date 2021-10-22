@@ -1,25 +1,25 @@
 ﻿using System;
-using System.Diagnostics;
-using NAudio.Dmo;
 using NAudio.Dsp;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using NAudio.Wave.WaveFormats;
+using NAudio.Wave.WaveOutputs;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 {
     public class EventDrivenResampler
     {
+        private readonly bool resampleRequired = false;
         private readonly bool windowsN;
+        private readonly BufferedWaveProvider buf;
+        private readonly int bufferMultiplier = 1;
         private ResamplerDmoStream dmoResampler;
 
         private WaveFormat input;
+        private readonly WdlResamplingSampleProvider mediaFoundationResampler;
         private WaveFormat output;
         private WdlResampler resampler;
-        private WdlResamplingSampleProvider mediaFoundationResampler;
-        private BufferedWaveProvider buf;
-        private IWaveProvider waveOut;
-        private int bufferMultiplier = 1;
-        private readonly bool resampleRequired = false;
+        private readonly IWaveProvider waveOut;
 
         public EventDrivenResampler(bool windowsN, WaveFormat input, WaveFormat output)
         {
@@ -53,13 +53,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             {
                 return new byte[0];
             }
-            else
-            {
-                var finalBuf = new byte[read];
-                Buffer.BlockCopy(outBuffer, 0, finalBuf, 0, read);
 
-                return finalBuf;
-            }
+            var finalBuf = new byte[read];
+            Buffer.BlockCopy(outBuffer, 0, finalBuf, 0, read);
+
+            return finalBuf;
         }
 
         private byte[] ResampleBytesMFC(byte[] inputByteArray, int length)
@@ -74,21 +72,18 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             {
                 return new byte[0];
             }
-            else
-            {
-                var finalBuf = new byte[read];
-                Buffer.BlockCopy(outBuffer, 0, finalBuf, 0, read);
 
-                return finalBuf;
-            }
+            var finalBuf = new byte[read];
+            Buffer.BlockCopy(outBuffer, 0, finalBuf, 0, read);
+
+            return finalBuf;
         }
 
         public byte[] ResampleBytes(byte[] inputByteArray, int length)
         {
             if (windowsN)
                 return ResampleBytesMFC(inputByteArray, length);
-            else
-                return ResampleBytesDMO(inputByteArray, length);
+            return ResampleBytesDMO(inputByteArray, length);
         }
 
         private short[] ResampleDMO(byte[] inputByteArray, int length)
@@ -108,8 +103,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         {
             if (windowsN)
                 return ResampleMFC(inputByteArray, length);
-            else
-                return ResampleDMO(inputByteArray, length);
+            return ResampleDMO(inputByteArray, length);
         }
 
         private short[] ResampleMFC(byte[] inputByteArray, int length)
@@ -124,17 +118,15 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             {
                 return new short[0];
             }
-            else
-            {
-                //convert byte to short
-                var sdata = new short[read / 2];
-                Buffer.BlockCopy(outBuffer, 0, sdata, 0, read);
-                return sdata;
-            }
+
+            //convert byte to short
+            var sdata = new short[read / 2];
+            Buffer.BlockCopy(outBuffer, 0, sdata, 0, read);
+            return sdata;
         }
 
         /// <summary>
-        /// Dispose
+        ///     Dispose
         /// </summary>
         /// <param name="disposing">True if disposing (not from finalizer)</param>
         public void Dispose(bool disposing)

@@ -1,9 +1,8 @@
 ﻿using System;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.SRS.Common;
+using Ciribob.SRS.Common.Helpers;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
 {
     public abstract class AudioProvider
     {

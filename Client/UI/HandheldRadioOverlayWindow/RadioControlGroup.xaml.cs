@@ -2,12 +2,12 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common.PresetChannels;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.SRS.Common.Network.Singletons;
-using ConnectedClientsSingleton = Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.ConnectedClientsSingleton;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWindow
 {
     /// <summary>
     ///     Interaction logic for RadioControlGroup.xaml
@@ -15,11 +15,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow
     public partial class RadioControlGroup : UserControl
     {
         private const double MHz = 1000000;
-        private bool _dragging;
         private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
         private readonly ConnectedClientsSingleton _connectClientsSingleton = ConnectedClientsSingleton.Instance;
+        private bool _dragging;
 
-        public PresetChannelsViewModel ChannelViewModel { get; set; }
+        private int _radioId;
 
         public RadioControlGroup()
         {
@@ -28,7 +28,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow
             InitializeComponent();
         }
 
-        private int _radioId;
+        public PresetChannelsViewModel ChannelViewModel { get; set; }
 
         public int RadioId
         {

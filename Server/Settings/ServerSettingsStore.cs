@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Windows;
+using Ciribob.SRS.Common.Setting;
 using NLog;
 using SharpConfig;
-using Ciribob.SRS.Common.Setting;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings
 {
@@ -15,12 +15,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings
         public static readonly string CFG_BACKUP_FILE_NAME = "server.cfg.bak";
 
         private static ServerSettingsStore instance;
-        private static readonly object _lock = new object();
+        private static readonly object _lock = new();
 
         private readonly Configuration _configuration;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        private string cfgFile = CFG_FILE_NAME;
+        private readonly string cfgFile = CFG_FILE_NAME;
 
         public ServerSettingsStore()
         {
@@ -28,12 +28,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings
             var args = Environment.GetCommandLineArgs();
 
             foreach (var arg in args)
-            {
                 if (arg.StartsWith("-cfg="))
-                {
                     cfgFile = arg.Replace("-cfg=", "").Trim();
-                }
-            }
 
             try
             {
@@ -41,7 +37,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings
             }
             catch (FileNotFoundException ex)
             {
-                _logger.Info("Did not find server config file, initialising with default config",ex);
+                _logger.Info("Did not find server config file, initialising with default config", ex);
 
                 _configuration = new Configuration();
                 _configuration.Add(new Section("General Settings"));
@@ -52,10 +48,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings
             }
             catch (ParserException ex)
             {
-                _logger.Error(ex, "Failed to parse server config, potentially corrupted. Creating backing and re-initialising with default config");
+                _logger.Error(ex,
+                    "Failed to parse server config, potentially corrupted. Creating backing and re-initialising with default config");
 
                 MessageBox.Show("Failed to read server config, it might have become corrupted.\n" +
-                    "SRS will create a backup of your current config file (server.cfg.bak) and initialise using default settings.",
+                                "SRS will create a backup of your current config file (server.cfg.bak) and initialise using default settings.",
                     "Config error",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
@@ -83,11 +80,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings
             {
                 lock (_lock)
                 {
-                    if (instance == null)
-                    {
-                        instance = new ServerSettingsStore();
-                    }
+                    if (instance == null) instance = new ServerSettingsStore();
                 }
+
                 return instance;
             }
         }
@@ -134,21 +129,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings
 
         private Setting GetSetting(string section, string setting)
         {
-            if (!_configuration.Contains(section))
-            {
-                _configuration.Add(section);
-            }
+            if (!_configuration.Contains(section)) _configuration.Add(section);
 
             if (!_configuration[section].Contains(setting))
             {
                 if (DefaultServerSettings.Defaults.ContainsKey(setting))
-                {
                     _configuration[section].Add(new Setting(setting, DefaultServerSettings.Defaults[setting]));
-                }
                 else
-                {
                     _configuration[section].Add(new Setting(setting, ""));
-                }
 
                 Save();
             }
@@ -158,24 +146,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings
 
         private void SetSetting(string section, string key, string setting)
         {
-            if (setting == null)
-            {
-                setting = "";
-            }
+            if (setting == null) setting = "";
 
-            if (!_configuration.Contains(section))
-            {
-                _configuration.Add(section);
-            }
+            if (!_configuration.Contains(section)) _configuration.Add(section);
 
             if (!_configuration[section].Contains(key))
-            {
                 _configuration[section].Add(new Setting(key, setting));
-            }
             else
-            {
                 _configuration[section][key].StringValue = setting;
-            }
 
             Save();
         }
@@ -187,9 +165,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings
                 try
                 {
                     _configuration.SaveToFile(cfgFile);
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
-                    _logger.Error(ex,"Unable to save settings!");
+                    _logger.Error(ex, "Unable to save settings!");
                 }
             }
         }
@@ -197,19 +176,19 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings
         public int GetServerPort()
         {
             if (!_configuration.Contains("Server Settings"))
-            {
                 return GetServerSetting(ServerSettingsKeys.SERVER_PORT).IntValue;
-            }
 
             // Migrate from old "port" setting value to new "SERVER_PORT" one
             if (_configuration["Server Settings"].Contains("port"))
             {
-                Setting oldSetting = _configuration["Server Settings"]["port"];
+                var oldSetting = _configuration["Server Settings"]["port"];
                 if (!string.IsNullOrWhiteSpace(oldSetting.StringValue))
                 {
-                    _logger.Info($"Migrating old port value {oldSetting.StringValue} to current SERVER_PORT server setting");
+                    _logger.Info(
+                        $"Migrating old port value {oldSetting.StringValue} to current SERVER_PORT server setting");
 
-                    _configuration["Server Settings"][ServerSettingsKeys.SERVER_PORT.ToString()].StringValue = oldSetting.StringValue;
+                    _configuration["Server Settings"][ServerSettingsKeys.SERVER_PORT.ToString()].StringValue =
+                        oldSetting.StringValue;
                 }
 
                 _logger.Info("Removing old port value from server settings");
@@ -224,17 +203,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings
 
         public Dictionary<string, string> ToDictionary()
         {
-            if (!_configuration.Contains("General Settings"))
-            {
-                _configuration.Add("General Settings");
-            }
+            if (!_configuration.Contains("General Settings")) _configuration.Add("General Settings");
 
-            Dictionary<string, string> settings = new Dictionary<string, string>(_configuration["General Settings"].SettingCount);
+            var settings =
+                new Dictionary<string, string>(_configuration["General Settings"].SettingCount);
 
-            foreach (Setting setting in _configuration["General Settings"])
-            {
-                settings[setting.Name] = setting.StringValue;
-            }
+            foreach (var setting in _configuration["General Settings"]) settings[setting.Name] = setting.StringValue;
 
             return settings;
         }

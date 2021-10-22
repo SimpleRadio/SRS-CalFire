@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -7,19 +8,18 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils.ValueConverters
 {
     internal class MicAvailabilityTooltipConverter : IValueConverter
     {
-        private static ToolTip _noMicAvailable = BuildTooltip();
+        private static readonly ToolTip _noMicAvailable = BuildTooltip();
 
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var micAvailable = (bool)value;
             if (micAvailable)
                 return null;
-            else
-                return _noMicAvailable;
+            return _noMicAvailable;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter,
-            System.Globalization.CultureInfo culture)
+            CultureInfo culture)
         {
             throw new NotImplementedException();
         }

@@ -1,24 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using Ciribob.SRS.Common.DCSState;
-using Ciribob.SRS.Common.Helpers;
-using Ciribob.SRS.Common.Network;
 using Ciribob.SRS.Common.Network.Proxies;
 using Ciribob.SRS.Common.PlayerState;
 using Newtonsoft.Json;
 
-namespace Ciribob.SRS.Common
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
 {
     //TODO make a network proxy for PlayerRadioInfo with just the required fields
 
-    public class PlayerUnitState :PlayerUnitStateBase
+    public class PlayerUnitState : PlayerUnitStateBase
     {
-   
-
-        [JsonIgnore] 
-        public static readonly int NUMBER_OF_RADIOS = 11;
-
         //HOTAS or IN COCKPIT controls
         public enum RadioSwitchControls
         {
@@ -26,36 +17,28 @@ namespace Ciribob.SRS.Common
             IN_COCKPIT = 1
         }
 
-        public int Seat { get; set; }
-
-
-        public bool inAircraft = false;
-
-        public volatile bool ptt = false;
-
-        public RadioSwitchControls control = RadioSwitchControls.HOTAS;
-
-        public short SelectedRadio { get; set; } = 0;
-
-
-        public bool IntercomHotMic { get; set; } = false;
-
-        public static readonly uint
-            UnitIdOffset = 100000000; // this is where non aircraft "Unit" Ids start from for satcom intercom
-
-        public bool
-            simultaneousTransmission =
-                false; // Global toggle enabling simultaneous transmission on multiple radios, activated via the AWACS panel
-
-        public SimultaneousTransmissionControl simultaneousTransmissionControl =
-            SimultaneousTransmissionControl.ENABLED_INTERNAL_SRS_CONTROLS;
-
         public enum SimultaneousTransmissionControl
         {
             ENABLED_INTERNAL_SRS_CONTROLS = 1
         }
 
-        public new List<Radio> Radios { get; set; } = new List<Radio>();
+        [JsonIgnore] public static readonly int NUMBER_OF_RADIOS = 11;
+
+        public static readonly uint
+            UnitIdOffset = 100000000; // this is where non aircraft "Unit" Ids start from for satcom intercom
+
+        public RadioSwitchControls control = RadioSwitchControls.HOTAS;
+
+
+        public bool inAircraft = false;
+
+        public volatile bool ptt;
+
+        public bool
+            simultaneousTransmission; // Global toggle enabling simultaneous transmission on multiple radios, activated via the AWACS panel
+
+        public SimultaneousTransmissionControl simultaneousTransmissionControl =
+            SimultaneousTransmissionControl.ENABLED_INTERNAL_SRS_CONTROLS;
 
         public PlayerUnitState()
         {
@@ -63,6 +46,15 @@ namespace Ciribob.SRS.Common
             //10 radios +1 intercom (the first one is intercom)
             for (var i = 0; i < NUMBER_OF_RADIOS; i++) Radios.Add(new Radio());
         }
+
+        public int Seat { get; set; }
+
+        public short SelectedRadio { get; set; }
+
+
+        public bool IntercomHotMic { get; set; } = false;
+
+        public new List<Radio> Radios { get; set; } = new();
 
         public long LastUpdate { get; set; }
 
@@ -103,11 +95,9 @@ namespace Ciribob.SRS.Common
                 {
                     return false;
                 }
-                else
-                {
-                    //check iff
-                    if (!Transponder.Equals(compareRadio.Transponder)) return false;
-                }
+
+                //check iff
+                if (!Transponder.Equals(compareRadio.Transponder)) return false;
 
                 for (var i = 0; i < Radios.Count; i++)
                 {
@@ -138,8 +128,6 @@ namespace Ciribob.SRS.Common
             return LastUpdate > DateTime.Now.Ticks - 100000000;
         }
 
-     
-       
 
         public PlayerUnitState DeepClone()
         {
@@ -150,7 +138,7 @@ namespace Ciribob.SRS.Common
             clone.Radios = new List<Radio>();
 
             //TODO come back to this
-          //  for (var i = 0; i < Radios.Count; i++) clone.Radios.Add(Radios[i].DeepCopy());
+            //  for (var i = 0; i < Radios.Count; i++) clone.Radios.Add(Radios[i].DeepCopy());
 
             return clone;
         }

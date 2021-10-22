@@ -1,7 +1,6 @@
 ﻿using System.Net;
-using System.Net.Sockets;
 
-namespace Ciribob.SRS.Server.Network
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models
 {
     public class PendingPacket
     {

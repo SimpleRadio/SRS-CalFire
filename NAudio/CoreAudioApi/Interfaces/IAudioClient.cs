@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using NAudio.Wave;
+using NAudio.Wave.WaveFormats;
 
 namespace NAudio.CoreAudioApi.Interfaces
 {
     /// <summary>
-    /// Windows CoreAudio IAudioClient interface
-    /// Defined in AudioClient.h
+    ///     Windows CoreAudio IAudioClient interface
+    ///     Defined in AudioClient.h
     /// </summary>
-    [Guid("1CB9AD4C-DBFA-4c32-B178-C2F568A703B2"),
-     InterfaceType(ComInterfaceType.InterfaceIsIUnknown),
-     ComImport]
+    [Guid("1CB9AD4C-DBFA-4c32-B178-C2F568A703B2")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [ComImport]
     internal interface IAudioClient
     {
         [PreserveSig]
@@ -22,7 +22,7 @@ namespace NAudio.CoreAudioApi.Interfaces
             [In] ref Guid audioSessionGuid);
 
         /// <summary>
-        /// The GetBufferSize method retrieves the size (maximum capacity) of the endpoint buffer.
+        ///     The GetBufferSize method retrieves the size (maximum capacity) of the endpoint buffer.
         /// </summary>
         int GetBufferSize(out uint bufferSize);
 
@@ -51,12 +51,16 @@ namespace NAudio.CoreAudioApi.Interfaces
         int SetEventHandle(IntPtr eventHandle);
 
         /// <summary>
-        /// The GetService method accesses additional services from the audio client object.
+        ///     The GetService method accesses additional services from the audio client object.
         /// </summary>
         /// <param name="interfaceId">The interface ID for the requested service.</param>
-        /// <param name="interfacePointer">Pointer to a pointer variable into which the method writes the address of an instance of the requested interface. </param>
+        /// <param name="interfacePointer">
+        ///     Pointer to a pointer variable into which the method writes the address of an instance of
+        ///     the requested interface.
+        /// </param>
         [PreserveSig]
-        int GetService([In, MarshalAs(UnmanagedType.LPStruct)] Guid interfaceId,
-            [Out, MarshalAs(UnmanagedType.IUnknown)] out object interfacePointer);
+        int GetService([In] [MarshalAs(UnmanagedType.LPStruct)] Guid interfaceId,
+            [Out] [MarshalAs(UnmanagedType.IUnknown)]
+            out object interfacePointer);
     }
 }

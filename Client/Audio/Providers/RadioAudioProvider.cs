@@ -1,8 +1,8 @@
-﻿using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio;
-using NAudio.Wave;
+﻿using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using NAudio.Wave.WaveFormats;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
 {
     public class RadioAudioProvider : AudioProvider
     {

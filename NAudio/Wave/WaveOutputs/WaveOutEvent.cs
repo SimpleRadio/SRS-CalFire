@@ -1,62 +1,39 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading;
 using System.Runtime.InteropServices;
+using System.Threading;
+using NAudio.Wave.MmeInterop;
+using NAudio.Wave.WaveFormats;
+using NAudio.Wave.WaveOutputs;
+using NAudio.Wave.WaveStreams;
 
 // ReSharper disable once CheckNamespace
 namespace NAudio.Wave
 {
     /// <summary>
-    /// Alternative WaveOut class, making use of the Event callback
+    ///     Alternative WaveOut class, making use of the Event callback
     /// </summary>
     public class WaveOutEvent : IWavePlayer, IWavePosition
     {
-        private readonly object waveOutLock;
         private readonly SynchronizationContext syncContext;
-        private IntPtr hWaveOut; // WaveOut handle
+        private readonly object waveOutLock;
         private WaveOutBuffer[] buffers;
-        private IWaveProvider waveStream;
-        private volatile PlaybackState playbackState;
         private AutoResetEvent callbackEvent;
+        private IntPtr hWaveOut; // WaveOut handle
+        private volatile PlaybackState playbackState;
         private float volume = 1.0f;
+        private IWaveProvider waveStream;
 
         /// <summary>
-        /// Indicates playback has stopped automatically
-        /// </summary>
-        public event EventHandler<StoppedEventArgs> PlaybackStopped;
-
-        /// <summary>
-        /// Gets or sets the desired latency in milliseconds
-        /// Should be set before a call to Init
-        /// </summary>
-        public int DesiredLatency { get; set; }
-
-        /// <summary>
-        /// Gets or sets the number of buffers used
-        /// Should be set before a call to Init
-        /// </summary>
-        public int NumberOfBuffers { get; set; }
-
-        /// <summary>
-        /// Gets or sets the device number
-        /// Should be set before a call to Init
-        /// This must be between -1 and <see>DeviceCount</see> - 1.
-        /// -1 means stick to default device even default device is changed
-        /// </summary>
-        public int DeviceNumber { get; set; } = -1;
-
-        /// <summary>
-        /// Opens a WaveOut device
+        ///     Opens a WaveOut device
         /// </summary>
         public WaveOutEvent()
         {
             syncContext = SynchronizationContext.Current;
             if (syncContext != null &&
-                ((syncContext.GetType().Name == "LegacyAspNetSynchronizationContext") ||
-                 (syncContext.GetType().Name == "AspNetSynchronizationContext")))
-            {
+                (syncContext.GetType().Name == "LegacyAspNetSynchronizationContext" ||
+                 syncContext.GetType().Name == "AspNetSynchronizationContext"))
                 syncContext = null;
-            }
 
             // set default values up
             DesiredLatency = 300;
@@ -66,15 +43,39 @@ namespace NAudio.Wave
         }
 
         /// <summary>
-        /// Initialises the WaveOut device
+        ///     Gets or sets the desired latency in milliseconds
+        ///     Should be set before a call to Init
+        /// </summary>
+        public int DesiredLatency { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the number of buffers used
+        ///     Should be set before a call to Init
+        /// </summary>
+        public int NumberOfBuffers { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the device number
+        ///     Should be set before a call to Init
+        ///     This must be between -1 and <see>DeviceCount</see> - 1.
+        ///     -1 means stick to default device even default device is changed
+        /// </summary>
+        public int DeviceNumber { get; set; } = -1;
+
+        /// <summary>
+        ///     Indicates playback has stopped automatically
+        /// </summary>
+        public event EventHandler<StoppedEventArgs> PlaybackStopped;
+
+        /// <summary>
+        ///     Initialises the WaveOut device
         /// </summary>
         /// <param name="waveProvider">WaveProvider to play</param>
         public void Init(IWaveProvider waveProvider)
         {
             if (playbackState != PlaybackState.Stopped)
-            {
                 throw new InvalidOperationException("Can't re-initialize during playback");
-            }
+
             if (hWaveOut != IntPtr.Zero)
             {
                 // normally we don't allow calling Init twice, but as experiment, see if we can clean up and go again
@@ -87,36 +88,33 @@ namespace NAudio.Wave
             callbackEvent = new AutoResetEvent(false);
 
             waveStream = waveProvider;
-            int bufferSize =
+            var bufferSize =
                 waveProvider.WaveFormat.ConvertLatencyToByteSize(
                     (DesiredLatency + NumberOfBuffers - 1) / NumberOfBuffers);
 
             MmResult result;
             lock (waveOutLock)
             {
-                result = WaveInterop.waveOutOpenWindow(out hWaveOut, (IntPtr) DeviceNumber, waveStream.WaveFormat,
+                result = WaveInterop.waveOutOpenWindow(out hWaveOut, (IntPtr)DeviceNumber, waveStream.WaveFormat,
                     callbackEvent.SafeWaitHandle.DangerousGetHandle(), IntPtr.Zero,
                     WaveInterop.WaveInOutOpenFlags.CallbackEvent);
             }
+
             MmException.Try(result, "waveOutOpen");
 
             buffers = new WaveOutBuffer[NumberOfBuffers];
             playbackState = PlaybackState.Stopped;
             for (var n = 0; n < NumberOfBuffers; n++)
-            {
                 buffers[n] = new WaveOutBuffer(hWaveOut, bufferSize, waveStream, waveOutLock);
-            }
         }
 
         /// <summary>
-        /// Start playing the audio from the WaveStream
+        ///     Start playing the audio from the WaveStream
         /// </summary>
         public void Play()
         {
-            if (buffers == null || waveStream == null)
-            {
-                throw new InvalidOperationException("Must call Init first");
-            }
+            if (buffers == null || waveStream == null) throw new InvalidOperationException("Must call Init first");
+
             if (playbackState == PlaybackState.Stopped)
             {
                 playbackState = PlaybackState.Playing;
@@ -129,6 +127,94 @@ namespace NAudio.Wave
                 callbackEvent.Set(); // give the thread a kick
             }
         }
+
+        /// <summary>
+        ///     Pause the audio
+        /// </summary>
+        public void Pause()
+        {
+            if (playbackState == PlaybackState.Playing)
+            {
+                MmResult result;
+                playbackState = PlaybackState.Paused; // set this here to avoid a deadlock problem with some drivers
+                lock (waveOutLock)
+                {
+                    result = WaveInterop.waveOutPause(hWaveOut);
+                }
+
+                if (result != MmResult.NoError) throw new MmException(result, "waveOutPause");
+            }
+        }
+
+        /// <summary>
+        ///     Stop and reset the WaveOut device
+        /// </summary>
+        public void Stop()
+        {
+            if (playbackState != PlaybackState.Stopped)
+            {
+                // in the call to waveOutReset with function callbacks
+                // some drivers will block here until OnDone is called
+                // for every buffer
+                playbackState = PlaybackState.Stopped; // set this here to avoid a problem with some drivers whereby 
+                MmResult result;
+                lock (waveOutLock)
+                {
+                    result = WaveInterop.waveOutReset(hWaveOut);
+                }
+
+                if (result != MmResult.NoError) throw new MmException(result, "waveOutReset");
+
+                callbackEvent.Set(); // give the thread a kick, make sure we exit
+            }
+        }
+
+        /// <summary>
+        ///     Playback State
+        /// </summary>
+        public PlaybackState PlaybackState => playbackState;
+
+        /// <summary>
+        ///     Obsolete property
+        /// </summary>
+        public float Volume
+        {
+            get => volume;
+            set
+            {
+                WaveOut.SetWaveOutVolume(value, hWaveOut, waveOutLock);
+                volume = value;
+            }
+        }
+
+        /// <summary>
+        ///     Gets the current position in bytes from the wave output device.
+        ///     (n.b. this is not the same thing as the position within your reader
+        ///     stream - it calls directly into waveOutGetPosition)
+        /// </summary>
+        /// <returns>Position in bytes</returns>
+        public long GetPosition()
+        {
+            lock (waveOutLock)
+            {
+                var mmTime = new MmTime();
+                mmTime.wType =
+                    MmTime.TIME_BYTES; // request results in bytes, TODO: perhaps make this a little more flexible and support the other types?
+                MmException.Try(WaveInterop.waveOutGetPosition(hWaveOut, out mmTime, Marshal.SizeOf(mmTime)),
+                    "waveOutGetPosition");
+
+                if (mmTime.wType != MmTime.TIME_BYTES)
+                    throw new Exception(string.Format("waveOutGetPosition: wType -> Expected {0}, Received {1}",
+                        MmTime.TIME_BYTES, mmTime.wType));
+
+                return mmTime.cb;
+            }
+        }
+
+        /// <summary>
+        ///     Gets a <see cref="WaveFormat" /> instance indicating the format the hardware is using.
+        /// </summary>
+        public WaveFormat OutputWaveFormat => waveStream.WaveFormat;
 
         private void PlaybackThread()
         {
@@ -154,25 +240,18 @@ namespace NAudio.Wave
             while (playbackState != PlaybackState.Stopped)
             {
                 if (!callbackEvent.WaitOne(DesiredLatency))
-                {
                     if (playbackState == PlaybackState.Playing)
-                    {
                         Debug.WriteLine("WARNING: WaveOutEvent callback event timeout");
-                    }
-                }
 
 
                 // requeue any buffers returned to us
                 if (playbackState == PlaybackState.Playing)
                 {
-                    int queued = 0;
+                    var queued = 0;
                     foreach (var buffer in buffers)
-                    {
                         if (buffer.InQueue || buffer.OnDone())
-                        {
                             queued++;
-                        }
-                    }
+
                     if (queued == 0)
                     {
                         // we got to the end
@@ -184,27 +263,7 @@ namespace NAudio.Wave
         }
 
         /// <summary>
-        /// Pause the audio
-        /// </summary>
-        public void Pause()
-        {
-            if (playbackState == PlaybackState.Playing)
-            {
-                MmResult result;
-                playbackState = PlaybackState.Paused; // set this here to avoid a deadlock problem with some drivers
-                lock (waveOutLock)
-                {
-                    result = WaveInterop.waveOutPause(hWaveOut);
-                }
-                if (result != MmResult.NoError)
-                {
-                    throw new MmException(result, "waveOutPause");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Resume playing after a pause from the same position
+        ///     Resume playing after a pause from the same position
         /// </summary>
         private void Resume()
         {
@@ -215,95 +274,29 @@ namespace NAudio.Wave
                 {
                     result = WaveInterop.waveOutRestart(hWaveOut);
                 }
-                if (result != MmResult.NoError)
-                {
-                    throw new MmException(result, "waveOutRestart");
-                }
+
+                if (result != MmResult.NoError) throw new MmException(result, "waveOutRestart");
+
                 playbackState = PlaybackState.Playing;
             }
         }
 
-        /// <summary>
-        /// Stop and reset the WaveOut device
-        /// </summary>
-        public void Stop()
+        private void RaisePlaybackStoppedEvent(Exception e)
         {
-            if (playbackState != PlaybackState.Stopped)
+            var handler = PlaybackStopped;
+            if (handler != null)
             {
-                // in the call to waveOutReset with function callbacks
-                // some drivers will block here until OnDone is called
-                // for every buffer
-                playbackState = PlaybackState.Stopped; // set this here to avoid a problem with some drivers whereby 
-                MmResult result;
-                lock (waveOutLock)
-                {
-                    result = WaveInterop.waveOutReset(hWaveOut);
-                }
-                if (result != MmResult.NoError)
-                {
-                    throw new MmException(result, "waveOutReset");
-                }
-                callbackEvent.Set(); // give the thread a kick, make sure we exit
-            }
-        }
-
-        /// <summary>
-        /// Gets the current position in bytes from the wave output device.
-        /// (n.b. this is not the same thing as the position within your reader
-        /// stream - it calls directly into waveOutGetPosition)
-        /// </summary>
-        /// <returns>Position in bytes</returns>
-        public long GetPosition()
-        {
-            lock (waveOutLock)
-            {
-                var mmTime = new MmTime();
-                mmTime.wType =
-                    MmTime.TIME_BYTES; // request results in bytes, TODO: perhaps make this a little more flexible and support the other types?
-                MmException.Try(WaveInterop.waveOutGetPosition(hWaveOut, out mmTime, Marshal.SizeOf(mmTime)),
-                    "waveOutGetPosition");
-
-                if (mmTime.wType != MmTime.TIME_BYTES)
-                    throw new Exception(string.Format("waveOutGetPosition: wType -> Expected {0}, Received {1}",
-                        MmTime.TIME_BYTES, mmTime.wType));
-
-                return mmTime.cb;
-            }
-        }
-
-        /// <summary>
-        /// Gets a <see cref="Wave.WaveFormat"/> instance indicating the format the hardware is using.
-        /// </summary>
-        public WaveFormat OutputWaveFormat
-        {
-            get { return waveStream.WaveFormat; }
-        }
-
-        /// <summary>
-        /// Playback State
-        /// </summary>
-        public PlaybackState PlaybackState
-        {
-            get { return playbackState; }
-        }
-
-        /// <summary>
-        /// Obsolete property
-        /// </summary>
-        public float Volume
-        {
-            get { return volume; }
-            set
-            {
-                WaveOut.SetWaveOutVolume(value, hWaveOut, waveOutLock);
-                volume = value;
+                if (syncContext == null)
+                    handler(this, new StoppedEventArgs(e));
+                else
+                    syncContext.Post(state => handler(this, new StoppedEventArgs(e)), null);
             }
         }
 
         #region Dispose Pattern
 
         /// <summary>
-        /// Closes this WaveOut device
+        ///     Closes this WaveOut device
         /// </summary>
         public void Dispose()
         {
@@ -312,17 +305,14 @@ namespace NAudio.Wave
         }
 
         /// <summary>
-        /// Closes the WaveOut device and disposes of buffers
+        ///     Closes the WaveOut device and disposes of buffers
         /// </summary>
         /// <param name="disposing">True if called from <see>Dispose</see></param>
         protected void Dispose(bool disposing)
         {
             Stop();
 
-            if (disposing)
-            {
-                DisposeBuffers();
-            }
+            if (disposing) DisposeBuffers();
 
             CloseWaveOut();
         }
@@ -334,6 +324,7 @@ namespace NAudio.Wave
                 callbackEvent.Close();
                 callbackEvent = null;
             }
+
             lock (waveOutLock)
             {
                 if (hWaveOut != IntPtr.Zero)
@@ -348,16 +339,14 @@ namespace NAudio.Wave
         {
             if (buffers != null)
             {
-                foreach (var buffer in buffers)
-                {
-                    buffer.Dispose();
-                }
+                foreach (var buffer in buffers) buffer.Dispose();
+
                 buffers = null;
             }
         }
 
         /// <summary>
-        /// Finalizer. Only called when user forgets to call <see>Dispose</see>
+        ///     Finalizer. Only called when user forgets to call <see>Dispose</see>
         /// </summary>
         ~WaveOutEvent()
         {
@@ -366,21 +355,5 @@ namespace NAudio.Wave
         }
 
         #endregion
-
-        private void RaisePlaybackStoppedEvent(Exception e)
-        {
-            var handler = PlaybackStopped;
-            if (handler != null)
-            {
-                if (syncContext == null)
-                {
-                    handler(this, new StoppedEventArgs(e));
-                }
-                else
-                {
-                    syncContext.Post(state => handler(this, new StoppedEventArgs(e)), null);
-                }
-            }
-        }
     }
 }

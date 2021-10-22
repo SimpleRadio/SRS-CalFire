@@ -1,11 +1,15 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using Ciribob.SRS.Common.Helpers;
+﻿using Ciribob.SRS.Common.Helpers;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.Favourites
 {
     public class ServerAddress : PropertyChangedBase
     {
+        private string _address;
+
+        private bool _isDefault;
+
+        private string _name;
+
         public ServerAddress(string name, string address, bool isDefault = false)
         {
             // Set private values directly so we don't trigger useless re-saving of favourites list when being loaded for the first time
@@ -13,8 +17,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
             _address = address;
             IsDefault = isDefault; // Explicitly use property setter here since IsDefault change includes additional logic
         }
-
-        private string _name;
 
         public string Name
         {
@@ -29,8 +31,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
             }
         }
 
-        private string _address;
-
         public string Address
         {
             get => _address;
@@ -44,8 +44,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
             }
         }
 
-        private bool _isDefault;
-
         public bool IsDefault
         {
             get => _isDefault;
@@ -55,7 +53,5 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
                 NotifyPropertyChanged();
             }
         }
-
-      
     }
 }

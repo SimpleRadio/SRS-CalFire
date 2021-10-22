@@ -7,12 +7,12 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Caliburn.Micro;
-using Ciribob.SRS.Common.Network;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models;
 using Ciribob.SRS.Common.Network.Models;
 using NLog;
 using LogManager = NLog.LogManager;
 
-namespace Ciribob.SRS.Server.Network
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
 {
     public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessage>, IHandle<KickClientMessage>,
         IHandle<BanClientMessage>
@@ -21,10 +21,10 @@ namespace Ciribob.SRS.Server.Network
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private readonly HashSet<IPAddress> _bannedIps = new HashSet<IPAddress>();
+        private readonly HashSet<IPAddress> _bannedIps = new();
 
         private readonly ConcurrentDictionary<string, SRClient> _connectedClients =
-            new ConcurrentDictionary<string, SRClient>();
+            new();
 
         private readonly IEventAggregator _eventAggregator;
         private UDPVoiceRouter _serverListener;
@@ -39,18 +39,19 @@ namespace Ciribob.SRS.Server.Network
             StartServer();
         }
 
-        public async Task HandleAsync(BanClientMessage message,  CancellationToken cancellationToken)
+        public async Task HandleAsync(BanClientMessage message, CancellationToken cancellationToken)
         {
             WriteBanIP(message.Client);
 
             KickClient(message.Client);
         }
 
-        public async Task HandleAsync(KickClientMessage message,  CancellationToken cancellationToken)
+        public async Task HandleAsync(KickClientMessage message, CancellationToken cancellationToken)
         {
             var client = message.Client;
             KickClient(client);
         }
+
         public async Task HandleAsync(StartServerMessage message, CancellationToken cancellationToken)
         {
             StartServer();
@@ -65,7 +66,7 @@ namespace Ciribob.SRS.Server.Network
                 new List<SRClient>(_connectedClients.Values)));
         }
 
-        
+
         private static string GetCurrentDirectory()
         {
             //To get the location the assembly normally resides on disk or the install directory
@@ -74,10 +75,7 @@ namespace Ciribob.SRS.Server.Network
             //once you have the path you get the directory with:
             var currentDirectory = Path.GetDirectoryName(currentPath);
 
-            if (currentDirectory.StartsWith("file:\\"))
-            {
-                currentDirectory = currentDirectory.Replace("file:\\", "");
-            }
+            if (currentDirectory.StartsWith("file:\\")) currentDirectory = currentDirectory.Replace("file:\\", "");
 
             return currentDirectory;
         }
@@ -86,7 +84,7 @@ namespace Ciribob.SRS.Server.Network
         {
             // Taken from https://stackoverflow.com/a/21058121 on 2018-06-22
             return Path.GetFullPath(new Uri(path).LocalPath)
-               .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         }
 
         private void StartServer()
@@ -118,7 +116,6 @@ namespace Ciribob.SRS.Server.Network
         private void KickClient(SRClient client)
         {
             if (client != null)
-            {
                 try
                 {
                     ((SRSClientSession)client.ClientSession).Disconnect();
@@ -127,7 +124,6 @@ namespace Ciribob.SRS.Server.Network
                 {
                     Logger.Error(e, "Error kicking client");
                 }
-            }
         }
 
         private void WriteBanIP(SRClient client)

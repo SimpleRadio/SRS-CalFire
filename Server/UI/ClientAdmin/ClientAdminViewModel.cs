@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Caliburn.Micro;
-using Ciribob.SRS.Server.Network;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models;
 using NLog;
 using LogManager = NLog.LogManager;
 
@@ -29,24 +29,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.ClientAdmin
             _updateTimer.Tick += _updateTimer_Tick;
         }
 
-        public ObservableCollection<ClientViewModel> Clients { get; } = new ObservableCollection<ClientViewModel>();
-
-        protected async override Task  OnActivateAsync(CancellationToken token)
-        {
-            _updateTimer?.Start();
-
-            base.OnActivateAsync(token);
-        }
-
-        protected async override Task OnDeactivateAsync(bool close, CancellationToken token)
-        {
-            if (close)
-            {
-                _updateTimer?.Stop();
-            }
-
-            base.OnDeactivateAsync(close, token);
-        }
+        public ObservableCollection<ClientViewModel> Clients { get; } = new();
 
         public async Task HandleAsync(ServerStateMessage message, CancellationToken token)
         {
@@ -55,15 +38,25 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.ClientAdmin
             message.Clients.Apply(client => Clients.Add(new ClientViewModel(client, _eventAggregator)));
         }
 
+        protected override async Task OnActivateAsync(CancellationToken token)
+        {
+            _updateTimer?.Start();
+
+            base.OnActivateAsync(token);
+        }
+
+        protected override async Task OnDeactivateAsync(bool close, CancellationToken token)
+        {
+            if (close) _updateTimer?.Stop();
+
+            base.OnDeactivateAsync(close, token);
+        }
+
         private void _updateTimer_Tick(object sender, EventArgs e)
         {
-            foreach (ClientViewModel client in Clients)
-            {
-                if ((DateTime.Now - client.Client.LastTransmissionReceived) >= LastTransmissionThreshold)
-                {
+            foreach (var client in Clients)
+                if (DateTime.Now - client.Client.LastTransmissionReceived >= LastTransmissionThreshold)
                     client.Client.TransmittingFrequency = "---";
-                }
-            }
         }
     }
 }

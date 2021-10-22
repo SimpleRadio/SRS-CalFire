@@ -28,28 +28,33 @@ using NAudio.CoreAudioApi.Interfaces;
 namespace NAudio.CoreAudioApi
 {
     /// <summary>
-    /// MM Device Enumerator
+    ///     MM Device Enumerator
     /// </summary>
     public class MMDeviceEnumerator : IDisposable
     {
         private IMMDeviceEnumerator realEnumerator;
 
         /// <summary>
-        /// Creates a new MM Device Enumerator
+        ///     Creates a new MM Device Enumerator
         /// </summary>
         public MMDeviceEnumerator()
         {
 #if !NETFX_CORE
-            if (System.Environment.OSVersion.Version.Major < 6)
-            {
+            if (Environment.OSVersion.Version.Major < 6)
                 throw new NotSupportedException("This functionality is only supported on Windows Vista or newer.");
-            }
 #endif
             realEnumerator = new MMDeviceEnumeratorComObject() as IMMDeviceEnumerator;
         }
 
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         /// <summary>
-        /// Enumerate Audio Endpoints
+        ///     Enumerate Audio Endpoints
         /// </summary>
         /// <param name="dataFlow">Desired DataFlow</param>
         /// <param name="dwStateMask">State Mask</param>
@@ -62,7 +67,7 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        /// Get Default Endpoint
+        ///     Get Default Endpoint
         /// </summary>
         /// <param name="dataFlow">Data Flow</param>
         /// <param name="role">Role</param>
@@ -71,90 +76,82 @@ namespace NAudio.CoreAudioApi
         {
             IMMDevice device = null;
             Marshal.ThrowExceptionForHR(
-                ((IMMDeviceEnumerator) realEnumerator).GetDefaultAudioEndpoint(dataFlow, role, out device));
+                realEnumerator.GetDefaultAudioEndpoint(dataFlow, role, out device));
             return new MMDevice(device);
         }
 
         /// <summary>
-        /// Check to see if a default audio end point exists without needing an exception.
+        ///     Check to see if a default audio end point exists without needing an exception.
         /// </summary>
         /// <param name="dataFlow">Data Flow</param>
         /// <param name="role">Role</param>
         /// <returns>True if one exists, and false if one does not exist.</returns>
         public bool HasDefaultAudioEndpoint(DataFlow dataFlow, Role role)
         {
-            const int E_NOTFOUND = unchecked((int) 0x80070490);
+            const int E_NOTFOUND = unchecked((int)0x80070490);
             IMMDevice device = null;
-            int hresult = ((IMMDeviceEnumerator) realEnumerator).GetDefaultAudioEndpoint(dataFlow, role, out device);
+            var hresult = realEnumerator.GetDefaultAudioEndpoint(dataFlow, role, out device);
             if (hresult == 0x0)
             {
                 Marshal.ReleaseComObject(device);
                 return true;
             }
-            if (hresult == E_NOTFOUND)
-            {
-                return false;
-            }
+
+            if (hresult == E_NOTFOUND) return false;
+
             Marshal.ThrowExceptionForHR(hresult);
             return false;
         }
 
         /// <summary>
-        /// Get device by ID
+        ///     Get device by ID
         /// </summary>
         /// <param name="id">Device ID</param>
         /// <returns>Device</returns>
         public MMDevice GetDevice(string id)
         {
             IMMDevice device = null;
-            Marshal.ThrowExceptionForHR(((IMMDeviceEnumerator) realEnumerator).GetDevice(id, out device));
+            Marshal.ThrowExceptionForHR(realEnumerator.GetDevice(id, out device));
             return new MMDevice(device);
         }
 
         /// <summary>
-        /// Registers a call back for Device Events
+        ///     Registers a call back for Device Events
         /// </summary>
         /// <param name="client">Object implementing IMMNotificationClient type casted as IMMNotificationClient interface</param>
         /// <returns></returns>
         public int RegisterEndpointNotificationCallback(
-            [In] [MarshalAs(UnmanagedType.Interface)] IMMNotificationClient client)
+            [In] [MarshalAs(UnmanagedType.Interface)]
+            IMMNotificationClient client)
         {
             return realEnumerator.RegisterEndpointNotificationCallback(client);
         }
 
         /// <summary>
-        /// Unregisters a call back for Device Events
+        ///     Unregisters a call back for Device Events
         /// </summary>
         /// <param name="client">Object implementing IMMNotificationClient type casted as IMMNotificationClient interface </param>
         /// <returns></returns>
         public int UnregisterEndpointNotificationCallback(
-            [In] [MarshalAs(UnmanagedType.Interface)] IMMNotificationClient client)
+            [In] [MarshalAs(UnmanagedType.Interface)]
+            IMMNotificationClient client)
         {
             return realEnumerator.UnregisterEndpointNotificationCallback(client);
         }
 
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
         /// <summary>
-        /// Called to dispose/finalize contained objects.
+        ///     Called to dispose/finalize contained objects.
         /// </summary>
         /// <param name="disposing">True if disposing, false if called from a finalizer.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
-            {
                 if (realEnumerator != null)
                 {
                     // although GC would do this for us, we want it done now
                     Marshal.ReleaseComObject(realEnumerator);
                     realEnumerator = null;
                 }
-            }
         }
     }
 }

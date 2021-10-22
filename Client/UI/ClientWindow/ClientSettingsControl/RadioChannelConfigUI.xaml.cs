@@ -1,26 +1,23 @@
-﻿using System;
-using System.Globalization;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSettingsControl
 {
     /// <summary>
     ///     Interaction logic for RadioChannelConfigUI.xaml
     /// </summary>
     public partial class RadioChannelConfigUi : UserControl
     {
-        public RadioChannelConfigUi()
-        {
-            InitializeComponent();
-        }
-
         //"VolumeValue" string must match the method name
         public static readonly DependencyProperty VolumeSliderDependencyProperty =
             DependencyProperty.Register("VolumeValue", typeof(float), typeof(RadioChannelConfigUi),
                 new FrameworkPropertyMetadata((float)0)
             );
+
+        public RadioChannelConfigUi()
+        {
+            InitializeComponent();
+        }
 
         public float VolumeValue
         {

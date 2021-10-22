@@ -1,24 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels;
-using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Proxies;
 using Ciribob.SRS.Common.PlayerState;
-using Newtonsoft.Json;
 
-namespace Ciribob.SRS.Common
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
 {
-    public class Radio:RadioBase
+    public class Radio : RadioBase
     {
-        public RadioConfig Config { get; set; } = new RadioConfig();
+        public RadioConfig Config { get; set; } = new();
         public string Name { get; set; } = "";
 
 
         //should the radio restransmit?
-        public bool Retransmit { get; set; } = false;
+        public bool Retransmit { get; set; }
         public float Volume { get; set; } = 1.0f;
         public int CurrentChannel { get; set; } = -1;
-        public bool SimultaneousTransmission { get; set; } = false;
+        public bool SimultaneousTransmission { get; set; }
 
         //Channels
         public List<PresetChannel> PresetChannels { get; }
@@ -41,12 +38,12 @@ namespace Ciribob.SRS.Common
             var compare = (Radio)obj;
 
             if (!Name.Equals(compare.Name)) return false;
-            if (!PlayerUnitState.FreqCloseEnough(Freq, compare.Freq)) return false;
+            if (!PlayerUnitStateBase.FreqCloseEnough(Freq, compare.Freq)) return false;
             if (Modulation != compare.Modulation) return false;
             if (Encrypted != compare.Encrypted) return false;
             if (EncKey != compare.EncKey) return false;
             if (Retransmit != compare.Retransmit) return false;
-            if (!PlayerUnitState.FreqCloseEnough(SecFreq, compare.SecFreq)) return false;
+            if (!PlayerUnitStateBase.FreqCloseEnough(SecFreq, compare.SecFreq)) return false;
 
             if (Config != null && compare.Config == null) return false;
             if (Config == null && compare.Config != null) return false;
@@ -57,7 +54,7 @@ namespace Ciribob.SRS.Common
         internal Radio DeepCopy()
         {
             //probably can use memberswise clone
-            return new Radio()
+            return new Radio
             {
                 CurrentChannel = CurrentChannel,
                 Encrypted = Encrypted,

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Windows.Forms;
 using Ciribob.SRS.Common.Setting;
 using NLog;
 
@@ -9,22 +8,22 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 {
     public class SyncedServerSettings
     {
-        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private static SyncedServerSettings instance;
-        private static readonly object _lock = new object();
+        private static readonly object _lock = new();
         private static readonly Dictionary<string, string> defaults = DefaultServerSettings.Defaults;
 
         private readonly ConcurrentDictionary<string, string> _settings;
-
-        public List<double> GlobalFrequencies { get; set; } = new List<double>();
-
-        // Node Limit of 0 means no retransmission
-        public int RetransmitNodeLimit { get; set; } = 0;
+        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         public SyncedServerSettings()
         {
             _settings = new ConcurrentDictionary<string, string>();
         }
+
+        public List<double> GlobalFrequencies { get; set; } = new();
+
+        // Node Limit of 0 means no retransmission
+        public int RetransmitNodeLimit { get; set; }
 
         public static SyncedServerSettings Instance
         {

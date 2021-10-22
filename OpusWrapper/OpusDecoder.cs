@@ -23,7 +23,7 @@ namespace FragLabs.Audio.Codecs
         /// <summary>
         ///     Gets the output sampling rate of the decoder.
         /// </summary>
-        public int OutputSamplingRate { get; private set; }
+        public int OutputSamplingRate { get; }
 
         /// <summary>
         ///     Gets the number of channels of the decoder.
@@ -64,21 +64,19 @@ namespace FragLabs.Audio.Codecs
         /// <returns>A new <c>OpusDecoder</c>.</returns>
         public static OpusDecoder Create(int outputSampleRate, int outputChannels)
         {
-            if ((outputSampleRate != 8000) &&
-                (outputSampleRate != 12000) &&
-                (outputSampleRate != 16000) &&
-                (outputSampleRate != 24000) &&
-                (outputSampleRate != 48000))
+            if (outputSampleRate != 8000 &&
+                outputSampleRate != 12000 &&
+                outputSampleRate != 16000 &&
+                outputSampleRate != 24000 &&
+                outputSampleRate != 48000)
                 throw new ArgumentOutOfRangeException("inputSamplingRate");
-            if ((outputChannels != 1) && (outputChannels != 2))
+            if (outputChannels != 1 && outputChannels != 2)
                 throw new ArgumentOutOfRangeException("inputChannels");
 
             IntPtr error;
             var decoder = API.opus_decoder_create(outputSampleRate, outputChannels, out error);
-            if ((Errors) error != Errors.OK)
-            {
-                throw new Exception("Exception occured while creating decoder");
-            }
+            if ((Errors)error != Errors.OK) throw new Exception("Exception occured while creating decoder");
+
             return new OpusDecoder(decoder, outputSampleRate, outputChannels);
         }
 
@@ -89,7 +87,7 @@ namespace FragLabs.Audio.Codecs
         /// <param name="dataLength">Length of data to decode or skipped data if <paramref name="inputOpusData" /> is <c>null</c>.</param>
         /// <param name="decodedLength">Set to the length of the decoded sample data.</param>
         /// <returns>PCM audio samples.</returns>
-        public unsafe byte[] Decode(byte[] inputOpusData, int dataLength, out int decodedLength, bool reset=false)
+        public unsafe byte[] Decode(byte[] inputOpusData, int dataLength, out int decodedLength, bool reset = false)
         {
             if (disposed)
                 throw new ObjectDisposedException("OpusDecoder");
@@ -105,11 +103,9 @@ namespace FragLabs.Audio.Codecs
                 if (reset)
                 {
                     //https://notabug.org/xiph/opus/raw/v0.9.10/include/opus_defines.h
-                    var ret = API.opus_decoder_ctl(_decoder, 4028); //reset opus state - packets missing and it'll get confused
-                    if (ret < 0)
-                    {
-                        throw new Exception("Error Resetting Oppus");
-                    }
+                    var ret = API.opus_decoder_ctl(_decoder,
+                        4028); //reset opus state - packets missing and it'll get confused
+                    if (ret < 0) throw new Exception("Error Resetting Oppus");
                 }
 
                 if (inputOpusData != null)
@@ -119,11 +115,14 @@ namespace FragLabs.Audio.Codecs
                         ForwardErrorCorrection ? 1 : 0);
                 }
                 else
+                {
                     length = API.opus_decode(_decoder, null, 0, decodedPtr, FrameCount(dataLength), 0);
+                }
             }
+
             decodedLength = length * 2;
             if (length < 0)
-                throw new Exception("Decoding failed - " + (Errors) length);
+                throw new Exception("Decoding failed - " + (Errors)length);
 
             return decoded;
         }
@@ -135,7 +134,8 @@ namespace FragLabs.Audio.Codecs
         /// <param name="dataLength">Length of data to decode or skipped data if <paramref name="inputOpusData" /> is <c>null</c>.</param>
         /// <param name="decodedLength">Set to the length of the decoded sample data.</param>
         /// <returns>PCM audio samples.</returns>
-        public unsafe byte[] DecodeFloat(byte[] inputOpusData, int dataLength, out int decodedLength, bool reset = false)
+        public unsafe byte[] DecodeFloat(byte[] inputOpusData, int dataLength, out int decodedLength,
+            bool reset = false)
         {
             if (disposed)
                 throw new ObjectDisposedException("OpusDecoder");
@@ -151,11 +151,9 @@ namespace FragLabs.Audio.Codecs
                 if (reset)
                 {
                     //https://notabug.org/xiph/opus/raw/v0.9.10/include/opus_defines.h
-                    var ret = API.opus_decoder_ctl(_decoder, 4028); //reset opus state - packets missing and it'll get confused
-                    if (ret < 0)
-                    {
-                        throw new Exception("Error Resetting Oppus");
-                    }
+                    var ret = API.opus_decoder_ctl(_decoder,
+                        4028); //reset opus state - packets missing and it'll get confused
+                    if (ret < 0) throw new Exception("Error Resetting Oppus");
                 }
 
                 if (inputOpusData != null)
@@ -165,8 +163,11 @@ namespace FragLabs.Audio.Codecs
                         ForwardErrorCorrection ? 1 : 0);
                 }
                 else
+                {
                     length = API.opus_decode_float(_decoder, null, 0, decodedPtr, FrameCount(dataLength), 0);
+                }
             }
+
             decodedLength = length * 2;
             if (length < 0)
                 throw new Exception("Decoding failed - " + (Errors)length);

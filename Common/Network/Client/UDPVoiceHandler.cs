@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -11,38 +8,29 @@ using System.Windows.Threading;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Models.EventMessages;
 using Ciribob.SRS.Common.Network.Singletons;
-using Ciribob.SRS.Common.PlayerState;
-using Ciribob.SRS.Common.Setting;
-using Easy.MessageHub;
 using NLog;
 
 namespace Ciribob.SRS.Common.Network.Client
 {
     public class UDPVoiceHandler
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-        public BlockingCollection<byte[]> EncodedAudio { get; } = new BlockingCollection<byte[]>();
-        private readonly byte[] _guidAsciiBytes;
-        private readonly CancellationTokenSource _pingStop = new CancellationTokenSource();
+        public delegate void ConnectionState(bool voipConnected);
 
         private const int UDP_VOIP_TIMEOUT = 42; // seconds for timeout before redoing VoIP
-
-        private UdpClient _listener;
-
-
-        public bool Ready { get; private set; }
-        private readonly IPEndPoint _serverEndpoint;
-        private volatile bool _stop;
-        private long _udpLastReceived = 0;
-        private readonly DispatcherTimer _updateTimer;
-
-        public delegate void ConnectionState(bool voipConnected);
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         private readonly ConnectedClientsSingleton _clients = ConnectedClientsSingleton.Instance;
         private readonly EventBus _eventBus = EventBus.Instance;
+        private readonly byte[] _guidAsciiBytes;
+        private readonly CancellationTokenSource _pingStop = new();
+        private readonly IPEndPoint _serverEndpoint;
+        private readonly DispatcherTimer _updateTimer;
 
-        private bool _started = false;
+        private UdpClient _listener;
+
+        private bool _started;
+        private volatile bool _stop;
+        private long _udpLastReceived;
 
         public UDPVoiceHandler(string guid, IPEndPoint endPoint)
         {
@@ -55,19 +43,20 @@ namespace Ciribob.SRS.Common.Network.Client
             _updateTimer.Start();
         }
 
+        public BlockingCollection<byte[]> EncodedAudio { get; } = new();
+
+
+        public bool Ready { get; private set; }
+
         private void UpdateVOIPStatus(object sender, EventArgs e)
         {
             var diff = TimeSpan.FromTicks(DateTime.Now.Ticks - _udpLastReceived);
 
             //ping every 10 so after 40 seconds VoIP UDP issue
             if (diff.TotalSeconds > UDP_VOIP_TIMEOUT)
-            {
                 _eventBus.PublishOnCurrentThreadAsync(new VOIPStatusMessage(false));
-            }
             else
-            {
                 _eventBus.PublishOnCurrentThreadAsync(new VOIPStatusMessage(true));
-            }
         }
 
         public void Connect()
@@ -163,16 +152,11 @@ namespace Ciribob.SRS.Common.Network.Client
                 {
                     //TODO check this
 
-                    if (udpVoicePacket.GuidBytes == null)
-                    {
-                        udpVoicePacket.GuidBytes = _guidAsciiBytes;
-                    }
+                    if (udpVoicePacket.GuidBytes == null) udpVoicePacket.GuidBytes = _guidAsciiBytes;
 
                     if (udpVoicePacket.OriginalClientGuidBytes == null)
-                    {
                         udpVoicePacket.OriginalClientGuidBytes = _guidAsciiBytes;
-                    }
-                  
+
                     var encodedUdpVoicePacket = udpVoicePacket.EncodePacket();
 
                     _listener.Send(encodedUdpVoicePacket, encodedUdpVoicePacket.Length, _serverEndpoint);

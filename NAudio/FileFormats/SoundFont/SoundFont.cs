@@ -1,20 +1,19 @@
-using System;
 using System.IO;
+using NAudio.SoundFont;
 
-namespace NAudio.SoundFont
+namespace NAudio.FileFormats.SoundFont
 {
     /// <summary>
-    /// Represents a SoundFont
+    ///     Represents a SoundFont
     /// </summary>
     public class SoundFont
     {
-        private InfoChunk info;
-        private PresetsChunk presetsChunk;
-        private SampleDataChunk sampleData;
+        private readonly PresetsChunk presetsChunk;
+        private readonly SampleDataChunk sampleData;
 
 #if !NETFX_CORE
         /// <summary>
-        /// Loads a SoundFont from a file
+        ///     Loads a SoundFont from a file
         /// </summary>
         /// <param name="fileName">Filename of the SoundFont</param>
         public SoundFont(string fileName) :
@@ -24,28 +23,27 @@ namespace NAudio.SoundFont
 #endif
 
         /// <summary>
-        /// Loads a SoundFont from a stream
+        ///     Loads a SoundFont from a stream
         /// </summary>
         /// <param name="sfFile">stream</param>
         public SoundFont(Stream sfFile)
         {
             using (sfFile) // a bit ugly, done to get Win store to compile
             {
-                RiffChunk riff = RiffChunk.GetTopLevelChunk(new BinaryReader(sfFile));
+                var riff = RiffChunk.GetTopLevelChunk(new BinaryReader(sfFile));
                 if (riff.ChunkID == "RIFF")
                 {
-                    string formHeader = riff.ReadChunkID();
+                    var formHeader = riff.ReadChunkID();
                     if (formHeader != "sfbk")
-                    {
-                        throw new InvalidDataException(String.Format("Not a SoundFont ({0})", formHeader));
-                    }
-                    RiffChunk list = riff.GetNextSubChunk();
+                        throw new InvalidDataException(string.Format("Not a SoundFont ({0})", formHeader));
+
+                    var list = riff.GetNextSubChunk();
                     if (list.ChunkID == "LIST")
                     {
                         //RiffChunk r = list.GetNextSubChunk();
-                        info = new InfoChunk(list);
+                        FileInfo = new InfoChunk(list);
 
-                        RiffChunk r = riff.GetNextSubChunk();
+                        var r = riff.GetNextSubChunk();
                         sampleData = new SampleDataChunk(r);
 
                         r = riff.GetNextSubChunk();
@@ -53,7 +51,7 @@ namespace NAudio.SoundFont
                     }
                     else
                     {
-                        throw new InvalidDataException(String.Format("Not info list found ({0})", list.ChunkID));
+                        throw new InvalidDataException(string.Format("Not info list found ({0})", list.ChunkID));
                     }
                 }
                 else
@@ -64,52 +62,37 @@ namespace NAudio.SoundFont
         }
 
         /// <summary>
-        /// The File Info Chunk
+        ///     The File Info Chunk
         /// </summary>
-        public InfoChunk FileInfo
-        {
-            get { return info; }
-        }
+        public InfoChunk FileInfo { get; }
 
         /// <summary>
-        /// The Presets
+        ///     The Presets
         /// </summary>
-        public Preset[] Presets
-        {
-            get { return presetsChunk.Presets; }
-        }
+        public Preset[] Presets => presetsChunk.Presets;
 
         /// <summary>
-        /// The Instruments
+        ///     The Instruments
         /// </summary>
-        public Instrument[] Instruments
-        {
-            get { return presetsChunk.Instruments; }
-        }
+        public Instrument[] Instruments => presetsChunk.Instruments;
 
         /// <summary>
-        /// The Sample Headers
+        ///     The Sample Headers
         /// </summary>
-        public SampleHeader[] SampleHeaders
-        {
-            get { return presetsChunk.SampleHeaders; }
-        }
+        public SampleHeader[] SampleHeaders => presetsChunk.SampleHeaders;
 
         /// <summary>
-        /// The Sample Data
+        ///     The Sample Data
         /// </summary>
-        public byte[] SampleData
-        {
-            get { return sampleData.SampleData; }
-        }
+        public byte[] SampleData => sampleData.SampleData;
 
         /// <summary>
-        /// <see cref="Object.ToString"/>
+        ///     <see cref="object.ToString" />
         /// </summary>
         public override string ToString()
         {
-            return String.Format("Info Chunk:\r\n{0}\r\nPresets Chunk:\r\n{1}",
-                info, presetsChunk);
+            return string.Format("Info Chunk:\r\n{0}\r\nPresets Chunk:\r\n{1}",
+                FileInfo, presetsChunk);
         }
 
         // TODO: save / save as function

@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace NAudio.Wave
+namespace NAudio.Wave.Compression
 {
-    enum AcmMetrics
+    internal enum AcmMetrics
     {
         /// <summary>ACM_METRIC_COUNT_DRIVERS</summary>
         CountDrivers = 1,
@@ -55,6 +51,6 @@ namespace NAudio.Wave
         DriverSupport = 100,
 
         /// <summary>ACM_METRIC_DRIVER_PRIORITY</summary>
-        DriverPriority = 101,
+        DriverPriority = 101
     }
 }

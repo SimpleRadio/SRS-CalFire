@@ -1,21 +1,22 @@
 using System;
 using NAudio.Utils;
+using NAudio.Wave.WaveFormats;
+using NAudio.Wave.WaveOutputs;
 
 namespace NAudio.Wave.SampleProviders
 {
     /// <summary>
-    /// Converts a sample provider to 24 bit PCM, optionally clipping and adjusting volume along the way
+    ///     Converts a sample provider to 24 bit PCM, optionally clipping and adjusting volume along the way
     /// </summary>
     public class SampleToWaveProvider24 : IWaveProvider
     {
         private readonly ISampleProvider sourceProvider;
-        private readonly WaveFormat waveFormat;
-        private volatile float volume;
         private float[] sourceBuffer;
+        private volatile float volume;
 
         /// <summary>
-        /// Converts from an ISampleProvider (IEEE float) to a 16 bit PCM IWaveProvider.
-        /// Number of channels and sample rate remain unchanged.
+        ///     Converts from an ISampleProvider (IEEE float) to a 16 bit PCM IWaveProvider.
+        ///     Number of channels and sample rate remain unchanged.
         /// </summary>
         /// <param name="sourceProvider">The input source provider</param>
         public SampleToWaveProvider24(ISampleProvider sourceProvider)
@@ -25,14 +26,23 @@ namespace NAudio.Wave.SampleProviders
             if (sourceProvider.WaveFormat.BitsPerSample != 32)
                 throw new ArgumentException("Input source provider must be 32 bit", "sourceProvider");
 
-            waveFormat = new WaveFormat(sourceProvider.WaveFormat.SampleRate, 24, sourceProvider.WaveFormat.Channels);
+            WaveFormat = new WaveFormat(sourceProvider.WaveFormat.SampleRate, 24, sourceProvider.WaveFormat.Channels);
 
             this.sourceProvider = sourceProvider;
             volume = 1.0f;
         }
 
         /// <summary>
-        /// Reads bytes from this wave stream, clipping if necessary
+        ///     Volume of this channel. 1.0 = full scale, 0.0 to mute
+        /// </summary>
+        public float Volume
+        {
+            get => volume;
+            set => volume = value;
+        }
+
+        /// <summary>
+        ///     Reads bytes from this wave stream, clipping if necessary
         /// </summary>
         /// <param name="destBuffer">The destination buffer</param>
         /// <param name="offset">Offset into the destination buffer</param>
@@ -44,7 +54,7 @@ namespace NAudio.Wave.SampleProviders
             sourceBuffer = BufferHelpers.Ensure(sourceBuffer, samplesRequired);
             var sourceSamples = sourceProvider.Read(sourceBuffer, 0, samplesRequired);
 
-            int destOffset = offset;
+            var destOffset = offset;
             for (var sample = 0; sample < sourceSamples; sample++)
             {
                 // adjust volume
@@ -55,31 +65,19 @@ namespace NAudio.Wave.SampleProviders
                 if (sample32 < -1.0f)
                     sample32 = -1.0f;
 
-                var sample24 = (int) (sample32 * 8388607.0);
-                destBuffer[destOffset++] = (byte) (sample24);
-                destBuffer[destOffset++] = (byte) (sample24 >> 8);
-                destBuffer[destOffset++] = (byte) (sample24 >> 16);
+                var sample24 = (int)(sample32 * 8388607.0);
+                destBuffer[destOffset++] = (byte)sample24;
+                destBuffer[destOffset++] = (byte)(sample24 >> 8);
+                destBuffer[destOffset++] = (byte)(sample24 >> 16);
             }
 
             return sourceSamples * 3;
         }
 
         /// <summary>
-        /// The Format of this IWaveProvider
-        /// <see cref="IWaveProvider.WaveFormat"/>
+        ///     The Format of this IWaveProvider
+        ///     <see cref="IWaveProvider.WaveFormat" />
         /// </summary>
-        public WaveFormat WaveFormat
-        {
-            get { return waveFormat; }
-        }
-
-        /// <summary>
-        /// Volume of this channel. 1.0 = full scale, 0.0 to mute
-        /// </summary>
-        public float Volume
-        {
-            get { return volume; }
-            set { volume = value; }
-        }
+        public WaveFormat WaveFormat { get; }
     }
 }

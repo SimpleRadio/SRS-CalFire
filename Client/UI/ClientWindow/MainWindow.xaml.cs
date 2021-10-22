@@ -2,22 +2,20 @@
 using System.ComponentModel;
 using System.Runtime;
 using System.Windows;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow;
 using Ciribob.SRS.Common.Setting;
 using MahApps.Metro.Controls;
 using NLog;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
 {
     /// <summary>
     ///     Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
-        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
+        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         public MainWindow()
         {

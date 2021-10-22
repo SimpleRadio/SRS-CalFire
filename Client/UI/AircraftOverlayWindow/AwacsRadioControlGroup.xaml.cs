@@ -3,17 +3,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common.PresetChannels;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
-using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.Network.Singletons;
 using Ciribob.SRS.Common.PlayerState;
-using ConnectedClientsSingleton = Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.ConnectedClientsSingleton;
-using KeyEventArgs = System.Windows.Input.KeyEventArgs;
-using UserControl = System.Windows.Controls.UserControl;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AircraftOverlayWindow
 {
     /// <summary>
     ///     Interaction logic for RadioControlGroup.xaml
@@ -22,11 +18,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
     {
         private const double MHz = 1000000;
         private const int MaxSimultaneousTransmissions = 3;
-        private bool _dragging;
         private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
         private readonly ConnectedClientsSingleton _connectClientsSingleton = ConnectedClientsSingleton.Instance;
+        private bool _dragging;
 
-        public PresetChannelsViewModel ChannelViewModel { get; set; }
+        private int _radioId;
 
 
         public RadioControlGroup()
@@ -45,7 +41,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
             RadioFrequency.GotFocus += RadioFrequencyOnGotFocus;
         }
 
-        private int _radioId;
+        public PresetChannelsViewModel ChannelViewModel { get; set; }
 
         public int RadioId
         {
@@ -178,12 +174,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
 
         private void RadioVolume_DragCompleted(object sender, RoutedEventArgs e)
         {
-            var currentRadio = (Radio) _clientStateSingleton.PlayerUnitState.Radios[RadioId];
+            var currentRadio = _clientStateSingleton.PlayerUnitState.Radios[RadioId];
 
             if (currentRadio.Config.VolumeControl == RadioConfig.VolumeMode.OVERLAY)
-            {
                 currentRadio.Volume = (float)RadioVolume.Value / 100.0f;
-            }
 
             _dragging = false;
         }
@@ -278,168 +272,168 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
 
         internal void RepaintRadioStatus()
         {
-          //  HandleRetransmitStatus();
+            //  HandleRetransmitStatus();
 
-        //     var dcsPlayerRadioInfo = _clientStateSingleton.PlayerUnitState;
-        //
-        //     if (!_clientStateSingleton.IsConnected || dcsPlayerRadioInfo == null || !dcsPlayerRadioInfo.IsCurrent() ||
-        //         RadioId > dcsPlayerRadioInfo.Radios.Count - 1)
-        //     {
-        //         RadioActive.Fill = new SolidColorBrush(Colors.Red);
-        //         RadioLabel.Text = "No Radio";
-        //         RadioFrequency.Text = "Not Connected";
-        //
-        //         RadioMetaData.Text = "";
-        //
-        //         RadioVolume.IsEnabled = false;
-        //
-        //         ToggleButtons(false);
-        //
-        //         ToggleSimultaneousTransmissionButton.IsEnabled = false;
-        //         ToggleSimultaneousTransmissionButton.Foreground = new SolidColorBrush(Colors.White);
-        //
-        //         //reset dragging just incase
-        //         _dragging = false;
-        //     }
-        //     else
-        //     {
-        //         var currentRadio = dcsPlayerRadioInfo.Radios[RadioId];
-        //         var transmitting = _clientStateSingleton.RadioSendingState;
-        //
-        //         if (transmitting.IsSending)
-        //         {
-        //             if (transmitting.SendingOn == RadioId)
-        //                 RadioActive.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#96FF6D"));
-        //             else if (currentRadio != null && currentRadio.SimultaneousTransmission)
-        //                 RadioActive.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4F86FF"));
-        //         }
-        //         else
-        //         {
-        //             if (RadioId == dcsPlayerRadioInfo.SelectedRadio)
-        //                 RadioActive.Fill = new SolidColorBrush(Colors.Green);
-        //             else if (currentRadio != null && currentRadio.SimultaneousTransmission)
-        //                 RadioActive.Fill = new SolidColorBrush(Colors.DarkBlue);
-        //             else
-        //                 RadioActive.Fill = new SolidColorBrush(Colors.Orange);
-        //         }
-        //
-        //         if (currentRadio == null || currentRadio.Modulation == RadioConfig.Modulation.DISABLED) // disabled
-        //         {
-        //             RadioActive.Fill = new SolidColorBrush(Colors.Red);
-        //             RadioLabel.Text = "No Radio";
-        //             RadioFrequency.Text = "Not Connected";
-        //             RadioMetaData.Text = "";
-        //
-        //
-        //             RadioVolume.IsEnabled = false;
-        //
-        //             ToggleButtons(false);
-        //
-        //             ToggleSimultaneousTransmissionButton.IsEnabled = false;
-        //             ToggleSimultaneousTransmissionButton.Foreground = new SolidColorBrush(Colors.White);
-        //
-        //             return;
-        //         }
-        //
-        //         if (currentRadio.Modulation == RadioConfig.Modulation.INTERCOM) //intercom
-        //         {
-        //             RadioFrequency.Text = "INTERCOM";
-        //             RadioMetaData.Text = "";
-        //         }
-        //         else if (currentRadio.Modulation == RadioConfig.Modulation.MIDS) //MIDS
-        //         {
-        //             RadioFrequency.Text = "MIDS";
-        //             if (currentRadio.CurrentChannel >= 0)
-        //                 RadioMetaData.Text = " CHN " + currentRadio.CurrentChannel;
-        //             else
-        //                 RadioMetaData.Text = " OFF";
-        //         }
-        //         else
-        //         {
-        //             if (!RadioFrequency.IsFocused
-        //                 || currentRadio.Config.FrequencyControl == RadioConfig.FreqMode.COCKPIT
-        //                 || currentRadio.Modulation == RadioConfig.Modulation.DISABLED)
-        //                 RadioFrequency.Text =
-        //                     (currentRadio.Frequency / MHz).ToString("0.000",
-        //                         CultureInfo.InvariantCulture); //make number UK / US style with decimals not commas!
-        //
-        //             if (currentRadio.Modulation == RadioConfig.Modulation.AM)
-        //                 RadioMetaData.Text = "AM";
-        //             else if (currentRadio.Modulation == RadioConfig.Modulation.FM)
-        //                 RadioMetaData.Text = "FM";
-        //             else if (currentRadio.Modulation == RadioConfig.Modulation.HAVEQUICK)
-        //                 RadioMetaData.Text = "HQ";
-        //             else
-        //                 RadioMetaData.Text += "";
-        //
-        //             if (currentRadio.SecondaryFrequency > 100) RadioMetaData.Text += " G";
-        //
-        //             if (currentRadio.CurrentChannel > -1) RadioMetaData.Text += " C" + currentRadio.CurrentChannel;
-        //             if (currentRadio.Encrypted && currentRadio.EncryptionKey > 0)
-        //                 RadioMetaData.Text += " E" + currentRadio.EncryptionKey; // ENCRYPTED
-        //         }
-        //
-        //         RadioLabel.Text = dcsPlayerRadioInfo.Radios[RadioId].Name;
-        //
-        //         var count = _connectClientsSingleton.ClientsOnFreq(currentRadio.Frequency, currentRadio.Modulation);
-        //
-        //         if (count > 0) RadioMetaData.Text += " 👤" + count;
-        //
-        //         if (currentRadio.Config.VolumeControl == RadioConfig.VolumeMode.OVERLAY)
-        //             RadioVolume.IsEnabled = true;
-        //
-        //         //reset dragging just incase
-        //         //    _dragging = false;
-        //         else
-        //             RadioVolume.IsEnabled = false;
-        //
-        //         //reset dragging just incase
-        //         //  _dragging = false;
-        //
-        //         ToggleButtons(currentRadio.Config.FrequencyControl == RadioConfig.FreqMode.OVERLAY);
-        //
-        //         if (_dragging == false) RadioVolume.Value = currentRadio.Volume * 100.0;
-        //     }
-        //
-        //     var item = TabControl.SelectedItem as TabItem;
-        //
-        //     if (item?.Visibility != Visibility.Visible) TabControl.SelectedIndex = 0;
-        // }
-        //
-        //
-        // public void HandleRetransmitStatus()
-        // {
-        //     var serverSettings = SyncedServerSettings.Instance;
-        //     var dcsPlayerRadioInfo = _clientStateSingleton.PlayerUnitState;
-        //
-        //     if (dcsPlayerRadioInfo != null && dcsPlayerRadioInfo.IsCurrent() && serverSettings.RetransmitNodeLimit > 0)
-        //     {
-        //         var currentRadio = dcsPlayerRadioInfo.Radios[RadioId];
-        //
-        //         if (currentRadio.Config.RetransmitControl == RadioConfig.RetransmitMode.DISABLED)
-        //         {
-        //             Retransmit.Visibility = Visibility.Hidden;
-        //         }
-        //         else if (currentRadio.Config.RetransmitControl == RadioConfig.RetransmitMode.COCKPIT)
-        //         {
-        //             Retransmit.Visibility = Visibility.Visible;
-        //             Retransmit.IsEnabled = false;
-        //         }
-        //         else
-        //         {
-        //             Retransmit.Visibility = Visibility.Visible;
-        //             Retransmit.IsEnabled = true;
-        //         }
-        //
-        //         if (currentRadio.Retransmit)
-        //             Retransmit.Foreground = new SolidColorBrush(Colors.Red);
-        //         else
-        //             Retransmit.Foreground = new SolidColorBrush(Colors.White);
-        //     }
-        //     else
-        //     {
-        //         Retransmit.Visibility = Visibility.Hidden;
-        //     }
+            //     var dcsPlayerRadioInfo = _clientStateSingleton.PlayerUnitState;
+            //
+            //     if (!_clientStateSingleton.IsConnected || dcsPlayerRadioInfo == null || !dcsPlayerRadioInfo.IsCurrent() ||
+            //         RadioId > dcsPlayerRadioInfo.Radios.Count - 1)
+            //     {
+            //         RadioActive.Fill = new SolidColorBrush(Colors.Red);
+            //         RadioLabel.Text = "No Radio";
+            //         RadioFrequency.Text = "Not Connected";
+            //
+            //         RadioMetaData.Text = "";
+            //
+            //         RadioVolume.IsEnabled = false;
+            //
+            //         ToggleButtons(false);
+            //
+            //         ToggleSimultaneousTransmissionButton.IsEnabled = false;
+            //         ToggleSimultaneousTransmissionButton.Foreground = new SolidColorBrush(Colors.White);
+            //
+            //         //reset dragging just incase
+            //         _dragging = false;
+            //     }
+            //     else
+            //     {
+            //         var currentRadio = dcsPlayerRadioInfo.Radios[RadioId];
+            //         var transmitting = _clientStateSingleton.RadioSendingState;
+            //
+            //         if (transmitting.IsSending)
+            //         {
+            //             if (transmitting.SendingOn == RadioId)
+            //                 RadioActive.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#96FF6D"));
+            //             else if (currentRadio != null && currentRadio.SimultaneousTransmission)
+            //                 RadioActive.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4F86FF"));
+            //         }
+            //         else
+            //         {
+            //             if (RadioId == dcsPlayerRadioInfo.SelectedRadio)
+            //                 RadioActive.Fill = new SolidColorBrush(Colors.Green);
+            //             else if (currentRadio != null && currentRadio.SimultaneousTransmission)
+            //                 RadioActive.Fill = new SolidColorBrush(Colors.DarkBlue);
+            //             else
+            //                 RadioActive.Fill = new SolidColorBrush(Colors.Orange);
+            //         }
+            //
+            //         if (currentRadio == null || currentRadio.Modulation == RadioConfig.Modulation.DISABLED) // disabled
+            //         {
+            //             RadioActive.Fill = new SolidColorBrush(Colors.Red);
+            //             RadioLabel.Text = "No Radio";
+            //             RadioFrequency.Text = "Not Connected";
+            //             RadioMetaData.Text = "";
+            //
+            //
+            //             RadioVolume.IsEnabled = false;
+            //
+            //             ToggleButtons(false);
+            //
+            //             ToggleSimultaneousTransmissionButton.IsEnabled = false;
+            //             ToggleSimultaneousTransmissionButton.Foreground = new SolidColorBrush(Colors.White);
+            //
+            //             return;
+            //         }
+            //
+            //         if (currentRadio.Modulation == RadioConfig.Modulation.INTERCOM) //intercom
+            //         {
+            //             RadioFrequency.Text = "INTERCOM";
+            //             RadioMetaData.Text = "";
+            //         }
+            //         else if (currentRadio.Modulation == RadioConfig.Modulation.MIDS) //MIDS
+            //         {
+            //             RadioFrequency.Text = "MIDS";
+            //             if (currentRadio.CurrentChannel >= 0)
+            //                 RadioMetaData.Text = " CHN " + currentRadio.CurrentChannel;
+            //             else
+            //                 RadioMetaData.Text = " OFF";
+            //         }
+            //         else
+            //         {
+            //             if (!RadioFrequency.IsFocused
+            //                 || currentRadio.Config.FrequencyControl == RadioConfig.FreqMode.COCKPIT
+            //                 || currentRadio.Modulation == RadioConfig.Modulation.DISABLED)
+            //                 RadioFrequency.Text =
+            //                     (currentRadio.Frequency / MHz).ToString("0.000",
+            //                         CultureInfo.InvariantCulture); //make number UK / US style with decimals not commas!
+            //
+            //             if (currentRadio.Modulation == RadioConfig.Modulation.AM)
+            //                 RadioMetaData.Text = "AM";
+            //             else if (currentRadio.Modulation == RadioConfig.Modulation.FM)
+            //                 RadioMetaData.Text = "FM";
+            //             else if (currentRadio.Modulation == RadioConfig.Modulation.HAVEQUICK)
+            //                 RadioMetaData.Text = "HQ";
+            //             else
+            //                 RadioMetaData.Text += "";
+            //
+            //             if (currentRadio.SecondaryFrequency > 100) RadioMetaData.Text += " G";
+            //
+            //             if (currentRadio.CurrentChannel > -1) RadioMetaData.Text += " C" + currentRadio.CurrentChannel;
+            //             if (currentRadio.Encrypted && currentRadio.EncryptionKey > 0)
+            //                 RadioMetaData.Text += " E" + currentRadio.EncryptionKey; // ENCRYPTED
+            //         }
+            //
+            //         RadioLabel.Text = dcsPlayerRadioInfo.Radios[RadioId].Name;
+            //
+            //         var count = _connectClientsSingleton.ClientsOnFreq(currentRadio.Frequency, currentRadio.Modulation);
+            //
+            //         if (count > 0) RadioMetaData.Text += " 👤" + count;
+            //
+            //         if (currentRadio.Config.VolumeControl == RadioConfig.VolumeMode.OVERLAY)
+            //             RadioVolume.IsEnabled = true;
+            //
+            //         //reset dragging just incase
+            //         //    _dragging = false;
+            //         else
+            //             RadioVolume.IsEnabled = false;
+            //
+            //         //reset dragging just incase
+            //         //  _dragging = false;
+            //
+            //         ToggleButtons(currentRadio.Config.FrequencyControl == RadioConfig.FreqMode.OVERLAY);
+            //
+            //         if (_dragging == false) RadioVolume.Value = currentRadio.Volume * 100.0;
+            //     }
+            //
+            //     var item = TabControl.SelectedItem as TabItem;
+            //
+            //     if (item?.Visibility != Visibility.Visible) TabControl.SelectedIndex = 0;
+            // }
+            //
+            //
+            // public void HandleRetransmitStatus()
+            // {
+            //     var serverSettings = SyncedServerSettings.Instance;
+            //     var dcsPlayerRadioInfo = _clientStateSingleton.PlayerUnitState;
+            //
+            //     if (dcsPlayerRadioInfo != null && dcsPlayerRadioInfo.IsCurrent() && serverSettings.RetransmitNodeLimit > 0)
+            //     {
+            //         var currentRadio = dcsPlayerRadioInfo.Radios[RadioId];
+            //
+            //         if (currentRadio.Config.RetransmitControl == RadioConfig.RetransmitMode.DISABLED)
+            //         {
+            //             Retransmit.Visibility = Visibility.Hidden;
+            //         }
+            //         else if (currentRadio.Config.RetransmitControl == RadioConfig.RetransmitMode.COCKPIT)
+            //         {
+            //             Retransmit.Visibility = Visibility.Visible;
+            //             Retransmit.IsEnabled = false;
+            //         }
+            //         else
+            //         {
+            //             Retransmit.Visibility = Visibility.Visible;
+            //             Retransmit.IsEnabled = true;
+            //         }
+            //
+            //         if (currentRadio.Retransmit)
+            //             Retransmit.Foreground = new SolidColorBrush(Colors.Red);
+            //         else
+            //             Retransmit.Foreground = new SolidColorBrush(Colors.White);
+            //     }
+            //     else
+            //     {
+            //         Retransmit.Visibility = Visibility.Hidden;
+            //     }
         }
 
 

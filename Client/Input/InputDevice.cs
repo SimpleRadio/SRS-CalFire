@@ -1,7 +1,7 @@
 ﻿using System;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Input
 {
     public class InputDevice
     {

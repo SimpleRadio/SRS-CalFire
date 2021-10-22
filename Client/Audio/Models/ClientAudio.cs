@@ -1,6 +1,6 @@
-﻿using Ciribob.SRS.Common;
+﻿using Ciribob.SRS.Common.PlayerState;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models
 {
     public class ClientAudio
     {

@@ -1,19 +1,20 @@
 using System;
 using System.IO;
 using NAudio.MediaFoundation;
+using NAudio.Wave.WaveStreams;
 
 // ReSharper disable once CheckNamespace
 namespace NAudio.Wave
 {
     /// <summary>
-    /// MediaFoundationReader supporting reading from a stream
+    ///     MediaFoundationReader supporting reading from a stream
     /// </summary>
     public class StreamMediaFoundationReader : MediaFoundationReader
     {
         private readonly Stream stream;
 
         /// <summary>
-        /// Constructs a new media foundation reader from a stream
+        ///     Constructs a new media foundation reader from a stream
         /// </summary>
         public StreamMediaFoundationReader(Stream stream, MediaFoundationReaderSettings settings = null)
         {
@@ -22,7 +23,7 @@ namespace NAudio.Wave
         }
 
         /// <summary>
-        /// Creates the reader
+        ///     Creates the reader
         /// </summary>
         protected override IMFSourceReader CreateReader(MediaFoundationReaderSettings settings)
         {

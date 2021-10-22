@@ -1,34 +1,14 @@
 ﻿using System;
 using System.IO;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Properties;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
-using NAudio.Wave;
+using NAudio.Wave.WaveFormats;
+using NAudio.Wave.WaveStreams;
 using NLog;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models
 {
     public class CachedAudioEffect
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-        private static readonly WaveFormat RequiredFormat = new WaveFormat(AudioManager.OUTPUT_SAMPLE_RATE, 16, 1);
-
-        /** Needed for list view ***/
-        public string Text => FileName;
-
-        /** Needed for list view ***/
-        public object Value => this;
-
-        /** Needed for list view ***/
-        public override string ToString()
-        {
-            return Text;
-        }
-
-        public string FileName { get; }
-
-        public bool Loaded { get; } = false;
-
         public enum AudioEffectTypes
         {
             RADIO_TRANS_START = 0,
@@ -45,8 +25,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
             FM_NOISE = 11
         }
 
-        public CachedAudioEffect(AudioEffectTypes audioEffect) : this(audioEffect, audioEffect.ToString() + ".wav",
-            AppDomain.CurrentDomain.BaseDirectory + "\\AudioEffects\\" + audioEffect.ToString() + ".wav")
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+        private static readonly WaveFormat RequiredFormat = new(AudioManager.OUTPUT_SAMPLE_RATE, 16, 1);
+
+        public CachedAudioEffect(AudioEffectTypes audioEffect) : this(audioEffect, audioEffect + ".wav",
+            AppDomain.CurrentDomain.BaseDirectory + "\\AudioEffects\\" + audioEffect + ".wav")
         {
         }
 
@@ -82,9 +66,25 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
                 Logger.Info($"Unable to find file for effect {audioEffect} in AudioEffects\\{FileName} ");
         }
 
+        /** Needed for list view ***/
+        public string Text => FileName;
+
+        /** Needed for list view ***/
+        public object Value => this;
+
+        public string FileName { get; }
+
+        public bool Loaded { get; }
+
         public AudioEffectTypes AudioEffectType { get; }
 
         public byte[] AudioEffectBytes { get; }
         public double[] AudioEffectDouble { get; set; }
+
+        /** Needed for list view ***/
+        public override string ToString()
+        {
+            return Text;
+        }
     }
 }

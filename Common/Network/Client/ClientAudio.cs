@@ -1,4 +1,6 @@
-﻿namespace Ciribob.SRS.Common.Network.Client
+﻿using Ciribob.SRS.Common.PlayerState;
+
+namespace Ciribob.SRS.Common.Network.Client
 {
     public class ClientAudio
     {

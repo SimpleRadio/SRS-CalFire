@@ -1,64 +1,62 @@
-using System;
-
-namespace NAudio.SoundFont
+namespace NAudio.FileFormats.SoundFont
 {
     /// <summary>
-    /// A SoundFont Sample Header
+    ///     A SoundFont Sample Header
     /// </summary>
     public class SampleHeader
     {
         /// <summary>
-        /// The sample name
-        /// </summary>
-        public string SampleName;
-
-        /// <summary>
-        /// Start offset
-        /// </summary>
-        public uint Start;
-
-        /// <summary>
-        /// End offset
+        ///     End offset
         /// </summary>
         public uint End;
 
         /// <summary>
-        /// Start loop point
-        /// </summary>
-        public uint StartLoop;
-
-        /// <summary>
-        /// End loop point
+        ///     End loop point
         /// </summary>
         public uint EndLoop;
 
         /// <summary>
-        /// Sample Rate
-        /// </summary>
-        public uint SampleRate;
-
-        /// <summary>
-        /// Original pitch
+        ///     Original pitch
         /// </summary>
         public byte OriginalPitch;
 
         /// <summary>
-        /// Pitch correction
+        ///     Pitch correction
         /// </summary>
         public sbyte PitchCorrection;
 
         /// <summary>
-        /// Sample Link
+        ///     Sample Link
         /// </summary>
         public ushort SampleLink;
 
         /// <summary>
-        /// SoundFont Sample Link Type
+        ///     The sample name
+        /// </summary>
+        public string SampleName;
+
+        /// <summary>
+        ///     Sample Rate
+        /// </summary>
+        public uint SampleRate;
+
+        /// <summary>
+        ///     SoundFont Sample Link Type
         /// </summary>
         public SFSampleLink SFSampleLink;
 
         /// <summary>
-        /// <see cref="Object.ToString"/>
+        ///     Start offset
+        /// </summary>
+        public uint Start;
+
+        /// <summary>
+        ///     Start loop point
+        /// </summary>
+        public uint StartLoop;
+
+        /// <summary>
+        ///     <see cref="object.ToString" />
         /// </summary>
         public override string ToString()
         {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ciribob.SRS.Common
+namespace Ciribob.SRS.Common.Helpers
 {
     public class ConversionHelpers
     {

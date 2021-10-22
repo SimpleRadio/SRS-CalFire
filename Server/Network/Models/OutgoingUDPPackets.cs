@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 
-namespace Ciribob.SRS.Server.Network
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models
 {
     public class OutgoingUDPPackets
     {

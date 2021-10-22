@@ -1,53 +1,51 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Windows;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.DSP;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
-using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.Helpers;
 using FragLabs.Audio.Codecs;
+using FragLabs.Audio.Codecs.Opus;
 using NAudio.CoreAudioApi;
-using NAudio.Dmo;
-using NAudio.Utils;
 using NAudio.Wave;
-using NAudio.Wave.SampleProviders;
+using NAudio.Wave.MmeInterop;
+using NAudio.Wave.WaveFormats;
 using NLog;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 {
     internal class AudioPreview
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        private BufferedWaveProvider _playBuffer;
-
-        private WasapiCapture _wasapiCapture;
-        private WasapiOut _waveOut;
-
-        private EventDrivenResampler _resampler;
-        //private readonly CircularBuffer _circularBuffer = new CircularBuffer();
-
-        private VolumeSampleProviderWithPeak _volumeSampleProvider;
-        private BufferedWaveProvider _buffBufferedWaveProvider;
 
         private readonly AudioInputSingleton _audioInputSingleton = AudioInputSingleton.Instance;
         private readonly AudioOutputSingleton _audioOutputSingleton = AudioOutputSingleton.Instance;
 
-        public float MicBoost { get; set; } = 1.0f;
+        private readonly Queue<short> _micInputQueue = new(AudioManager.MIC_SEGMENT_FRAMES * 3);
+        private BufferedWaveProvider _buffBufferedWaveProvider;
+        private OpusDecoder _decoder;
+        private OpusEncoder _encoder;
+        private BufferedWaveProvider _playBuffer;
+
+        private EventDrivenResampler _resampler;
 
         private float _speakerBoost = 1.0f;
-        private OpusEncoder _encoder;
-        private OpusDecoder _decoder;
 
         private Preprocessor _speex;
+        //private readonly CircularBuffer _circularBuffer = new CircularBuffer();
 
-        private readonly Queue<short> _micInputQueue = new Queue<short>(AudioManager.MIC_SEGMENT_FRAMES * 3);
+        private VolumeSampleProviderWithPeak _volumeSampleProvider;
+
+        private WasapiCapture _wasapiCapture;
 
         private WaveFileWriter _waveFile;
+        private WasapiOut _waveOut;
+
+        private readonly object lockob = new();
+
+        private bool windowsN;
+
+        public float MicBoost { get; set; } = 1.0f;
 
         public bool IsPreviewing => _waveOut != null;
 
@@ -63,8 +61,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
 
         public float MicMax { get; set; } = -100;
         public float SpeakerMax { get; set; } = -100;
-
-        private bool windowsN;
 
         public void StartPreview(bool windowsN)
         {
@@ -124,7 +120,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
                 _speex = new Preprocessor(AudioManager.MIC_SEGMENT_FRAMES, AudioManager.MIC_SAMPLE_RATE);
                 //opus
                 _encoder = OpusEncoder.Create(AudioManager.MIC_SAMPLE_RATE, 1,
-                    FragLabs.Audio.Codecs.Opus.Application.Voip);
+                    Application.Voip);
                 _encoder.ForwardErrorCorrection = false;
                 _decoder = OpusDecoder.Create(AudioManager.OUTPUT_SAMPLE_RATE, 1);
                 _decoder.ForwardErrorCorrection = false;
@@ -293,8 +289,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
 
             //   _stopwatch.Restart();
         }
-
-        private object lockob = new object();
 
         public void StopEncoding()
         {

@@ -1,27 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models;
 using NAudio.Utils;
-using NAudio.Wave;
+using NAudio.Wave.WaveFormats;
+using NAudio.Wave.WaveOutputs;
 using NLog;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
 {
     public class JitterBufferProviderInterface : IWaveProvider
     {
+        public static readonly int MAXIMUM_BUFFER_SIZE_MS = 2500;
+
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+        private readonly LinkedList<JitterBufferAudio> _bufferedAudio = new();
         private readonly CircularBuffer _circularBuffer;
 
-        public static readonly int MAXIMUM_BUFFER_SIZE_MS = 2500;
+        private readonly object _lock = new();
 
         private readonly byte[] _silence = new byte[AudioManager.OUTPUT_SEGMENT_FRAMES * 2]; //*2 for stereo
 
-        private readonly LinkedList<JitterBufferAudio> _bufferedAudio = new LinkedList<JitterBufferAudio>();
-
         private ulong _lastRead; // gives current index
-
-        private readonly object _lock = new object();
-
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         //  private const int INITIAL_DELAY_MS = 200;
         //   private long _delayedUntil = -1; //holds audio for a period of time
@@ -76,41 +77,39 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
                             //     read = count;
                             //  Console.WriteLine("Buffer Empty");
                         }
+
+                        var audio = _bufferedAudio.First.Value;
+                        //no Pop?
+                        _bufferedAudio.RemoveFirst();
+
+                        if (_lastRead == 0)
+                        {
+                            _lastRead = audio.PacketNumber;
+                        }
                         else
                         {
-                            var audio = _bufferedAudio.First.Value;
-                            //no Pop?
-                            _bufferedAudio.RemoveFirst();
+                            //TODO deal with looping packet number
+                            if (_lastRead + 1 < audio.PacketNumber)
+                            {
+                                //fill with missing silence - will only add max of 5x Packet length but it could be a bunch of missing?
+                                var missing = audio.PacketNumber - (_lastRead + 1);
 
-                            if (_lastRead == 0)
-                            {
-                                _lastRead = audio.PacketNumber;
-                            }
-                            else
-                            {
-                                //TODO deal with looping packet number
-                                if (_lastRead + 1 < audio.PacketNumber)
+                                // packet number is always discontinuous at the start of a transmission if you didnt receive a transmission for a while i.e different radio channel
+                                // if the gap is more than 4 assume its just a new transmission
+
+                                if (missing <= 4)
                                 {
-                                    //fill with missing silence - will only add max of 5x Packet length but it could be a bunch of missing?
-                                    var missing = audio.PacketNumber - (_lastRead + 1);
+                                    var fill = Math.Min(missing, 4);
 
-                                    // packet number is always discontinuous at the start of a transmission if you didnt receive a transmission for a while i.e different radio channel
-                                    // if the gap is more than 4 assume its just a new transmission
-
-                                    if (missing <= 4)
-                                    {
-                                        var fill = Math.Min(missing, 4);
-
-                                        for (var i = 0; i < (int)fill; i++)
-                                            _circularBuffer.Write(_silence, 0, _silence.Length);
-                                    }
+                                    for (var i = 0; i < (int)fill; i++)
+                                        _circularBuffer.Write(_silence, 0, _silence.Length);
                                 }
-
-                                _lastRead = audio.PacketNumber;
                             }
 
-                            _circularBuffer.Write(audio.Audio, 0, audio.Audio.Length);
+                            _lastRead = audio.PacketNumber;
                         }
+
+                        _circularBuffer.Write(audio.Audio, 0, audio.Audio.Length);
                     }
                 } while (read < count);
 

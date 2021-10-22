@@ -1,20 +1,18 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.IO;
 
 namespace NAudio.Midi
 {
-    class SmpteOffsetEvent : MetaEvent
+    internal class SmpteOffsetEvent : MetaEvent
     {
-        private byte hours;
-        private byte minutes;
-        private byte seconds;
-        private byte frames;
-        private byte subFrames; // 100ths of a frame
+        private readonly byte frames;
+        private readonly byte hours;
+        private readonly byte minutes;
+        private readonly byte seconds;
+        private readonly byte subFrames; // 100ths of a frame
 
         /// <summary>
-        /// Creates a new time signature event
+        ///     Creates a new time signature event
         /// </summary>
         public SmpteOffsetEvent(byte hours, byte minutes, byte seconds, byte frames, byte subFrames)
         {
@@ -26,16 +24,15 @@ namespace NAudio.Midi
         }
 
         /// <summary>
-        /// Reads a new time signature event from a MIDI stream
+        ///     Reads a new time signature event from a MIDI stream
         /// </summary>
         /// <param name="br">The MIDI stream</param>
         /// <param name="length">The data length</param>
         public SmpteOffsetEvent(BinaryReader br, int length)
         {
             if (length != 5)
-            {
-                throw new FormatException(String.Format("Invalid SMPTE Offset length: Got {0}, expected 5", length));
-            }
+                throw new FormatException(string.Format("Invalid SMPTE Offset length: Got {0}, expected 5", length));
+
             hours = br.ReadByte();
             minutes = br.ReadByte();
             seconds = br.ReadByte();
@@ -44,65 +41,53 @@ namespace NAudio.Midi
         }
 
         /// <summary>
-        /// Creates a deep clone of this MIDI event.
+        ///     Hours
         /// </summary>
-        public override MidiEvent Clone() => (SmpteOffsetEvent) MemberwiseClone();
+        public int Hours => hours;
 
         /// <summary>
-        /// Hours
+        ///     Minutes
         /// </summary>
-        public int Hours
-        {
-            get { return hours; }
-        }
+        public int Minutes => minutes;
 
         /// <summary>
-        /// Minutes
+        ///     Seconds
         /// </summary>
-        public int Minutes
-        {
-            get { return minutes; }
-        }
+        public int Seconds => seconds;
 
         /// <summary>
-        /// Seconds
+        ///     Frames
         /// </summary>
-        public int Seconds
-        {
-            get { return seconds; }
-        }
+        public int Frames => frames;
 
         /// <summary>
-        /// Frames
+        ///     SubFrames
         /// </summary>
-        public int Frames
-        {
-            get { return frames; }
-        }
+        public int SubFrames => subFrames;
 
         /// <summary>
-        /// SubFrames
+        ///     Creates a deep clone of this MIDI event.
         /// </summary>
-        public int SubFrames
+        public override MidiEvent Clone()
         {
-            get { return subFrames; }
+            return (SmpteOffsetEvent)MemberwiseClone();
         }
 
 
         /// <summary>
-        /// Describes this time signature event
+        ///     Describes this time signature event
         /// </summary>
         /// <returns>A string describing this event</returns>
         public override string ToString()
         {
-            return String.Format("{0} {1}:{2}:{3}:{4}:{5}",
+            return string.Format("{0} {1}:{2}:{3}:{4}:{5}",
                 base.ToString(), hours, minutes, seconds, frames, subFrames);
         }
 
         /// <summary>
-        /// Calls base class export first, then exports the data 
-        /// specific to this event
-        /// <seealso cref="MidiEvent.Export">MidiEvent.Export</seealso>
+        ///     Calls base class export first, then exports the data
+        ///     specific to this event
+        ///     <seealso cref="MidiEvent.Export">MidiEvent.Export</seealso>
         /// </summary>
         public override void Export(ref long absoluteTime, BinaryWriter writer)
         {

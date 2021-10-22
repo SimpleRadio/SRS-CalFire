@@ -1,4 +1,4 @@
-﻿namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
+﻿namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models
 {
     public class JitterBufferAudio
     {

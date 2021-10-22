@@ -1,11 +1,10 @@
-﻿using NAudio.Wave;
-using NLog;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow;
 using NAudio.CoreAudioApi;
+using NLog;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
 {
@@ -16,7 +15,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
         #region Singleton Definition
 
         private static volatile AudioInputSingleton _instance;
-        private static object _lock = new object();
+        private static readonly object _lock = new();
 
         public static AudioInputSingleton Instance
         {
@@ -65,14 +64,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
                 Logger.Info("Audio Input - No audio input devices available, disabling mic preview");
                 return inputs;
             }
-            else
-            {
-                MicrophoneAvailable = true;
-            }
+
+            MicrophoneAvailable = true;
 
             Logger.Info("Audio Input - " + devices.Count + " audio input devices available, configuring as usual");
 
-            inputs.Add(new AudioDeviceListItem()
+            inputs.Add(new AudioDeviceListItem
             {
                 Text = "Default Microphone",
                 Value = null
@@ -82,7 +79,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
             foreach (var item in devices)
                 try
                 {
-                    var input = new AudioDeviceListItem()
+                    var input = new AudioDeviceListItem
                     {
                         Text = item.FriendlyName,
                         Value = item
@@ -90,7 +87,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
 
                     Logger.Info("Audio Input - " + item.DeviceFriendlyName + " " + item.ID + " CHN:" +
                                 item.AudioClient.MixFormat.Channels + " Rate:" +
-                                item.AudioClient.MixFormat.SampleRate.ToString());
+                                item.AudioClient.MixFormat.SampleRate);
 
                     inputs.Add(input);
 

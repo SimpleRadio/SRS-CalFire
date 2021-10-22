@@ -7,15 +7,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Caliburn.Micro;
-using Ciribob.SRS.Common;
-using Ciribob.SRS.Common.Setting;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.NetCoreServer;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings;
 using Ciribob.SRS.Common.Network.Models;
-using NetCoreServer;
+using Ciribob.SRS.Common.Network.Proxies;
+using Ciribob.SRS.Common.Setting;
 using NLog;
 using LogManager = NLog.LogManager;
 
-namespace Ciribob.SRS.Server.Network
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
 {
     public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
     {
@@ -23,7 +24,7 @@ namespace Ciribob.SRS.Server.Network
 
         private readonly HashSet<IPAddress> _bannedIps;
 
-        private readonly ConcurrentDictionary<string, SRClient> _clients = new ConcurrentDictionary<string, SRClient>();
+        private readonly ConcurrentDictionary<string, SRClient> _clients = new();
         private readonly IEventAggregator _eventAggregator;
 
         private readonly ServerSettingsStore _serverSettings;
@@ -39,8 +40,6 @@ namespace Ciribob.SRS.Server.Network
             _serverSettings = ServerSettingsStore.Instance;
 
             OptionKeepAlive = true;
-
-            
         }
 
         public async Task HandleAsync(ServerSettingsChangedMessage message, CancellationToken token)
@@ -55,7 +54,10 @@ namespace Ciribob.SRS.Server.Network
             }
         }
 
-        protected override TcpSession CreateSession() { return new SRSClientSession(this, _clients, _bannedIps); }
+        protected override TcpSession CreateSession()
+        {
+            return new SRSClientSession(this, _clients, _bannedIps);
+        }
 
         protected override void OnError(SocketError error)
         {
@@ -69,12 +71,13 @@ namespace Ciribob.SRS.Server.Network
             {
                 Start();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                
-                Logger.Error(ex,$"Unable to start the SRS Server");
+                Logger.Error(ex, "Unable to start the SRS Server");
 
-                MessageBox.Show($"Unable to start the SRS Server\n\nPort {_serverSettings.GetServerPort()} in use\n\nChange the port by editing the .cfg", "Port in use",
+                MessageBox.Show(
+                    $"Unable to start the SRS Server\n\nPort {_serverSettings.GetServerPort()} in use\n\nChange the port by editing the .cfg",
+                    "Port in use",
                     MessageBoxButton.OK, MessageBoxImage.Error);
                 Environment.Exit(0);
             }
@@ -84,9 +87,8 @@ namespace Ciribob.SRS.Server.Network
         {
             Logger.Info("Disconnecting Client");
 
-            if ((state != null) && (state.SRSGuid != null))
+            if (state != null && state.SRSGuid != null)
             {
-
                 //removed
                 SRClient client;
                 _clients.TryRemove(state.SRSGuid, out client);
@@ -96,7 +98,7 @@ namespace Ciribob.SRS.Server.Network
                     Logger.Info("Removed Disconnected Client " + state.SRSGuid);
                     client.ClientSession = null;
 
-                   
+
                     HandleClientDisconnect(state, client);
                 }
 
@@ -114,9 +116,7 @@ namespace Ciribob.SRS.Server.Network
             {
                 Logger.Info("Removed Disconnected Unknown Client");
             }
-
         }
-
 
 
         public void HandleMessage(SRSClientSession state, NetworkMessage message)
@@ -126,9 +126,7 @@ namespace Ciribob.SRS.Server.Network
                 Logger.Debug($"Received:  Msg - {message.MsgType} from {state.SRSGuid}");
 
                 if (!HandleConnectedClient(state, message))
-                {
                     Logger.Info($"Invalid Client - disconnecting {state.SRSGuid}");
-                }
 
                 switch (message.MsgType)
                 {
@@ -139,7 +137,7 @@ namespace Ciribob.SRS.Server.Network
                         HandleClientMetaDataUpdate(state, message, true);
                         break;
                     case NetworkMessage.MessageType.FULL_UPDATE:
-                        bool showTuned = _serverSettings.GetGeneralSetting(ServerSettingsKeys.SHOW_TUNED_COUNT)
+                        var showTuned = _serverSettings.GetGeneralSetting(ServerSettingsKeys.SHOW_TUNED_COUNT)
                             .BoolValue;
                         HandleClientMetaDataUpdate(state, message, !showTuned);
                         HandleClientRadioUpdate(state, message, showTuned);
@@ -200,7 +198,7 @@ namespace Ciribob.SRS.Server.Network
                 _clients[srClient.ClientGuid] = srClient;
 
                 state.SRSGuid = srClient.ClientGuid;
-                
+
 
                 _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(true,
                     new List<SRClient>(_clients.Values)));
@@ -219,7 +217,6 @@ namespace Ciribob.SRS.Server.Network
             };
 
             Multicast(replyMessage.Encode());
-
         }
 
         private void HandleVersionMismatch(SRSClientSession session)
@@ -227,7 +224,7 @@ namespace Ciribob.SRS.Server.Network
             //send server settings
             var replyMessage = new NetworkMessage
             {
-                MsgType = NetworkMessage.MessageType.VERSION_MISMATCH,
+                MsgType = NetworkMessage.MessageType.VERSION_MISMATCH
             };
             session.Send(replyMessage.Encode());
         }
@@ -240,7 +237,7 @@ namespace Ciribob.SRS.Server.Network
 
                 if (client != null)
                 {
-                    bool redrawClientAdminList = client?.UnitState?.Name != message?.Client?.UnitState?.Name;
+                    var redrawClientAdminList = client?.UnitState?.Name != message?.Client?.UnitState?.Name;
 
                     //copy the data we need
                     client.LastUpdate = DateTime.Now.Ticks;
@@ -266,17 +263,15 @@ namespace Ciribob.SRS.Server.Network
 
                     // Only redraw client admin UI of server if really needed
                     if (redrawClientAdminList)
-                    {
                         _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(true,
                             new List<SRClient>(_clients.Values)));
-                    }
                 }
             }
         }
 
         private void HandleClientDisconnect(SRSClientSession srsSession, SRClient client)
         {
-            var message = new NetworkMessage()
+            var message = new NetworkMessage
             {
                 Client = client,
                 MsgType = NetworkMessage.MessageType.CLIENT_DISCONNECT
@@ -287,8 +282,9 @@ namespace Ciribob.SRS.Server.Network
             {
                 srsSession.Dispose();
             }
-            catch (Exception) { }
-          
+            catch (Exception)
+            {
+            }
         }
 
         private void HandleClientRadioUpdate(SRSClientSession session, NetworkMessage message, bool send)
@@ -300,10 +296,8 @@ namespace Ciribob.SRS.Server.Network
                 if (client != null)
                 {
                     //shouldnt be the case but just incase...
-                    if (message.Client.UnitState == null)
-                    {
-                        message.Client.UnitState = new PlayerUnitState();
-                    }
+                    if (message.Client.UnitState == null) message.Client.UnitState = new PlayerUnitStateBase();
+
                     //update to local ticks
                     message.Client.UnitState.LastUpdate = DateTime.Now.Ticks;
 
@@ -322,14 +316,14 @@ namespace Ciribob.SRS.Server.Network
                     client.LastUpdate = DateTime.Now.Ticks;
                     client.UnitState = message.Client.UnitState;
 
-                    TimeSpan lastSent = new TimeSpan(DateTime.Now.Ticks - client.LastRadioUpdateSent);
+                    var lastSent = new TimeSpan(DateTime.Now.Ticks - client.LastRadioUpdateSent);
 
                     //send update to everyone
                     //Remove Client Radio Info
                     if (send)
                     {
                         NetworkMessage replyMessage;
-                        if ((changed || lastSent.TotalSeconds > 180))
+                        if (changed || lastSent.TotalSeconds > 180)
                         {
                             client.LastRadioUpdateSent = DateTime.Now.Ticks;
                             replyMessage = new NetworkMessage
@@ -338,7 +332,7 @@ namespace Ciribob.SRS.Server.Network
                                 Client = new SRClient
                                 {
                                     ClientGuid = client.ClientGuid,
-                                    UnitState = client.UnitState, //send radio info
+                                    UnitState = client.UnitState //send radio info
                                 }
                             };
                             Multicast(replyMessage.Encode());
@@ -376,13 +370,9 @@ namespace Ciribob.SRS.Server.Network
             Multicast(update.Encode());
         }
 
-     
-
 
         public void RequestStop()
         {
-          
-
             try
             {
                 DisconnectAll();

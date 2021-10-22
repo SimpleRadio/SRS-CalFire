@@ -4,10 +4,10 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.SRS.Common.Network.Singletons;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using NLog;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AircraftOverlayWindow
 {
     /// <summary>
     ///     Interaction logic for RadioOverlayWindow.xaml
@@ -15,16 +15,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
     public partial class RadioOverlayWindow : Window
     {
         private readonly double _aspectRatio;
-        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-        private readonly RadioControlGroup[] radioControlGroup = new RadioControlGroup[10];
-
-        private readonly DispatcherTimer _updateTimer;
 
 
         private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
 
-        private GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
+        private readonly DispatcherTimer _updateTimer;
+        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+        private readonly RadioControlGroup[] radioControlGroup = new RadioControlGroup[10];
+
+        private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
 
         public RadioOverlayWindow()
         {
@@ -172,6 +172,36 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
             // Console.WriteLine(this.Height +" width:"+ this.Width);
         }
 
+        private void ToggleGlobalSimultaneousTransmissionButton_Click(object sender, RoutedEventArgs e)
+        {
+            // var dcsPlayerRadioInfo = _clientStateSingleton.PlayerUnitState;
+            // if (dcsPlayerRadioInfo != null)
+            // {
+            //     dcsPlayerRadioInfo.simultaneousTransmission = !dcsPlayerRadioInfo.simultaneousTransmission;
+            //
+            //     if (!dcsPlayerRadioInfo.simultaneousTransmission)
+            //         foreach (var radio in dcsPlayerRadioInfo.Radios)
+            //             radio.SimultaneousTransmission = false;
+            //
+            //     ToggleGlobalSimultaneousTransmissionButton.Content =
+            //         _clientStateSingleton.PlayerUnitState.simultaneousTransmission
+            //             ? "Simul. Transmission ON"
+            //             : "Simul. Transmission OFF";
+            //     ToggleGlobalSimultaneousTransmissionButton.Foreground =
+            //         _clientStateSingleton.PlayerUnitState.simultaneousTransmission
+            //             ? new SolidColorBrush(Colors.Orange)
+            //             : new SolidColorBrush(Colors.White);
+            //
+            //     foreach (var radio in radioControlGroup)
+            //     {
+            //         if (!dcsPlayerRadioInfo.simultaneousTransmission)
+            //             radio.ToggleSimultaneousTransmissionButton.Foreground = new SolidColorBrush(Colors.White);
+            //
+            //         radio.RepaintRadioStatus();
+            //     }
+            // }
+        }
+
         #region ScaleValue Depdency Property //StackOverflow: http://stackoverflow.com/questions/3193339/tips-on-developing-resolution-independent-application/5000120#5000120
 
         public static readonly DependencyProperty ScaleValueProperty = DependencyProperty.Register("ScaleValue",
@@ -215,35 +245,5 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
         }
 
         #endregion
-
-        private void ToggleGlobalSimultaneousTransmissionButton_Click(object sender, RoutedEventArgs e)
-        {
-            // var dcsPlayerRadioInfo = _clientStateSingleton.PlayerUnitState;
-            // if (dcsPlayerRadioInfo != null)
-            // {
-            //     dcsPlayerRadioInfo.simultaneousTransmission = !dcsPlayerRadioInfo.simultaneousTransmission;
-            //
-            //     if (!dcsPlayerRadioInfo.simultaneousTransmission)
-            //         foreach (var radio in dcsPlayerRadioInfo.Radios)
-            //             radio.SimultaneousTransmission = false;
-            //
-            //     ToggleGlobalSimultaneousTransmissionButton.Content =
-            //         _clientStateSingleton.PlayerUnitState.simultaneousTransmission
-            //             ? "Simul. Transmission ON"
-            //             : "Simul. Transmission OFF";
-            //     ToggleGlobalSimultaneousTransmissionButton.Foreground =
-            //         _clientStateSingleton.PlayerUnitState.simultaneousTransmission
-            //             ? new SolidColorBrush(Colors.Orange)
-            //             : new SolidColorBrush(Colors.White);
-            //
-            //     foreach (var radio in radioControlGroup)
-            //     {
-            //         if (!dcsPlayerRadioInfo.simultaneousTransmission)
-            //             radio.ToggleSimultaneousTransmissionButton.Foreground = new SolidColorBrush(Colors.White);
-            //
-            //         radio.RepaintRadioStatus();
-            //     }
-            // }
-        }
     }
 }

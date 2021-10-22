@@ -1,45 +1,52 @@
 using System;
 using System.Runtime.InteropServices;
+using NAudio.Wave.WaveFormats;
 
-namespace NAudio.Wave
+namespace NAudio.Wave.MmeInterop
 {
     /// <summary>
-    /// MME Wave function interop
+    ///     MME Wave function interop
     /// </summary>
-    class WaveInterop
+    internal class WaveInterop
     {
+        // use the userdata as a reference
+        // WaveOutProc http://msdn.microsoft.com/en-us/library/dd743869%28VS.85%29.aspx
+        // WaveInProc http://msdn.microsoft.com/en-us/library/dd743849%28VS.85%29.aspx
+        public delegate void WaveCallback(IntPtr hWaveOut, WaveMessage message, IntPtr dwInstance, WaveHeader wavhdr,
+            IntPtr dwReserved);
+
         [Flags]
         public enum WaveInOutOpenFlags
         {
             /// <summary>
-            /// CALLBACK_NULL
-            /// No callback
+            ///     CALLBACK_NULL
+            ///     No callback
             /// </summary>
             CallbackNull = 0,
 
             /// <summary>
-            /// CALLBACK_FUNCTION
-            /// dwCallback is a FARPROC 
+            ///     CALLBACK_FUNCTION
+            ///     dwCallback is a FARPROC
             /// </summary>
             CallbackFunction = 0x30000,
 
             /// <summary>
-            /// CALLBACK_EVENT
-            /// dwCallback is an EVENT handle 
+            ///     CALLBACK_EVENT
+            ///     dwCallback is an EVENT handle
             /// </summary>
             CallbackEvent = 0x50000,
 
             /// <summary>
-            /// CALLBACK_WINDOW
-            /// dwCallback is a HWND 
+            ///     CALLBACK_WINDOW
+            ///     dwCallback is a HWND
             /// </summary>
             CallbackWindow = 0x10000,
 
             /// <summary>
-            /// CALLBACK_THREAD
-            /// callback is a thread ID 
+            ///     CALLBACK_THREAD
+            ///     callback is a thread ID
             /// </summary>
-            CallbackThread = 0x20000,
+            CallbackThread = 0x20000
             /*
             WAVE_FORMAT_QUERY = 1,
             WAVE_MAPPED = 4,
@@ -53,47 +60,41 @@ namespace NAudio.Wave
         public enum WaveMessage
         {
             /// <summary>
-            /// WIM_OPEN
+            ///     WIM_OPEN
             /// </summary>
             WaveInOpen = 0x3BE,
 
             /// <summary>
-            /// WIM_CLOSE
+            ///     WIM_CLOSE
             /// </summary>
             WaveInClose = 0x3BF,
 
             /// <summary>
-            /// WIM_DATA
+            ///     WIM_DATA
             /// </summary>
             WaveInData = 0x3C0,
 
             /// <summary>
-            /// WOM_CLOSE
+            ///     WOM_CLOSE
             /// </summary>
             WaveOutClose = 0x3BC,
 
             /// <summary>
-            /// WOM_DONE
+            ///     WOM_DONE
             /// </summary>
             WaveOutDone = 0x3BD,
 
             /// <summary>
-            /// WOM_OPEN
+            ///     WOM_OPEN
             /// </summary>
             WaveOutOpen = 0x3BB
         }
 
-        // use the userdata as a reference
-        // WaveOutProc http://msdn.microsoft.com/en-us/library/dd743869%28VS.85%29.aspx
-        // WaveInProc http://msdn.microsoft.com/en-us/library/dd743849%28VS.85%29.aspx
-        public delegate void WaveCallback(IntPtr hWaveOut, WaveMessage message, IntPtr dwInstance, WaveHeader wavhdr,
-            IntPtr dwReserved);
+        [DllImport("winmm.dll")]
+        public static extern int mmioStringToFOURCC([MarshalAs(UnmanagedType.LPStr)] string s, int flags);
 
         [DllImport("winmm.dll")]
-        public static extern Int32 mmioStringToFOURCC([MarshalAs(UnmanagedType.LPStr)] String s, int flags);
-
-        [DllImport("winmm.dll")]
-        public static extern Int32 waveOutGetNumDevs();
+        public static extern int waveOutGetNumDevs();
 
         [DllImport("winmm.dll")]
         public static extern MmResult waveOutPrepareHeader(IntPtr hWaveOut, WaveHeader lpWaveOutHdr, int uSize);
@@ -142,7 +143,7 @@ namespace NAudio.Wave
             int waveOutCapsSize);
 
         [DllImport("winmm.dll")]
-        public static extern Int32 waveInGetNumDevs();
+        public static extern int waveInGetNumDevs();
 
         // http://msdn.microsoft.com/en-us/library/dd743841%28VS.85%29.aspx
         [DllImport("winmm.dll", CharSet = CharSet.Auto)]

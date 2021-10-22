@@ -1,41 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace NAudio.Wave
+namespace NAudio.Wave.MmeInterop
 {
     /// <summary>
-    /// Event Args for WaveInStream event
+    ///     Event Args for WaveInStream event
     /// </summary>
     public class WaveInEventArgs : EventArgs
     {
-        private byte[] buffer;
-        private int bytes;
-
         /// <summary>
-        /// Creates new WaveInEventArgs
+        ///     Creates new WaveInEventArgs
         /// </summary>
         public WaveInEventArgs(byte[] buffer, int bytes)
         {
-            this.buffer = buffer;
-            this.bytes = bytes;
+            Buffer = buffer;
+            BytesRecorded = bytes;
         }
 
         /// <summary>
-        /// Buffer containing recorded data. Note that it might not be completely
-        /// full. <seealso cref="BytesRecorded"/>
+        ///     Buffer containing recorded data. Note that it might not be completely
+        ///     full. <seealso cref="BytesRecorded" />
         /// </summary>
-        public byte[] Buffer
-        {
-            get { return buffer; }
-        }
+        public byte[] Buffer { get; }
 
         /// <summary>
-        /// The number of recorded bytes in Buffer. <seealso cref="Buffer"/>
+        ///     The number of recorded bytes in Buffer. <seealso cref="Buffer" />
         /// </summary>
-        public int BytesRecorded
-        {
-            get { return bytes; }
-        }
+        public int BytesRecorded { get; }
     }
 }

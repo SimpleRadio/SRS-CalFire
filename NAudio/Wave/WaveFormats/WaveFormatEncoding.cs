@@ -1,9 +1,7 @@
-using System;
-
-namespace NAudio.Wave
+namespace NAudio.Wave.WaveFormats
 {
     /// <summary>
-    /// Summary description for WaveFormatEncoding.
+    ///     Summary description for WaveFormatEncoding.
     /// </summary>
     public enum WaveFormatEncoding : ushort
     {
@@ -284,7 +282,7 @@ namespace NAudio.Wave
         Acelp = 0x00A4,
 
         /// <summary>
-        /// WAVE_FORMAT_RAW_AAC1
+        ///     WAVE_FORMAT_RAW_AAC1
         /// </summary>
         RawAac = 0x00FF,
 
@@ -340,22 +338,22 @@ namespace NAudio.Wave
         WAVE_FORMAT_MSAUDIO1 = 0x0160, // Microsoft Corporation
 
         /// <summary>
-        /// Windows Media Audio, WAVE_FORMAT_WMAUDIO2, Microsoft Corporation
+        ///     Windows Media Audio, WAVE_FORMAT_WMAUDIO2, Microsoft Corporation
         /// </summary>
         WindowsMediaAudio = 0x0161,
 
         /// <summary>
-        /// Windows Media Audio Professional WAVE_FORMAT_WMAUDIO3, Microsoft Corporation
+        ///     Windows Media Audio Professional WAVE_FORMAT_WMAUDIO3, Microsoft Corporation
         /// </summary>
         WindowsMediaAudioProfessional = 0x0162,
 
         /// <summary>
-        /// Windows Media Audio Lossless, WAVE_FORMAT_WMAUDIO_LOSSLESS
+        ///     Windows Media Audio Lossless, WAVE_FORMAT_WMAUDIO_LOSSLESS
         /// </summary>
         WindowsMediaAudioLosseless = 0x0163,
 
         /// <summary>
-        /// Windows Media Audio Professional over SPDIF WAVE_FORMAT_WMASPDIF (0x0164)
+        ///     Windows Media Audio Professional over SPDIF WAVE_FORMAT_WMASPDIF (0x0164)
         /// </summary>
         WindowsMediaAudioSpdif = 0x0164,
 
@@ -447,13 +445,13 @@ namespace NAudio.Wave
         WAVE_FORMAT_SOUNDSPACE_MUSICOMPRESS = 0x1500, // AT&T Labs, Inc. 
 
         /// <summary>
-        /// Advanced Audio Coding (AAC) audio in Audio Data Transport Stream (ADTS) format.
-        /// The format block is a WAVEFORMATEX structure with wFormatTag equal to WAVE_FORMAT_MPEG_ADTS_AAC.
+        ///     Advanced Audio Coding (AAC) audio in Audio Data Transport Stream (ADTS) format.
+        ///     The format block is a WAVEFORMATEX structure with wFormatTag equal to WAVE_FORMAT_MPEG_ADTS_AAC.
         /// </summary>
         /// <remarks>
-        /// The WAVEFORMATEX structure specifies the core AAC-LC sample rate and number of channels, 
-        /// prior to applying spectral band replication (SBR) or parametric stereo (PS) tools, if present.
-        /// No additional data is required after the WAVEFORMATEX structure.
+        ///     The WAVEFORMATEX structure specifies the core AAC-LC sample rate and number of channels,
+        ///     prior to applying spectral band replication (SBR) or parametric stereo (PS) tools, if present.
+        ///     No additional data is required after the WAVEFORMATEX structure.
         /// </remarks>
         /// <see>http://msdn.microsoft.com/en-us/library/dd317599%28VS.85%29.aspx</see>
         MPEG_ADTS_AAC = 0x1600,
@@ -463,13 +461,13 @@ namespace NAudio.Wave
         MPEG_RAW_AAC = 0x1601,
 
         /// <summary>
-        /// MPEG-4 audio transport stream with a synchronization layer (LOAS) and a multiplex layer (LATM).
-        /// The format block is a WAVEFORMATEX structure with wFormatTag equal to WAVE_FORMAT_MPEG_LOAS.
+        ///     MPEG-4 audio transport stream with a synchronization layer (LOAS) and a multiplex layer (LATM).
+        ///     The format block is a WAVEFORMATEX structure with wFormatTag equal to WAVE_FORMAT_MPEG_LOAS.
         /// </summary>
         /// <remarks>
-        /// The WAVEFORMATEX structure specifies the core AAC-LC sample rate and number of channels, 
-        /// prior to applying spectral SBR or PS tools, if present.
-        /// No additional data is required after the WAVEFORMATEX structure.
+        ///     The WAVEFORMATEX structure specifies the core AAC-LC sample rate and number of channels,
+        ///     prior to applying spectral SBR or PS tools, if present.
+        ///     No additional data is required after the WAVEFORMATEX structure.
         /// </remarks>
         /// <see>http://msdn.microsoft.com/en-us/library/dd317599%28VS.85%29.aspx</see>
         MPEG_LOAS = 0x1602,
@@ -491,8 +489,8 @@ namespace NAudio.Wave
         VODAFONE_MPEG_RAW_AAC = 0x160B,
 
         /// <summary>
-        /// High-Efficiency Advanced Audio Coding (HE-AAC) stream.
-        /// The format block is an HEAACWAVEFORMAT structure.
+        ///     High-Efficiency Advanced Audio Coding (HE-AAC) stream.
+        ///     The format block is an HEAACWAVEFORMAT structure.
         /// </summary>
         /// <see>http://msdn.microsoft.com/en-us/library/dd317599%28VS.85%29.aspx</see>
         MPEG_HEAAC = 0x1610,
@@ -523,6 +521,6 @@ namespace NAudio.Wave
         Extensible = 0xFFFE, // Microsoft 
 
         /// <summary></summary>
-        WAVE_FORMAT_DEVELOPMENT = 0xFFFF,
+        WAVE_FORMAT_DEVELOPMENT = 0xFFFF
     }
 }

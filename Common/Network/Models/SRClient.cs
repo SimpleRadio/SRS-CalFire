@@ -1,7 +1,7 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Net;
 using Ciribob.SRS.Common.Helpers;
+using Ciribob.SRS.Common.Network.Proxies;
 using Newtonsoft.Json;
 
 namespace Ciribob.SRS.Common.Network.Models
@@ -9,6 +9,9 @@ namespace Ciribob.SRS.Common.Network.Models
     public class SRClient : PropertyChangedBase
     {
         [JsonIgnore] private float _lineOfSightLoss; // 0.0 is NO Loss therefore Full line of sight
+
+        // Used by server client list to display last frequency client transmitted on
+        private string _transmittingFrequency;
 
         public string ClientGuid { get; set; }
 
@@ -28,14 +31,11 @@ namespace Ciribob.SRS.Common.Network.Models
             get
             {
                 if (_lineOfSightLoss == 0) return 0;
-                if (UnitState?.LatLng?.lat == 0 && UnitState?.LatLng?.lng == 0) return 0;
+                if (UnitState?.LatLng?.Lat == 0 && UnitState?.LatLng?.Lng == 0) return 0;
                 return _lineOfSightLoss;
             }
             set => _lineOfSightLoss = value;
         }
-
-        // Used by server client list to display last frequency client transmitted on
-        private string _transmittingFrequency;
 
         [JsonIgnore]
         public string TransmittingFrequency

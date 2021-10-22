@@ -1,99 +1,75 @@
-using System;
-
-namespace NAudio.SoundFont
+namespace NAudio.FileFormats.SoundFont
 {
     /// <summary>
-    /// Soundfont generator
+    ///     Soundfont generator
     /// </summary>
     public class Generator
     {
-        private GeneratorEnum generatorType;
-        private ushort rawAmount;
-        private Instrument instrument;
-        private SampleHeader sampleHeader;
-
         /// <summary>
-        /// Gets the generator type
+        ///     Gets the generator type
         /// </summary>
-        public GeneratorEnum GeneratorType
-        {
-            get { return generatorType; }
-            set { generatorType = value; }
-        }
+        public GeneratorEnum GeneratorType { get; set; }
 
         /// <summary>
-        /// Generator amount as an unsigned short
+        ///     Generator amount as an unsigned short
         /// </summary>
-        public ushort UInt16Amount
-        {
-            get { return rawAmount; }
-            set { rawAmount = value; }
-        }
+        public ushort UInt16Amount { get; set; }
 
         /// <summary>
-        /// Generator amount as a signed short
+        ///     Generator amount as a signed short
         /// </summary>
         public short Int16Amount
         {
-            get { return (short) rawAmount; }
-            set { rawAmount = (ushort) value; }
+            get => (short)UInt16Amount;
+            set => UInt16Amount = (ushort)value;
         }
 
         /// <summary>
-        /// Low byte amount
+        ///     Low byte amount
         /// </summary>
         public byte LowByteAmount
         {
-            get { return (byte) (rawAmount & 0x00FF); }
+            get => (byte)(UInt16Amount & 0x00FF);
             set
             {
-                rawAmount &= 0xFF00;
-                rawAmount += value;
+                UInt16Amount &= 0xFF00;
+                UInt16Amount += value;
             }
         }
 
         /// <summary>
-        /// High byte amount
+        ///     High byte amount
         /// </summary>
         public byte HighByteAmount
         {
-            get { return (byte) ((rawAmount & 0xFF00) >> 8); }
+            get => (byte)((UInt16Amount & 0xFF00) >> 8);
             set
             {
-                rawAmount &= 0x00FF;
-                rawAmount += (ushort) (value << 8);
+                UInt16Amount &= 0x00FF;
+                UInt16Amount += (ushort)(value << 8);
             }
         }
 
         /// <summary>
-        /// Instrument
+        ///     Instrument
         /// </summary>
-        public Instrument Instrument
-        {
-            get { return instrument; }
-            set { instrument = value; }
-        }
+        public Instrument Instrument { get; set; }
 
         /// <summary>
-        /// Sample Header
+        ///     Sample Header
         /// </summary>
-        public SampleHeader SampleHeader
-        {
-            get { return sampleHeader; }
-            set { sampleHeader = value; }
-        }
+        public SampleHeader SampleHeader { get; set; }
 
         /// <summary>
-        /// <see cref="object.ToString"/>
+        ///     <see cref="object.ToString" />
         /// </summary>
         public override string ToString()
         {
-            if (generatorType == GeneratorEnum.Instrument)
-                return String.Format("Generator Instrument {0}", instrument.Name);
-            else if (generatorType == GeneratorEnum.SampleID)
-                return String.Format("Generator SampleID {0}", sampleHeader);
-            else
-                return String.Format("Generator {0} {1}", generatorType, rawAmount);
+            if (GeneratorType == GeneratorEnum.Instrument)
+                return string.Format("Generator Instrument {0}", Instrument.Name);
+            if (GeneratorType == GeneratorEnum.SampleID)
+                return string.Format("Generator SampleID {0}", SampleHeader);
+            return string.Format("Generator {0} {1}", GeneratorType, UInt16Amount);
         }
     }
 }

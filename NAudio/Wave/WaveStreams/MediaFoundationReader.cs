@@ -2,70 +2,45 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using NAudio.CoreAudioApi.Interfaces;
+using NAudio.CoreAudioApi;
 using NAudio.MediaFoundation;
 using NAudio.Utils;
+using NAudio.Wave.WaveFormats;
 
 // ReSharper disable once CheckNamespace
 namespace NAudio.Wave
 {
     /// <summary>
-    /// Class for reading any file that Media Foundation can play
-    /// Will only work in Windows Vista and above
-    /// Automatically converts to PCM
-    /// If it is a video file with multiple audio streams, it will pick out the first audio stream
+    ///     Class for reading any file that Media Foundation can play
+    ///     Will only work in Windows Vista and above
+    ///     Automatically converts to PCM
+    ///     If it is a video file with multiple audio streams, it will pick out the first audio stream
     /// </summary>
     public class MediaFoundationReader : WaveStream
     {
-        private WaveFormat waveFormat;
-        private long length;
-        private MediaFoundationReaderSettings settings;
         private readonly string file;
-        private IMFSourceReader pReader;
+
+        private byte[] decoderOutputBuffer;
+        private int decoderOutputCount;
+        private int decoderOutputOffset;
+        private long length;
 
         private long position;
+        private IMFSourceReader pReader;
+
+        private long repositionTo = -1;
+        private MediaFoundationReaderSettings settings;
+        private WaveFormat waveFormat;
 
         /// <summary>
-        /// Allows customisation of this reader class
-        /// </summary>
-        public class MediaFoundationReaderSettings
-        {
-            /// <summary>
-            /// Sets up the default settings for MediaFoundationReader
-            /// </summary>
-            public MediaFoundationReaderSettings()
-            {
-                RepositionInRead = true;
-            }
-
-            /// <summary>
-            /// Allows us to request IEEE float output (n.b. no guarantee this will be accepted)
-            /// </summary>
-            public bool RequestFloatOutput { get; set; }
-
-            /// <summary>
-            /// If true, the reader object created in the constructor is used in Read
-            /// Should only be set to true if you are working entirely on an STA thread, or 
-            /// entirely with MTA threads.
-            /// </summary>
-            public bool SingleReaderObject { get; set; }
-
-            /// <summary>
-            /// If true, the reposition does not happen immediately, but waits until the
-            /// next call to read to be processed.
-            /// </summary>
-            public bool RepositionInRead { get; set; }
-        }
-
-        /// <summary>
-        /// Default constructor
+        ///     Default constructor
         /// </summary>
         protected MediaFoundationReader()
         {
         }
 
         /// <summary>
-        /// Creates a new MediaFoundationReader based on the supplied file
+        ///     Creates a new MediaFoundationReader based on the supplied file
         /// </summary>
         /// <param name="file">Filename (can also be a URL  e.g. http:// mms:// file://)</param>
         public MediaFoundationReader(string file)
@@ -75,7 +50,7 @@ namespace NAudio.Wave
 
 
         /// <summary>
-        /// Creates a new MediaFoundationReader based on the supplied file
+        ///     Creates a new MediaFoundationReader based on the supplied file
         /// </summary>
         /// <param name="file">Filename</param>
         /// <param name="settings">Advanced settings</param>
@@ -86,7 +61,39 @@ namespace NAudio.Wave
         }
 
         /// <summary>
-        /// Initializes 
+        ///     WaveFormat of this stream (n.b. this is after converting to PCM)
+        /// </summary>
+        public override WaveFormat WaveFormat => waveFormat;
+
+        /// <summary>
+        ///     The bytesRequired of this stream in bytes (n.b may not be accurate)
+        /// </summary>
+        public override long Length => length;
+
+        /// <summary>
+        ///     Current position within this stream
+        /// </summary>
+        public override long Position
+        {
+            get => position;
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException("value", "Position cannot be less than 0");
+                if (settings.RepositionInRead)
+                {
+                    repositionTo = value;
+                    position = value; // for gui apps, make it look like we have alread processed the reposition
+                }
+                else
+                {
+                    Reposition(value);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Initializes
         /// </summary>
         protected void Init(MediaFoundationReaderSettings initialSettings)
         {
@@ -100,13 +107,9 @@ namespace NAudio.Wave
             length = GetLength(reader);
 
             if (settings.SingleReaderObject)
-            {
                 pReader = reader;
-            }
             else
-            {
                 Marshal.ReleaseComObject(reader);
-            }
         }
 
         private WaveFormat GetCurrentWaveFormat(IMFSourceReader reader)
@@ -117,19 +120,19 @@ namespace NAudio.Wave
 
             // Two ways to query it, first is to ask for properties (second is to convert into WaveFormatEx using MFCreateWaveFormatExFromMFMediaType)
             var outputMediaType = new MediaType(uncompressedMediaType);
-            Guid actualMajorType = outputMediaType.MajorType;
+            var actualMajorType = outputMediaType.MajorType;
             Debug.Assert(actualMajorType == MediaTypes.MFMediaType_Audio);
-            Guid audioSubType = outputMediaType.SubType;
-            int channels = outputMediaType.ChannelCount;
-            int bits = outputMediaType.BitsPerSample;
-            int sampleRate = outputMediaType.SampleRate;
+            var audioSubType = outputMediaType.SubType;
+            var channels = outputMediaType.ChannelCount;
+            var bits = outputMediaType.BitsPerSample;
+            var sampleRate = outputMediaType.SampleRate;
 
             if (audioSubType == AudioSubtypes.MFAudioFormat_PCM)
                 return new WaveFormat(sampleRate, bits, channels);
             if (audioSubType == AudioSubtypes.MFAudioFormat_Float)
                 return WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channels);
             var subTypeDescription = FieldDescriptionHelper.Describe(typeof(AudioSubtypes), audioSubType);
-            throw new InvalidDataException(String.Format("Unsupported audio sub Type {0}", subTypeDescription));
+            throw new InvalidDataException(string.Format("Unsupported audio sub Type {0}", subTypeDescription));
         }
 
         private static MediaType GetCurrentMediaType(IMFSourceReader reader)
@@ -140,7 +143,7 @@ namespace NAudio.Wave
         }
 
         /// <summary>
-        /// Creates the reader (overridable by )
+        ///     Creates the reader (overridable by )
         /// </summary>
         protected virtual IMFSourceReader CreateReader(MediaFoundationReaderSettings settings)
         {
@@ -196,20 +199,17 @@ namespace NAudio.Wave
             try
             {
                 // http://msdn.microsoft.com/en-gb/library/windows/desktop/dd389281%28v=vs.85%29.aspx#getting_file_duration
-                int hResult = reader.GetPresentationAttribute(MediaFoundationInterop.MF_SOURCE_READER_MEDIASOURCE,
+                var hResult = reader.GetPresentationAttribute(MediaFoundationInterop.MF_SOURCE_READER_MEDIASOURCE,
                     MediaFoundationAttributes.MF_PD_DURATION, variantPtr);
                 if (hResult == MediaFoundationErrors.MF_E_ATTRIBUTENOTFOUND)
-                {
                     // this doesn't support telling us its duration (might be streaming)
                     return 0;
-                }
-                if (hResult != 0)
-                {
-                    Marshal.ThrowExceptionForHR(hResult);
-                }
+
+                if (hResult != 0) Marshal.ThrowExceptionForHR(hResult);
+
                 var variant = MarshalHelpers.PtrToStructure<PropVariant>(variantPtr);
 
-                var lengthInBytes = (((long) variant.Value) * waveFormat.AverageBytesPerSecond) / 10000000L;
+                var lengthInBytes = (long)variant.Value * waveFormat.AverageBytesPerSecond / 10000000L;
                 return lengthInBytes;
             }
             finally
@@ -219,20 +219,14 @@ namespace NAudio.Wave
             }
         }
 
-        private byte[] decoderOutputBuffer;
-        private int decoderOutputOffset;
-        private int decoderOutputCount;
-
         private void EnsureBuffer(int bytesRequired)
         {
             if (decoderOutputBuffer == null || decoderOutputBuffer.Length < bytesRequired)
-            {
                 decoderOutputBuffer = new byte[bytesRequired];
-            }
         }
 
         /// <summary>
-        /// Reads from this wave stream
+        ///     Reads from this wave stream
         /// </summary>
         /// <param name="buffer">Buffer to read into</param>
         /// <param name="offset">Offset in buffer</param>
@@ -240,21 +234,13 @@ namespace NAudio.Wave
         /// <returns>Number of bytes read; 0 indicates end of stream</returns>
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (pReader == null)
-            {
-                pReader = CreateReader(settings);
-            }
-            if (repositionTo != -1)
-            {
-                Reposition(repositionTo);
-            }
+            if (pReader == null) pReader = CreateReader(settings);
 
-            int bytesWritten = 0;
+            if (repositionTo != -1) Reposition(repositionTo);
+
+            var bytesWritten = 0;
             // read in any leftovers from last time
-            if (decoderOutputCount > 0)
-            {
-                bytesWritten += ReadFromDecoderBuffer(buffer, offset, count - bytesWritten);
-            }
+            if (decoderOutputCount > 0) bytesWritten += ReadFromDecoderBuffer(buffer, offset, count - bytesWritten);
 
             while (bytesWritten < count)
             {
@@ -269,7 +255,8 @@ namespace NAudio.Wave
                     // reached the end of the stream
                     break;
                 }
-                else if ((dwFlags & MF_SOURCE_READER_FLAG.MF_SOURCE_READERF_CURRENTMEDIATYPECHANGED) != 0)
+
+                if ((dwFlags & MF_SOURCE_READER_FLAG.MF_SOURCE_READERF_CURRENTMEDIATYPECHANGED) != 0)
                 {
                     waveFormat = GetCurrentWaveFormat(pReader);
                     OnWaveFormatChanged();
@@ -277,7 +264,7 @@ namespace NAudio.Wave
                 }
                 else if (dwFlags != 0)
                 {
-                    throw new InvalidOperationException(String.Format("MediaFoundationReadError {0}", dwFlags));
+                    throw new InvalidOperationException(string.Format("MediaFoundationReadError {0}", dwFlags));
                 }
 
                 IMFMediaBuffer pBuffer;
@@ -298,66 +285,25 @@ namespace NAudio.Wave
                 Marshal.ReleaseComObject(pBuffer);
                 Marshal.ReleaseComObject(pSample);
             }
+
             position += bytesWritten;
             return bytesWritten;
         }
 
         private int ReadFromDecoderBuffer(byte[] buffer, int offset, int needed)
         {
-            int bytesFromDecoderOutput = Math.Min(needed, decoderOutputCount);
+            var bytesFromDecoderOutput = Math.Min(needed, decoderOutputCount);
             Array.Copy(decoderOutputBuffer, decoderOutputOffset, buffer, offset, bytesFromDecoderOutput);
             decoderOutputOffset += bytesFromDecoderOutput;
             decoderOutputCount -= bytesFromDecoderOutput;
-            if (decoderOutputCount == 0)
-            {
-                decoderOutputOffset = 0;
-            }
+            if (decoderOutputCount == 0) decoderOutputOffset = 0;
+
             return bytesFromDecoderOutput;
         }
 
-        /// <summary>
-        /// WaveFormat of this stream (n.b. this is after converting to PCM)
-        /// </summary>
-        public override WaveFormat WaveFormat
-        {
-            get { return waveFormat; }
-        }
-
-        /// <summary>
-        /// The bytesRequired of this stream in bytes (n.b may not be accurate)
-        /// </summary>
-        public override long Length
-        {
-            get { return length; }
-        }
-
-        /// <summary>
-        /// Current position within this stream
-        /// </summary>
-        public override long Position
-        {
-            get { return position; }
-            set
-            {
-                if (value < 0)
-                    throw new ArgumentOutOfRangeException("value", "Position cannot be less than 0");
-                if (settings.RepositionInRead)
-                {
-                    repositionTo = value;
-                    position = value; // for gui apps, make it look like we have alread processed the reposition
-                }
-                else
-                {
-                    Reposition(value);
-                }
-            }
-        }
-
-        private long repositionTo = -1;
-
         private void Reposition(long desiredPosition)
         {
-            long nsPosition = (10000000L * repositionTo) / waveFormat.AverageBytesPerSecond;
+            var nsPosition = 10000000L * repositionTo / waveFormat.AverageBytesPerSecond;
             var pv = PropVariant.FromLong(nsPosition);
             var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(pv));
             Marshal.StructureToPtr(pv, ptr, false);
@@ -372,7 +318,7 @@ namespace NAudio.Wave
         }
 
         /// <summary>
-        /// Cleans up after finishing with this reader
+        ///     Cleans up after finishing with this reader
         /// </summary>
         /// <param name="disposing">true if called from Dispose</param>
         protected override void Dispose(bool disposing)
@@ -382,11 +328,12 @@ namespace NAudio.Wave
                 Marshal.ReleaseComObject(pReader);
                 pReader = null;
             }
+
             base.Dispose(disposing);
         }
 
         /// <summary>
-        /// WaveFormat has changed
+        ///     WaveFormat has changed
         /// </summary>
         public event EventHandler WaveFormatChanged;
 
@@ -394,6 +341,38 @@ namespace NAudio.Wave
         {
             var handler = WaveFormatChanged;
             if (handler != null) handler(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        ///     Allows customisation of this reader class
+        /// </summary>
+        public class MediaFoundationReaderSettings
+        {
+            /// <summary>
+            ///     Sets up the default settings for MediaFoundationReader
+            /// </summary>
+            public MediaFoundationReaderSettings()
+            {
+                RepositionInRead = true;
+            }
+
+            /// <summary>
+            ///     Allows us to request IEEE float output (n.b. no guarantee this will be accepted)
+            /// </summary>
+            public bool RequestFloatOutput { get; set; }
+
+            /// <summary>
+            ///     If true, the reader object created in the constructor is used in Read
+            ///     Should only be set to true if you are working entirely on an STA thread, or
+            ///     entirely with MTA threads.
+            /// </summary>
+            public bool SingleReaderObject { get; set; }
+
+            /// <summary>
+            ///     If true, the reposition does not happen immediately, but waits until the
+            ///     next call to read to be processed.
+            /// </summary>
+            public bool RepositionInRead { get; set; }
         }
     }
 }

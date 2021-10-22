@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace Cabhishek.Timers
+namespace Ciribob.SRS.Common.Timers
 {
     /// <summary>
-    /// Source: https://github.com/cabhishek/Time
+    ///     Source: https://github.com/cabhishek/Time
     /// </summary>
     public interface ITimer
     {

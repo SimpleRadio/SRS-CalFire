@@ -1,9 +1,11 @@
 using System;
+using NAudio.Wave.WaveFormats;
+using NAudio.Wave.WaveOutputs;
 
 namespace NAudio.Wave.SampleProviders
 {
     /// <summary>
-    /// Takes a stereo input and turns it to mono
+    ///     Takes a stereo input and turns it to mono
     /// </summary>
     public class StereoToMonoSampleProvider : ISampleProvider
     {
@@ -11,38 +13,36 @@ namespace NAudio.Wave.SampleProviders
         private float[] sourceBuffer;
 
         /// <summary>
-        /// Creates a new mono ISampleProvider based on a stereo input
+        ///     Creates a new mono ISampleProvider based on a stereo input
         /// </summary>
         /// <param name="sourceProvider">Stereo 16 bit PCM input</param>
         public StereoToMonoSampleProvider(ISampleProvider sourceProvider)
         {
             LeftVolume = 0.5f;
             RightVolume = 0.5f;
-            if (sourceProvider.WaveFormat.Channels != 2)
-            {
-                throw new ArgumentException("Source must be stereo");
-            }
+            if (sourceProvider.WaveFormat.Channels != 2) throw new ArgumentException("Source must be stereo");
+
             this.sourceProvider = sourceProvider;
             WaveFormat = WaveFormat.CreateIeeeFloatWaveFormat(sourceProvider.WaveFormat.SampleRate, 1);
         }
 
         /// <summary>
-        /// 1.0 to mix the mono source entirely to the left channel
+        ///     1.0 to mix the mono source entirely to the left channel
         /// </summary>
         public float LeftVolume { get; set; }
 
         /// <summary>
-        /// 1.0 to mix the mono source entirely to the right channel
+        ///     1.0 to mix the mono source entirely to the right channel
         /// </summary>
         public float RightVolume { get; set; }
 
         /// <summary>
-        /// Output Wave Format
+        ///     Output Wave Format
         /// </summary>
         public WaveFormat WaveFormat { get; }
 
         /// <summary>
-        /// Reads bytes from this SampleProvider
+        ///     Reads bytes from this SampleProvider
         /// </summary>
         public int Read(float[] buffer, int offset, int count)
         {
@@ -56,10 +56,11 @@ namespace NAudio.Wave.SampleProviders
             {
                 var left = sourceBuffer[sourceSample];
                 var right = sourceBuffer[sourceSample + 1];
-                var outSample = (left * LeftVolume) + (right * RightVolume);
+                var outSample = left * LeftVolume + right * RightVolume;
 
                 buffer[destOffset++] = outSample;
             }
+
             return sourceSamplesRead / 2;
         }
     }

@@ -1,47 +1,49 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using NAudio.Utils;
-using NAudio.Wave;
+using NAudio.Wave.WaveFormats;
+using NAudio.Wave.WaveOutputs;
 
 namespace NAudio.MediaFoundation
 {
     /// <summary>
-    /// An abstract base class for simplifying working with Media Foundation Transforms
-    /// You need to override the method that actually creates and configures the transform
+    ///     An abstract base class for simplifying working with Media Foundation Transforms
+    ///     You need to override the method that actually creates and configures the transform
     /// </summary>
     public abstract class MediaFoundationTransform : IWaveProvider, IDisposable
     {
         /// <summary>
-        /// The Source Provider
-        /// </summary>
-        protected readonly IWaveProvider sourceProvider;
-
-        /// <summary>
-        /// The Output WaveFormat
+        ///     The Output WaveFormat
         /// </summary>
         protected readonly WaveFormat outputWaveFormat;
 
         private readonly byte[] sourceBuffer;
 
+        /// <summary>
+        ///     The Source Provider
+        /// </summary>
+        protected readonly IWaveProvider sourceProvider;
+
+        private bool disposed;
+        private bool initializedForStreaming;
+        private long inputPosition; // in ref-time, so we can timestamp the input samples
+
         private byte[] outputBuffer;
-        private int outputBufferOffset;
         private int outputBufferCount;
+        private int outputBufferOffset;
+        private long outputPosition; // also in ref-time
 
         private IMFTransform transform;
-        private bool disposed;
-        private long inputPosition; // in ref-time, so we can timestamp the input samples
-        private long outputPosition; // also in ref-time
-        private bool initializedForStreaming;
 
         /// <summary>
-        /// Constructs a new MediaFoundationTransform wrapper
-        /// Will read one second at a time
+        ///     Constructs a new MediaFoundationTransform wrapper
+        ///     Will read one second at a time
         /// </summary>
         /// <param name="sourceProvider">The source provider for input data to the transform</param>
         /// <param name="outputFormat">The desired output format</param>
         public MediaFoundationTransform(IWaveProvider sourceProvider, WaveFormat outputFormat)
         {
-            this.outputWaveFormat = outputFormat;
+            outputWaveFormat = outputFormat;
             this.sourceProvider = sourceProvider;
             sourceBuffer = new byte[sourceProvider.WaveFormat.AverageBytesPerSecond];
             outputBuffer =
@@ -50,34 +52,8 @@ namespace NAudio.MediaFoundation
                              .BlockAlign]; // we will grow this buffer if needed, but try to make something big enough
         }
 
-        private void InitializeTransformForStreaming()
-        {
-            transform.ProcessMessage(MFT_MESSAGE_TYPE.MFT_MESSAGE_COMMAND_FLUSH, IntPtr.Zero);
-            transform.ProcessMessage(MFT_MESSAGE_TYPE.MFT_MESSAGE_NOTIFY_BEGIN_STREAMING, IntPtr.Zero);
-            transform.ProcessMessage(MFT_MESSAGE_TYPE.MFT_MESSAGE_NOTIFY_START_OF_STREAM, IntPtr.Zero);
-            initializedForStreaming = true;
-        }
-
         /// <summary>
-        /// To be implemented by overriding classes. Create the transform object, set up its input and output types,
-        /// and configure any custom properties in here
-        /// </summary>
-        /// <returns>An object implementing IMFTrasform</returns>
-        protected abstract IMFTransform CreateTransform();
-
-        /// <summary>
-        /// Disposes this MediaFoundation transform
-        /// </summary>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (transform != null)
-            {
-                Marshal.ReleaseComObject(transform);
-            }
-        }
-
-        /// <summary>
-        /// Disposes this Media Foundation Transform
+        ///     Disposes this Media Foundation Transform
         /// </summary>
         public void Dispose()
         {
@@ -90,23 +66,12 @@ namespace NAudio.MediaFoundation
         }
 
         /// <summary>
-        /// Destructor
+        ///     The output WaveFormat of this Media Foundation Transform
         /// </summary>
-        ~MediaFoundationTransform()
-        {
-            Dispose(false);
-        }
+        public WaveFormat WaveFormat => outputWaveFormat;
 
         /// <summary>
-        /// The output WaveFormat of this Media Foundation Transform
-        /// </summary>
-        public WaveFormat WaveFormat
-        {
-            get { return outputWaveFormat; }
-        }
-
-        /// <summary>
-        /// Reads data out of the source, passing it through the transform
+        ///     Reads data out of the source, passing it through the transform
         /// </summary>
         /// <param name="buffer">Output buffer</param>
         /// <param name="offset">Offset within buffer to write to</param>
@@ -121,13 +86,10 @@ namespace NAudio.MediaFoundation
             }
 
             // strategy will be to always read 1 second from the source, and give it to the resampler
-            int bytesWritten = 0;
+            var bytesWritten = 0;
 
             // read in any leftovers from last time
-            if (outputBufferCount > 0)
-            {
-                bytesWritten += ReadFromOutputBuffer(buffer, offset, count - bytesWritten);
-            }
+            if (outputBufferCount > 0) bytesWritten += ReadFromOutputBuffer(buffer, offset, count - bytesWritten);
 
             while (bytesWritten < count)
             {
@@ -143,10 +105,7 @@ namespace NAudio.MediaFoundation
 
                 // might need to resurrect the stream if the user has read all the way to the end,
                 // and then repositioned the input backwards
-                if (!initializedForStreaming)
-                {
-                    InitializeTransformForStreaming();
-                }
+                if (!initializedForStreaming) InitializeTransformForStreaming();
 
                 // give the input to the resampler
                 // can get MF_E_NOTACCEPTING if we didn't drain the buffer properly
@@ -169,6 +128,37 @@ namespace NAudio.MediaFoundation
             return bytesWritten;
         }
 
+        private void InitializeTransformForStreaming()
+        {
+            transform.ProcessMessage(MFT_MESSAGE_TYPE.MFT_MESSAGE_COMMAND_FLUSH, IntPtr.Zero);
+            transform.ProcessMessage(MFT_MESSAGE_TYPE.MFT_MESSAGE_NOTIFY_BEGIN_STREAMING, IntPtr.Zero);
+            transform.ProcessMessage(MFT_MESSAGE_TYPE.MFT_MESSAGE_NOTIFY_START_OF_STREAM, IntPtr.Zero);
+            initializedForStreaming = true;
+        }
+
+        /// <summary>
+        ///     To be implemented by overriding classes. Create the transform object, set up its input and output types,
+        ///     and configure any custom properties in here
+        /// </summary>
+        /// <returns>An object implementing IMFTrasform</returns>
+        protected abstract IMFTransform CreateTransform();
+
+        /// <summary>
+        ///     Disposes this MediaFoundation transform
+        /// </summary>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (transform != null) Marshal.ReleaseComObject(transform);
+        }
+
+        /// <summary>
+        ///     Destructor
+        /// </summary>
+        ~MediaFoundationTransform()
+        {
+            Dispose(false);
+        }
+
         private void EndStreamAndDrain()
         {
             transform.ProcessMessage(MFT_MESSAGE_TYPE.MFT_MESSAGE_NOTIFY_END_OF_STREAM, IntPtr.Zero);
@@ -178,6 +168,7 @@ namespace NAudio.MediaFoundation
             {
                 read = ReadFromTransform();
             } while (read > 0);
+
             outputBufferCount = 0;
             outputBufferOffset = 0;
             inputPosition = 0;
@@ -187,9 +178,9 @@ namespace NAudio.MediaFoundation
         }
 
         /// <summary>
-        /// Attempts to read from the transform
-        /// Some useful info here:
-        /// http://msdn.microsoft.com/en-gb/library/windows/desktop/aa965264%28v=vs.85%29.aspx#process_data
+        ///     Attempts to read from the transform
+        ///     Some useful info here:
+        ///     http://msdn.microsoft.com/en-gb/library/windows/desktop/aa965264%28v=vs.85%29.aspx#process_data
         /// </summary>
         /// <returns></returns>
         private int ReadFromTransform()
@@ -212,7 +203,8 @@ namespace NAudio.MediaFoundation
                 // nothing to read
                 return 0;
             }
-            else if (hr != 0)
+
+            if (hr != 0)
             {
                 Marshal.ThrowExceptionForHR(hr);
             }
@@ -238,14 +230,14 @@ namespace NAudio.MediaFoundation
 
         private static long BytesToNsPosition(int bytes, WaveFormat waveFormat)
         {
-            long nsPosition = (10000000L * bytes) / waveFormat.AverageBytesPerSecond;
+            var nsPosition = 10000000L * bytes / waveFormat.AverageBytesPerSecond;
             return nsPosition;
         }
 
         private IMFSample ReadFromSource()
         {
             // we always read a full second
-            int bytesRead = sourceProvider.Read(sourceBuffer, 0, sourceBuffer.Length);
+            var bytesRead = sourceProvider.Read(sourceBuffer, 0, sourceBuffer.Length);
             if (bytesRead == 0) return null;
 
             var mediaBuffer = MediaFoundationApi.CreateMemoryBuffer(bytesRead);
@@ -260,7 +252,7 @@ namespace NAudio.MediaFoundation
             sample.AddBuffer(mediaBuffer);
             // we'll set the time, I don't think it is needed for Resampler, but other MFTs might need it
             sample.SetSampleTime(inputPosition);
-            long duration = BytesToNsPosition(bytesRead, sourceProvider.WaveFormat);
+            var duration = BytesToNsPosition(bytesRead, sourceProvider.WaveFormat);
             sample.SetSampleDuration(duration);
             inputPosition += duration;
             Marshal.ReleaseComObject(mediaBuffer);
@@ -269,19 +261,17 @@ namespace NAudio.MediaFoundation
 
         private int ReadFromOutputBuffer(byte[] buffer, int offset, int needed)
         {
-            int bytesFromOutputBuffer = Math.Min(needed, outputBufferCount);
+            var bytesFromOutputBuffer = Math.Min(needed, outputBufferCount);
             Array.Copy(outputBuffer, outputBufferOffset, buffer, offset, bytesFromOutputBuffer);
             outputBufferOffset += bytesFromOutputBuffer;
             outputBufferCount -= bytesFromOutputBuffer;
-            if (outputBufferCount == 0)
-            {
-                outputBufferOffset = 0;
-            }
+            if (outputBufferCount == 0) outputBufferOffset = 0;
+
             return bytesFromOutputBuffer;
         }
 
         /// <summary>
-        /// Indicate that the source has been repositioned and completely drain out the transforms buffers
+        ///     Indicate that the source has been repositioned and completely drain out the transforms buffers
         /// </summary>
         public void Reposition()
         {

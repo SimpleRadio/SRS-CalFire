@@ -2,10 +2,8 @@
 using System.Windows;
 using System.Windows.Media;
 using Caliburn.Micro;
-using Ciribob.SRS.Common;
-using Ciribob.SRS.Common.Network;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models;
 using Ciribob.SRS.Common.Network.Models;
-using Ciribob.SRS.Server.Network;
 using NLog;
 using LogManager = NLog.LogManager;
 
@@ -52,33 +50,27 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.ClientAdmin
         private void ClientOnPropertyChanged(object sender, PropertyChangedEventArgs propertyChangedEventArgs)
         {
             if (propertyChangedEventArgs.PropertyName == "Coalition")
-            {
                 NotifyOfPropertyChange(() => ClientCoalitionColour);
-            }
             else if (propertyChangedEventArgs.PropertyName == "TransmittingFrequency")
-            {
                 NotifyOfPropertyChange(() => TransmittingFrequency);
-            }
         }
 
         public void KickClient()
         {
-            var messageBoxResult = MessageBox.Show($"Are you sure you want to Kick {Client.UnitState.Name}?", "Ban Confirmation",
+            var messageBoxResult = MessageBox.Show($"Are you sure you want to Kick {Client.UnitState.Name}?",
+                "Ban Confirmation",
                 MessageBoxButton.YesNo);
             if (messageBoxResult == MessageBoxResult.Yes)
-            {
                 _eventAggregator.PublishOnBackgroundThreadAsync(new KickClientMessage(Client));
-            }
         }
 
         public void BanClient()
         {
-            var messageBoxResult = MessageBox.Show($"Are you sure you want to Ban {Client.UnitState.Name}?", "Ban Confirmation",
+            var messageBoxResult = MessageBox.Show($"Are you sure you want to Ban {Client.UnitState.Name}?",
+                "Ban Confirmation",
                 MessageBoxButton.YesNo);
             if (messageBoxResult == MessageBoxResult.Yes)
-            {
                 _eventAggregator.PublishOnBackgroundThreadAsync(new BanClientMessage(Client));
-            }
         }
 
         public void ToggleClientMute()

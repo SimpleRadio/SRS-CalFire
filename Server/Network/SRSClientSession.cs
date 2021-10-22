@@ -1,36 +1,34 @@
-﻿using Ciribob.SRS.Common.Network;
-using NetCoreServer;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.NetCoreServer;
 using Ciribob.SRS.Common.Network.Models;
 using Newtonsoft.Json;
 using NLog;
 
-namespace Ciribob.SRS.Server.Network
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
 {
     public class SRSClientSession : TcpSession
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-        private readonly ConcurrentDictionary<string, SRClient> _clients;
         private readonly HashSet<IPAddress> _bannedIps;
 
+        private readonly ConcurrentDictionary<string, SRClient> _clients;
+
         // Received data string.
-        private readonly StringBuilder _receiveBuffer = new StringBuilder();
+        private readonly StringBuilder _receiveBuffer = new();
 
-        public string SRSGuid { get; set; }
-
-        public SRSClientSession(ServerSync server, ConcurrentDictionary<string, SRClient> client, HashSet<IPAddress> bannedIps) : base(server)
+        public SRSClientSession(ServerSync server, ConcurrentDictionary<string, SRClient> client,
+            HashSet<IPAddress> bannedIps) : base(server)
         {
             _clients = client;
             _bannedIps = bannedIps;
         }
+
+        public string SRSGuid { get; set; }
 
         protected override void OnConnected()
         {
@@ -49,7 +47,7 @@ namespace Ciribob.SRS.Server.Network
             // Disconnect slow client with 50MB send buffer
             if (pending > 5e+7)
             {
-                Logger.Error($"Disconnecting - pending is too large");
+                Logger.Error("Disconnecting - pending is too large");
                 Disconnect();
             }
         }
@@ -62,7 +60,7 @@ namespace Ciribob.SRS.Server.Network
 
         private List<NetworkMessage> GetNetworkMessage()
         {
-            List<NetworkMessage> messages = new List<NetworkMessage>();
+            var messages = new List<NetworkMessage>();
             //search for a \n, extract up to that \n and then remove from buffer
             var content = _receiveBuffer.ToString();
             while (content.Length > 2 && content.Contains("\n"))
@@ -75,8 +73,7 @@ namespace Ciribob.SRS.Server.Network
 
                 try
                 {
-
-                    var networkMessage = (JsonConvert.DeserializeObject<NetworkMessage>(message.Trim()));
+                    var networkMessage = JsonConvert.DeserializeObject<NetworkMessage>(message.Trim());
                     //trim the received part
                     messages.Add(networkMessage);
                 }
@@ -97,22 +94,17 @@ namespace Ciribob.SRS.Server.Network
         {
             _receiveBuffer.Append(Encoding.UTF8.GetString(buffer, (int)offset, (int)size));
 
-            foreach (var s in GetNetworkMessage())
-            {
-                ((ServerSync)Server).HandleMessage(this, s);
-
-            }
+            foreach (var s in GetNetworkMessage()) ((ServerSync)Server).HandleMessage(this, s);
         }
 
-        protected override void OnTrySendException( Exception ex)
+        protected override void OnTrySendException(Exception ex)
         {
-            Logger.Error(ex,$"Caught Client Session Exception");
+            Logger.Error(ex, "Caught Client Session Exception");
         }
 
         protected override void OnError(SocketError error)
         {
             Logger.Error($"Caught Socket Error: {error}");
         }
-
     }
 }

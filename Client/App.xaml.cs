@@ -1,43 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Security.Principal;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Forms;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using Hardcodet.Wpf.TaskbarNotification;
-using MahApps.Metro.Controls;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
 using Sentry;
-using Application = System.Windows.Application;
-using MessageBox = System.Windows.MessageBox;
 
-namespace SRSClient
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
 {
     /// <summary>
     ///     Interaction logic for App.xaml
     /// </summary>
     public partial class App : Application
     {
-        //private System.Windows.Forms.NotifyIcon _notifyIcon;
-        private bool loggingReady = false;
         private static Logger Logger = LogManager.GetCurrentClassLogger();
-  
+
+        //private System.Windows.Forms.NotifyIcon _notifyIcon;
+        private bool loggingReady;
+
         public App()
         {
             SentrySdk.Init("https://278831323bbb4efb94e17bc21b5f881d@o414743.ingest.sentry.io/6011780");
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
+            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
 
             var location = AppDomain.CurrentDomain.BaseDirectory;
             //var location = Assembly.GetExecutingAssembly().Location;
@@ -46,7 +33,7 @@ namespace SRSClient
             if (!File.Exists(location + "\\opus.dll"))
             {
                 MessageBox.Show(
-                    $"You are missing the opus.dll - Reinstall using the Installer and don't move the client from the installation directory!",
+                    "You are missing the opus.dll - Reinstall using the Installer and don't move the client from the installation directory!",
                     "Installation Error!", MessageBoxButton.OK,
                     MessageBoxImage.Error);
 
@@ -56,7 +43,7 @@ namespace SRSClient
             if (!File.Exists(location + "\\speexdsp.dll"))
             {
                 MessageBox.Show(
-                    $"You are missing the speexdsp.dll - Reinstall using the Installer and don't move the client from the installation directory!",
+                    "You are missing the speexdsp.dll - Reinstall using the Installer and don't move the client from the installation directory!",
                     "Installation Error!", MessageBoxButton.OK,
                     MessageBoxImage.Error);
 
@@ -98,7 +85,6 @@ namespace SRSClient
 
 
                     Environment.Exit(0);
-                    return;
                 }
             }
         }

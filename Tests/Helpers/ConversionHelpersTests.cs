@@ -1,21 +1,17 @@
-﻿
-using Ciribob.SRS.Common;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Ciribob.SRS.Common.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Ciribob.SRS.Common.Tests
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Tests.Helpers
 {
-    [TestClass()]
+    [TestClass]
     public class ConversionHelpersTests
     {
-        [TestMethod()]
+        [TestMethod]
         public void ConversionTestByteShortArray()
         {
-            byte[] bytes = new byte[] {255, 253, 102, 0, 5, 0, 0, 0};
+            byte[] bytes = { 255, 253, 102, 0, 5, 0, 0, 0 };
 
             var shorts = ConversionHelpers.ByteArrayToShortArray(bytes);
 
@@ -26,10 +22,10 @@ namespace Ciribob.SRS.Common.Tests
             Assert.AreEqual(bytes.Length, query.Count());
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void ConversionTestShortByteArray()
         {
-            short[] shorts = new short[] {1, short.MaxValue, short.MinValue, 0};
+            short[] shorts = { 1, short.MaxValue, short.MinValue, 0 };
 
             var bytes = ConversionHelpers.ShortArrayToByteArray(shorts);
 
@@ -40,10 +36,10 @@ namespace Ciribob.SRS.Common.Tests
             Assert.AreEqual(shorts.Length, query.Count());
         }
 
-        [TestMethod()]
+        [TestMethod]
         public void ConversionShortToBytes()
         {
-            short[] shorts = new short[] {1, short.MaxValue, short.MinValue, 0};
+            short[] shorts = { 1, short.MaxValue, short.MinValue, 0 };
 
             foreach (var shortTest in shorts)
             {
@@ -51,7 +47,7 @@ namespace Ciribob.SRS.Common.Tests
                 byte byte2;
                 ConversionHelpers.FromShort(shortTest, out byte1, out byte2);
 
-                byte[] converted = BitConverter.GetBytes(shortTest);
+                var converted = BitConverter.GetBytes(shortTest);
 
                 Assert.AreEqual(byte1, converted[0]);
                 Assert.AreEqual(byte2, converted[1]);

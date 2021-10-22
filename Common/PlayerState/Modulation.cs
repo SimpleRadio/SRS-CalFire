@@ -10,5 +10,4 @@
         SATCOM = 5,
         MIDS = 6
     }
-    
 }

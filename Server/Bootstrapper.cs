@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Runtime;
-using System.Threading;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Caliburn.Micro;
-using Ciribob.SRS.Common;
-using Ciribob.SRS.Common.Network;
-using Ciribob.SRS.Server.Network;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.ClientAdmin;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow;
 using NLog;
@@ -24,8 +19,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
 {
     public class Bootstrapper : BootstrapperBase
     {
-        private readonly SimpleContainer _simpleContainer = new SimpleContainer();
-        private bool loggingReady = false;
+        private readonly SimpleContainer _simpleContainer = new();
+        private bool loggingReady;
 
         public Bootstrapper()
         {
@@ -54,7 +49,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
                 MaxArchiveFiles = 1,
                 ArchiveAboveSize = 104857600,
                 Layout =
-                @"${longdate} | ${logger} | ${message} ${exception:format=toString,Data:maxInnerExceptionLevel=1}"
+                    @"${longdate} | ${logger} | ${message} ${exception:format=toString,Data:maxInnerExceptionLevel=1}"
             };
 
             var wrapper = new AsyncTargetWrapper(fileTarget, 5000, AsyncTargetWrapperOverflowAction.Discard);
@@ -95,8 +90,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
         {
             IDictionary<string, object> settings = new Dictionary<string, object>
             {
-                {"Icon", new BitmapImage(new Uri("pack://application:,,,/SRS-Server;component/server-10.ico"))},
-                {"ResizeMode", ResizeMode.CanMinimize}
+                { "Icon", new BitmapImage(new Uri("pack://application:,,,/SRS-Server;component/server-10.ico")) },
+                { "ResizeMode", ResizeMode.CanMinimize }
             };
             //create an instance of serverState to actually start the server
             _simpleContainer.GetInstance(typeof(ServerState), null);
@@ -112,7 +107,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
 
         protected override void OnExit(object sender, EventArgs e)
         {
-            var serverState = (ServerState) _simpleContainer.GetInstance(typeof(ServerState), null);
+            var serverState = (ServerState)_simpleContainer.GetInstance(typeof(ServerState), null);
             serverState.StopServer();
         }
 
@@ -120,7 +115,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
         {
             if (loggingReady)
             {
-                Logger logger = LogManager.GetCurrentClassLogger();
+                var logger = LogManager.GetCurrentClassLogger();
                 logger.Error(e.Exception, "Received unhandled exception, exiting");
             }
 

@@ -4,17 +4,12 @@ using System.Text;
 namespace NAudio.Midi
 {
     /// <summary>
-    /// Represents a MIDI meta event with raw data
+    ///     Represents a MIDI meta event with raw data
     /// </summary>
     public class RawMetaEvent : MetaEvent
     {
         /// <summary>
-        /// Raw data contained in the meta event
-        /// </summary>
-        public byte[] Data { get; set; }
-
-        /// <summary>
-        ///  Creates a meta event with raw data
+        ///     Creates a meta event with raw data
         /// </summary>
         public RawMetaEvent(MetaEventType metaEventType, long absoluteTime, byte[] data) : base(metaEventType,
             data?.Length ?? 0, absoluteTime)
@@ -23,12 +18,20 @@ namespace NAudio.Midi
         }
 
         /// <summary>
-        /// Creates a deep clone of this MIDI event.
+        ///     Raw data contained in the meta event
         /// </summary>
-        public override MidiEvent Clone() => new RawMetaEvent(MetaEventType, AbsoluteTime, (byte[]) Data?.Clone());
+        public byte[] Data { get; set; }
 
         /// <summary>
-        /// Describes this meta event
+        ///     Creates a deep clone of this MIDI event.
+        /// </summary>
+        public override MidiEvent Clone()
+        {
+            return new RawMetaEvent(MetaEventType, AbsoluteTime, (byte[])Data?.Clone());
+        }
+
+        /// <summary>
+        ///     Describes this meta event
         /// </summary>
         public override string ToString()
         {
@@ -39,7 +42,7 @@ namespace NAudio.Midi
         }
 
         /// <summary>
-        /// <see cref="MidiEvent.Export"/>
+        ///     <see cref="MidiEvent.Export" />
         /// </summary>
         public override void Export(ref long absoluteTime, BinaryWriter writer)
         {

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.Windows.Media.Imaging;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI

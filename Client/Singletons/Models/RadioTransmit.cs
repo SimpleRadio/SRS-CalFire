@@ -1,4 +1,4 @@
-﻿namespace Ciribob.FS3D.SimpleRadio.Standalone
+﻿namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
 {
     public class RadioTransmit
     {

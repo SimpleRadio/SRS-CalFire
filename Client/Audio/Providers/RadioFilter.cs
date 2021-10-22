@@ -1,20 +1,21 @@
 ﻿using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using MathNet.Filtering;
-using MathNet.Filtering.FIR;
-using MathNet.Filtering.Windowing;
-using NAudio.Dsp;
-using NAudio.Wave;
+using NAudio.Wave.WaveFormats;
+using NAudio.Wave.WaveOutputs;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.DSP
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
 {
     public class RadioFilter : ISampleProvider
     {
+        public static readonly float BOOST = 1.5f;
+        public static readonly float CLIPPING_MAX = 4000 / 32768f;
+        public static readonly float CLIPPING_MIN = 4000 / 32768f * -1;
         private readonly ISampleProvider _source;
 
-        private OnlineFilter[] _filters;
+        private readonly OnlineFilter[] _filters;
         //    private Stopwatch _stopwatch;
 
-        private GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
+        private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
 
         public RadioFilter(ISampleProvider sampleProvider)
         {
@@ -41,10 +42,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.DSP
         }
 
         public WaveFormat WaveFormat => _source.WaveFormat;
-
-        public static readonly float BOOST = 1.5f;
-        public static readonly float CLIPPING_MAX = 4000 / 32768f;
-        public static readonly float CLIPPING_MIN = 4000 / 32768f * -1;
 
         public int Read(float[] buffer, int offset, int sampleCount)
         {

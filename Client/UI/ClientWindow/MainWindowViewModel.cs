@@ -1,21 +1,18 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Caliburn.Micro;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AircraftOverlayWindow;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.SRS.Common.Helpers;
@@ -25,7 +22,6 @@ using Ciribob.SRS.Common.Network.Singletons;
 using NAudio.CoreAudioApi;
 using NLog;
 using WPFCustomMessageBox;
-using ConnectedClientsSingleton = Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.ConnectedClientsSingleton;
 using LogManager = NLog.LogManager;
 using PropertyChangedBase = Ciribob.SRS.Common.Helpers.PropertyChangedBase;
 
@@ -33,27 +29,50 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
 {
     public class MainWindowViewModel : PropertyChangedBase, IHandle<TCPClientStatusMessage>, IHandle<VOIPStatusMessage>
     {
-        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-
         private readonly AudioManager _audioManager;
 
         private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
 
         private readonly DispatcherTimer _updateTimer;
+        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         private AudioPreview _audioPreview;
-        private AwacsRadioOverlayWindow.RadioOverlayWindow _awacsRadioOverlay;
+        private RadioOverlayWindow _awacsRadioOverlay;
+        private TCPClientHandler _client;
 
         private ClientListWindow _clientListWindow;
 
-        private Overlay.RadioOverlayWindow _radioOverlayWindow;
+        private HandheldRadioOverlayWindow.RadioOverlayWindow _radioOverlayWindow;
 
-        private ServerSettingsWindow _serverSettingsWindow;
+        private ServerSettingsWindow.ServerSettingsWindow _serverSettingsWindow;
 
         //used to debounce toggle
         private long _toggleShowHide;
-        private TCPClientHandler _client;
+
+        public MainWindowViewModel()
+        {
+            _audioManager = new AudioManager(AudioOutput.WindowsN);
+
+            PreviewCommand = new DelegateCommand(() => PreviewAudio());
+
+            ConnectCommand = new DelegateCommand(Connect);
+
+            TrayIconCommand = new DelegateCommand(() =>
+            {
+                Application.Current.MainWindow.Show();
+                Application.Current.MainWindow.WindowState = WindowState.Normal;
+            });
+
+            TrayIconQuitCommand = new DelegateCommand(() => { Application.Current.MainWindow.Close(); });
+
+            _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
+            _updateTimer.Tick += UpdatePlayerCountAndVUMeters;
+            _updateTimer.Start();
+
+            ClientStateSingleton.Instance.PlayerUnitState.Name = Name;
+
+            EventBus.Instance.SubscribeOnUIThread(this);
+        }
 
         public ClientStateSingleton ClientState { get; } = ClientStateSingleton.Instance;
         public ConnectedClientsSingleton Clients { get; } = ConnectedClientsSingleton.Instance;
@@ -76,38 +95,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
 
         public ICommand PreviewCommand { get; set; }
 
-        public bool PreviewEnabled
-        {
-            get => AudioInput.MicrophoneAvailable && !IsConnected;
-        }
-
-        public MainWindowViewModel()
-        {
-            _audioManager = new AudioManager(AudioOutput.WindowsN);
-
-            PreviewCommand = new DelegateCommand(() => PreviewAudio());
-                
-            ConnectCommand = new DelegateCommand(Connect);
-
-            TrayIconCommand = new DelegateCommand(() =>
-            {
-                Application.Current.MainWindow.Show();
-                Application.Current.MainWindow.WindowState = WindowState.Normal;
-            });
-
-            TrayIconQuitCommand = new DelegateCommand(() =>
-            {
-                Application.Current.MainWindow.Close();
-            });
-
-            _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
-            _updateTimer.Tick += UpdatePlayerCountAndVUMeters;
-            _updateTimer.Start();
-
-            ClientStateSingleton.Instance.PlayerUnitState.Name = Name;
-
-            EventBus.Instance.SubscribeOnUIThread(this);
-        }
+        public bool PreviewEnabled => AudioInput.MicrophoneAvailable && !IsConnected;
 
         public float SpeakerVU
         {
@@ -132,7 +120,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
                 return -100;
             }
         }
-
 
 
         public string PreviewText
@@ -186,14 +173,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             {
                 var name = _globalSettings.GetClientSetting(GlobalSettingsKeys.LastSeenName);
 
-                if (name == null|| name.RawValue == "")
-                {
+                if (name == null || name.RawValue == "")
                     return "FS3D Client";
-                }
-                else
-                {
-                    return name.RawValue;
-                }
+                return name.RawValue;
             }
             set
             {
@@ -209,16 +191,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
         {
             get
             {
-                var savedAddress =  _globalSettings.GetClientSetting(GlobalSettingsKeys.LastServer);
+                var savedAddress = _globalSettings.GetClientSetting(GlobalSettingsKeys.LastServer);
 
                 if (savedAddress == null)
-                {
                     return "127.0.0.1:5002";
-                }
-                else
-                {
-                    return savedAddress.RawValue;
-                }
+                return savedAddress.RawValue;
             }
             set
             {
@@ -238,6 +215,38 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
 
                 return true;
             }
+        }
+
+
+        public async Task HandleAsync(TCPClientStatusMessage obj, CancellationToken cancellationToken)
+        {
+            if (obj.Connected)
+            {
+                IsConnected = true;
+                //connection sound
+                if (_globalSettings.GetClientSettingBool(GlobalSettingsKeys.PlayConnectionSounds))
+                    try
+                    {
+                        Sounds.BeepConnected.Play();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn(ex, "Failed to play connect sound");
+                    }
+
+                StartAudio(obj.Address);
+            }
+            else
+            {
+                //disconnect sound
+                Stop(obj.Error);
+            }
+        }
+
+        public Task HandleAsync(VOIPStatusMessage message, CancellationToken cancellationToken)
+        {
+            IsVoIPConnected = message.Connected;
+            return Task.CompletedTask;
         }
 
         private void UpdatePlayerCountAndVUMeters(object sender, EventArgs e)
@@ -266,14 +275,18 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
                 {
                     //process hostname
                     var resolvedAddresses = Dns.GetHostAddresses(GetAddressFromTextBox());
-                    var ip = resolvedAddresses.FirstOrDefault(xa => xa.AddressFamily == AddressFamily.InterNetwork); // Ensure we get an IPv4 address in case the host resolves to both IPv6 and IPv4
+                    var ip = resolvedAddresses.FirstOrDefault(xa =>
+                        xa.AddressFamily ==
+                        AddressFamily
+                            .InterNetwork); // Ensure we get an IPv4 address in case the host resolves to both IPv6 and IPv4
 
                     if (ip != null)
                     {
                         var resolvedIp = ip;
                         var port = GetPortFromTextBox();
 
-                        _client = new TCPClientHandler(ClientStateSingleton.Instance.GUID, ClientStateSingleton.Instance.PlayerUnitState);
+                        _client = new TCPClientHandler(ClientStateSingleton.Instance.GUID,
+                            ClientStateSingleton.Instance.PlayerUnitState);
                         _client.TryConnect(new IPEndPoint(resolvedIp, port));
                     }
                     else
@@ -298,7 +311,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
         private void Stop(TCPClientStatusMessage.ErrorCode connectionError = TCPClientStatusMessage.ErrorCode.TIMEOUT)
         {
             if (IsConnected && _globalSettings.GetClientSettingBool(GlobalSettingsKeys.PlayConnectionSounds))
-            {
                 try
                 {
                     Sounds.BeepDisconnected.Play();
@@ -307,7 +319,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
                 {
                     Logger.Warn(ex, "Failed to play disconnect sound");
                 }
-            }
 
             IsConnected = false;
 
@@ -318,10 +329,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             catch (Exception ex)
             {
             }
-            
+
             _client?.Disconnect();
             _client = null;
-            
+
             //TODO
             // ClientState.DcsPlayerRadioInfo.Reset();
             // ClientState.PlayerCoaltionLocationMetadata.Reset();
@@ -330,33 +341,28 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
         private string GetAddressFromTextBox()
         {
             var addr = ServerAddress.Trim();
-        
-            if (addr.Contains(":"))
-            {
-                return addr.Split(':')[0];
-            }
-        
+
+            if (addr.Contains(":")) return addr.Split(':')[0];
+
             return addr;
         }
-        
+
         private int GetPortFromTextBox()
         {
             var addr = ServerAddress.Trim();
-        
+
             if (addr.Contains(":"))
             {
                 int port;
-                if (int.TryParse(addr.Split(':')[1], out port))
-                {
-                    return port;
-                }
+                if (int.TryParse(addr.Split(':')[1], out port)) return port;
+
                 throw new ArgumentException("specified port is  valid");
             }
-        
+
             return 5002;
         }
 
-        
+
         private void SaveSelectedInputAndOutput()
         {
             //save app settings
@@ -446,7 +452,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
         public void StartAudio(IPEndPoint endPoint)
         {
             //Must be main thread
-            Application.Current.Dispatcher.Invoke(delegate {
+            Application.Current.Dispatcher.Invoke(delegate
+            {
                 try
                 {
                     _audioManager.StartEncoding(ClientState.GUID, InputManager, endPoint);
@@ -463,41 +470,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
                         "Audio Output Error",
                         "Close",
                         MessageBoxImage.Error);
-
                 }
             });
-         
-
-        }
-
-
-        public async Task HandleAsync(TCPClientStatusMessage obj, CancellationToken cancellationToken)
-        {
-
-            if (obj.Connected)
-            {
-                IsConnected = true;
-                //connection sound
-                if (_globalSettings.GetClientSettingBool(GlobalSettingsKeys.PlayConnectionSounds))
-                {
-                    try
-                    {
-                        Sounds.BeepConnected.Play();
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Warn(ex, "Failed to play connect sound");
-                    }
-                }
-
-                StartAudio(obj.Address);
-
-            }
-            else
-            {
-                //disconnect sound
-                Stop(obj.Error);
-            }
         }
 
         private void ShowOverlay_OnClick(object sender, RoutedEventArgs e)
@@ -520,7 +494,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
 
                     _radioOverlayWindow?.Close();
 
-                    _radioOverlayWindow = new Overlay.RadioOverlayWindow();
+                    _radioOverlayWindow = new HandheldRadioOverlayWindow.RadioOverlayWindow();
 
 
                     _radioOverlayWindow.ShowInTaskbar =
@@ -546,7 +520,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
 
                 _awacsRadioOverlay?.Close();
 
-                _awacsRadioOverlay = new AwacsRadioOverlayWindow.RadioOverlayWindow();
+                _awacsRadioOverlay = new RadioOverlayWindow();
                 _awacsRadioOverlay.ShowInTaskbar =
                     !_globalSettings.GetClientSettingBool(GlobalSettingsKeys.RadioOverlayTaskbarHide);
                 _awacsRadioOverlay.Show();
@@ -565,7 +539,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             {
                 _serverSettingsWindow?.Close();
 
-                _serverSettingsWindow = new ServerSettingsWindow();
+                _serverSettingsWindow = new ServerSettingsWindow.ServerSettingsWindow();
                 _serverSettingsWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
                 _serverSettingsWindow.Owner = Application.Current.MainWindow;
                 _serverSettingsWindow.Show();
@@ -599,7 +573,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
 
         public void OnClosing()
         {
-
             //stop timer
             _updateTimer?.Stop();
 
@@ -616,12 +589,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             //
             // _awacsRadioOverlay?.Close();
             // _awacsRadioOverlay = null;
-        }
-
-        public Task HandleAsync(VOIPStatusMessage message, CancellationToken cancellationToken)
-        {
-            IsVoIPConnected = message.Connected;
-            return Task.CompletedTask;
         }
     }
 }

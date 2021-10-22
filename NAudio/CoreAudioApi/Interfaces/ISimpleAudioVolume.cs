@@ -25,15 +25,15 @@ using System.Runtime.InteropServices;
 namespace NAudio.CoreAudioApi.Interfaces
 {
     /// <summary>
-    /// Windows CoreAudio ISimpleAudioVolume interface
-    /// Defined in AudioClient.h
+    ///     Windows CoreAudio ISimpleAudioVolume interface
+    ///     Defined in AudioClient.h
     /// </summary>
-    [Guid("87CE5498-68D6-44E5-9215-6DA47EF883D8"),
-     InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [Guid("87CE5498-68D6-44E5-9215-6DA47EF883D8")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface ISimpleAudioVolume
     {
         /// <summary>
-        /// Sets the master volume level for the audio session.
+        ///     Sets the master volume level for the audio session.
         /// </summary>
         /// <param name="levelNorm">The new volume level expressed as a normalized value between 0.0 and 1.0.</param>
         /// <param name="eventContext">A user context value that is passed to the notification callback.</param>
@@ -41,10 +41,11 @@ namespace NAudio.CoreAudioApi.Interfaces
         [PreserveSig]
         int SetMasterVolume(
             [In] [MarshalAs(UnmanagedType.R4)] float levelNorm,
-            [In] [MarshalAs(UnmanagedType.LPStruct)] Guid eventContext);
+            [In] [MarshalAs(UnmanagedType.LPStruct)]
+            Guid eventContext);
 
         /// <summary>
-        /// Retrieves the client volume level for the audio session.
+        ///     Retrieves the client volume level for the audio session.
         /// </summary>
         /// <param name="levelNorm">Receives the volume level expressed as a normalized value between 0.0 and 1.0. </param>
         /// <returns>An HRESULT code indicating whether the operation succeeded of failed.</returns>
@@ -53,7 +54,7 @@ namespace NAudio.CoreAudioApi.Interfaces
             [Out] [MarshalAs(UnmanagedType.R4)] out float levelNorm);
 
         /// <summary>
-        /// Sets the muting state for the audio session.
+        ///     Sets the muting state for the audio session.
         /// </summary>
         /// <param name="isMuted">The new muting state.</param>
         /// <param name="eventContext">A user context value that is passed to the notification callback.</param>
@@ -61,10 +62,11 @@ namespace NAudio.CoreAudioApi.Interfaces
         [PreserveSig]
         int SetMute(
             [In] [MarshalAs(UnmanagedType.Bool)] bool isMuted,
-            [In] [MarshalAs(UnmanagedType.LPStruct)] Guid eventContext);
+            [In] [MarshalAs(UnmanagedType.LPStruct)]
+            Guid eventContext);
 
         /// <summary>
-        /// Retrieves the current muting state for the audio session.
+        ///     Retrieves the current muting state for the audio session.
         /// </summary>
         /// <param name="isMuted">Receives the muting state.</param>
         /// <returns>An HRESULT code indicating whether the operation succeeded of failed.</returns>

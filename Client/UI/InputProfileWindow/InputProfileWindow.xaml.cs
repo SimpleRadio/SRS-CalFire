@@ -1,24 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using MahApps.Metro.Controls;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.InputProfileWindow
 {
     /// <summary>
-    /// Interaction logic for InputProfileWindow.xaml
+    ///     Interaction logic for InputProfileWindow.xaml
     /// </summary>
     public partial class InputProfileWindow : MetroWindow
     {
@@ -40,8 +28,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.InputProfileWindow
 
         private static string CleanString(string str)
         {
-            var regexSearch = new string(System.IO.Path.GetInvalidFileNameChars()) +
-                              new string(System.IO.Path.GetInvalidPathChars());
+            var regexSearch = new string(Path.GetInvalidFileNameChars()) +
+                              new string(Path.GetInvalidPathChars());
             var r = new Regex(string.Format("[{0}]", Regex.Escape(regexSearch)));
             str = r.Replace(str, "").Replace(".cfg", "");
 

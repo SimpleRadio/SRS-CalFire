@@ -1,51 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace NAudio.Wave.Compression
 {
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    struct AcmFormatTagDetails
+    internal struct AcmFormatTagDetails
     {
         /// <summary>
-        /// DWORD cbStruct; 
+        ///     DWORD cbStruct;
         /// </summary>
         public int structureSize;
 
         /// <summary>
-        /// DWORD dwFormatTagIndex; 
+        ///     DWORD dwFormatTagIndex;
         /// </summary>
         public int formatTagIndex;
 
         /// <summary>
-        /// DWORD dwFormatTag; 
+        ///     DWORD dwFormatTag;
         /// </summary>
         public int formatTag;
 
         /// <summary>
-        /// DWORD cbFormatSize; 
+        ///     DWORD cbFormatSize;
         /// </summary>
         public int formatSize;
 
         /// <summary>
-        /// DWORD fdwSupport;
+        ///     DWORD fdwSupport;
         /// </summary>
         public AcmDriverDetailsSupportFlags supportFlags;
 
         /// <summary>
-        /// DWORD cStandardFormats; 
+        ///     DWORD cStandardFormats;
         /// </summary>
         public int standardFormatsCount;
 
         /// <summary>
-        /// TCHAR szFormatTag[ACMFORMATTAGDETAILS_FORMATTAG_CHARS]; 
+        ///     TCHAR szFormatTag[ACMFORMATTAGDETAILS_FORMATTAG_CHARS];
         /// </summary>
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = FormatTagDescriptionChars)] public string formatDescription;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = FormatTagDescriptionChars)]
+        public string formatDescription;
 
 
         /// <summary>
-        /// ACMFORMATTAGDETAILS_FORMATTAG_CHARS
+        ///     ACMFORMATTAGDETAILS_FORMATTAG_CHARS
         /// </summary>
         public const int FormatTagDescriptionChars = 48;
     }

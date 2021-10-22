@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using Ciribob.SRS.Common.Network;
-using Newtonsoft.Json;
-using NLog.Layouts;
 
-namespace Ciribob.SRS.Common
+namespace Ciribob.SRS.Common.PlayerState
 {
     public class RadioReceivingState
     {

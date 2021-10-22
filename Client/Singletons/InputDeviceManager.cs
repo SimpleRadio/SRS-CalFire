@@ -6,12 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Input;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
-using Ciribob.SRS.Common.Network.Singletons;
 using NLog;
 using SharpDX.DirectInput;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
 {
     public class InputDeviceManager : IDisposable
     {
@@ -21,7 +22,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public static HashSet<Guid> _blacklistedDevices = new HashSet<Guid>
+        public static HashSet<Guid> _blacklistedDevices = new()
         {
             new Guid("1b171b1c-0000-0000-0000-504944564944"),
             //Corsair K65 Gaming keyboard  It reports as a Joystick when its a keyboard...
@@ -33,7 +34,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         };
 
         //devices that report incorrectly but SHOULD work?
-        public static HashSet<Guid> _whitelistDevices = new HashSet<Guid>
+        public static HashSet<Guid> _whitelistDevices = new()
         {
             new Guid("1105231d-0000-0000-0000-504944564944"), //GTX Throttle
             new Guid("b351044f-0000-0000-0000-504944564944"), //F16 MFD 2 Usage: Generic Type: Supplemental
@@ -46,24 +47,22 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         };
 
         private readonly DirectInput _directInput;
-        private readonly Dictionary<Guid, Device> _inputDevices = new Dictionary<Guid, Device>();
+        private readonly Dictionary<Guid, Device> _inputDevices = new();
 
         private volatile bool _detectPtt;
+
+        private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
 
         //used to trigger the update to a frequency
         private InputBinding
             _lastActiveBinding = InputBinding.ModifierIntercom; //intercom used to represent null as we cant
 
-        private GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
-
-
-        public InputDeviceManager(Window window)
+        private InputDeviceManager()
         {
             _directInput = new DirectInput();
 
-
             WindowHelper =
-                new WindowInteropHelper(window);
+                new WindowInteropHelper(Application.Current.MainWindow);
 
 
             LoadWhiteList();
@@ -71,6 +70,20 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             LoadBlackList();
 
             InitDevices();
+        }
+
+        private WindowInteropHelper WindowHelper { get; }
+
+
+        public void Dispose()
+        {
+            StopListening();
+            foreach (var kpDevice in _inputDevices)
+                if (kpDevice.Value != null)
+                {
+                    kpDevice.Value.Unacquire();
+                    kpDevice.Value.Dispose();
+                }
         }
 
         public void InitDevices()
@@ -204,20 +217,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                     {
                     }
             }
-        }
-
-        private WindowInteropHelper WindowHelper { get; }
-
-
-        public void Dispose()
-        {
-            StopPtt();
-            foreach (var kpDevice in _inputDevices)
-                if (kpDevice.Value != null)
-                {
-                    kpDevice.Value.Unacquire();
-                    kpDevice.Value.Dispose();
-                }
         }
 
         public bool IsBlackListed(Guid device)
@@ -436,7 +435,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         }
 
 
-        public void StartDetectPtt(DetectPttCallback callback)
+        public void StartPTTListening(DetectPttCallback callback)
         {
             _detectPtt = true;
             //detect the state of all current buttons
@@ -599,10 +598,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                                         case InputBinding.TransponderIDENT:
                                             TransponderHelper.ToggleIdent();
                                             break;
-
-
-                                        default:
-                                            break;
                                     }
 
 
@@ -617,7 +612,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         }
 
 
-        public void StopPtt()
+        public void StopListening()
         {
             _detectPtt = false;
         }
@@ -645,12 +640,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                             //-128 to get POV index
                             return pov[inputDeviceBinding.Button - 128] == inputDeviceBinding.ButtonValue;
                         }
-                        else
-                        {
-                            return state.Buttons[inputDeviceBinding.Button];
-                        }
+
+                        return state.Buttons[inputDeviceBinding.Button];
                     }
-                    else if (device is Keyboard)
+
+                    if (device is Keyboard)
                     {
                         var keyboard = device as Keyboard;
                         keyboard.Poll();
@@ -658,7 +652,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                         return
                             state.IsPressed(state.AllKeys[inputDeviceBinding.Button]);
                     }
-                    else if (device is Mouse)
+
+                    if (device is Mouse)
                     {
                         device.Poll();
                         var state = (device as Mouse).GetCurrentState();
@@ -676,7 +671,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
                     MessageBox.Show(
                         $"An error occurred while querying your {device.Information.ProductName.Trim().Replace("\0", "")} input device.\nThis could for example be caused by unplugging " +
-                        $"your joystick or disabling it in the Windows settings.\n\nAll controls bound to this input device will not work anymore until your restart SRS.",
+                        "your joystick or disabling it in the Windows settings.\n\nAll controls bound to this input device will not work anymore until your restart SRS.",
                         "Input device error",
                         MessageBoxButton.OK,
                         MessageBoxImage.Error);
@@ -703,7 +698,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                 var input = currentInputProfile[(InputBinding)i];
                 //construct InputBindState
 
-                var bindState = new InputBindState()
+                var bindState = new InputBindState
                 {
                     IsActive = false,
                     MainDevice = input,
@@ -720,5 +715,27 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
             return bindStates;
         }
+
+        #region Singleton Definition
+
+        private static volatile InputDeviceManager _instance;
+        private static readonly object _lock = new();
+
+        public static InputDeviceManager Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    lock (_lock)
+                    {
+                        if (_instance == null)
+                            _instance = new InputDeviceManager();
+                    }
+
+                return _instance;
+            }
+        }
+
+        #endregion
     }
 }

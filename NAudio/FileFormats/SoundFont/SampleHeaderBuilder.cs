@@ -1,15 +1,17 @@
-using System;
 using System.IO;
-using System.Text;
 using NAudio.Utils;
 
-namespace NAudio.SoundFont
+namespace NAudio.FileFormats.SoundFont
 {
-    class SampleHeaderBuilder : StructureBuilder<SampleHeader>
+    internal class SampleHeaderBuilder : StructureBuilder<SampleHeader>
     {
+        public override int Length => 46;
+
+        public SampleHeader[] SampleHeaders => data.ToArray();
+
         public override SampleHeader Read(BinaryReader br)
         {
-            SampleHeader sh = new SampleHeader();
+            var sh = new SampleHeader();
             var s = br.ReadBytes(20);
 
             sh.SampleName = ByteEncoding.Instance.GetString(s, 0, s.Length);
@@ -21,7 +23,7 @@ namespace NAudio.SoundFont
             sh.OriginalPitch = br.ReadByte();
             sh.PitchCorrection = br.ReadSByte();
             sh.SampleLink = br.ReadUInt16();
-            sh.SFSampleLink = (SFSampleLink) br.ReadUInt16();
+            sh.SFSampleLink = (SFSampleLink)br.ReadUInt16();
             data.Add(sh);
             return sh;
         }
@@ -30,19 +32,9 @@ namespace NAudio.SoundFont
         {
         }
 
-        public override int Length
-        {
-            get { return 46; }
-        }
-
         internal void RemoveEOS()
         {
             data.RemoveAt(data.Count - 1);
-        }
-
-        public SampleHeader[] SampleHeaders
-        {
-            get { return data.ToArray(); }
         }
     }
 }

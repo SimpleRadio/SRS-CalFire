@@ -1,25 +1,23 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace NAudio.Wave
+namespace NAudio.Wave.Compression
 {
     [Flags]
-    enum AcmStreamConvertFlags
+    internal enum AcmStreamConvertFlags
     {
         /// <summary>
-        /// ACM_STREAMCONVERTF_BLOCKALIGN
+        ///     ACM_STREAMCONVERTF_BLOCKALIGN
         /// </summary>
         BlockAlign = 0x00000004,
 
         /// <summary>
-        /// ACM_STREAMCONVERTF_START
+        ///     ACM_STREAMCONVERTF_START
         /// </summary>
         Start = 0x00000010,
 
         /// <summary>
-        /// ACM_STREAMCONVERTF_END
+        ///     ACM_STREAMCONVERTF_END
         /// </summary>
-        End = 0x00000020,
+        End = 0x00000020
     }
 }

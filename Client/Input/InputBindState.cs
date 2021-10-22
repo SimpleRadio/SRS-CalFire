@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
+﻿namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Input
 {
     public class InputBindState
     {

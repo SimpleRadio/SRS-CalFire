@@ -2,19 +2,54 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.SRS.Common;
+using Ciribob.SRS.Common.Helpers;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 {
     internal class CachedAudioEffectProvider
     {
+        private static CachedAudioEffectProvider _instance;
+
+        private readonly string sourceFolder;
+
+        private CachedAudioEffectProvider()
+        {
+            sourceFolder = AppDomain.CurrentDomain.BaseDirectory + "\\AudioEffects\\";
+
+            //init lists
+            RadioTransmissionStart = new List<CachedAudioEffect>();
+            RadioTransmissionEnd = new List<CachedAudioEffect>();
+
+            LoadRadioStartAndEndEffects();
+
+            KY58EncryptionTransmitTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.KY_58_TX);
+            KY58EncryptionEndTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.KY_58_RX);
+
+            NATOTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.NATO_TONE);
+
+            MIDSTransmitTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.MIDS_TX);
+            MIDSEndTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.MIDS_TX_END);
+
+            HAVEQUICKTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.HAVEQUICK_TONE);
+
+            FMNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.FM_NOISE);
+            VHFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.VHF_NOISE);
+            UHFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.UHF_NOISE);
+            HFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.HF_NOISE);
+
+            //sort out volume (if needed)
+            CreateAudioEffectDouble(HAVEQUICKTone);
+            CreateAudioEffectDouble(NATOTone);
+            CreateAudioEffectDouble(FMNoise);
+            CreateAudioEffectDouble(UHFNoise);
+            CreateAudioEffectDouble(VHFNoise);
+            CreateAudioEffectDouble(HFNoise);
+        }
+
         public List<CachedAudioEffect> RadioTransmissionStart { get; }
         public List<CachedAudioEffect> RadioTransmissionEnd { get; }
-
-        private static CachedAudioEffectProvider _instance;
 
         public static CachedAudioEffectProvider Instance
         {
@@ -71,42 +106,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         public CachedAudioEffect VHFNoise { get; }
         public CachedAudioEffect HFNoise { get; }
 
-        private readonly string sourceFolder;
-
-        private CachedAudioEffectProvider()
-        {
-            sourceFolder = AppDomain.CurrentDomain.BaseDirectory + "\\AudioEffects\\";
-
-            //init lists
-            RadioTransmissionStart = new List<CachedAudioEffect>();
-            RadioTransmissionEnd = new List<CachedAudioEffect>();
-
-            LoadRadioStartAndEndEffects();
-
-            KY58EncryptionTransmitTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.KY_58_TX);
-            KY58EncryptionEndTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.KY_58_RX);
-
-            NATOTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.NATO_TONE);
-
-            MIDSTransmitTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.MIDS_TX);
-            MIDSEndTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.MIDS_TX_END);
-
-            HAVEQUICKTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.HAVEQUICK_TONE);
-
-            FMNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.FM_NOISE);
-            VHFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.VHF_NOISE);
-            UHFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.UHF_NOISE);
-            HFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.HF_NOISE);
-
-            //sort out volume (if needed)
-            CreateAudioEffectDouble(HAVEQUICKTone);
-            CreateAudioEffectDouble(NATOTone);
-            CreateAudioEffectDouble(FMNoise);
-            CreateAudioEffectDouble(UHFNoise);
-            CreateAudioEffectDouble(VHFNoise);
-            CreateAudioEffectDouble(HFNoise);
-        }
-
         private void CreateAudioEffectDouble(CachedAudioEffect effect)
         {
             if (effect.Loaded)
@@ -141,7 +140,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                     else if (effect.ToLowerInvariant().StartsWith(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END
                         .ToString().ToLowerInvariant()))
                     {
-                        var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END, effect,
+                        var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END,
+                            effect,
                             effectPath);
 
                         if (audioEffect.AudioEffectBytes != null) RadioTransmissionEnd.Add(audioEffect);

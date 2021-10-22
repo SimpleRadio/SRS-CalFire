@@ -5,9 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using Microsoft.Win32;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Input;
 using NLog;
 using SharpConfig;
 
@@ -67,28 +66,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
     public class ProfileSettingsStore
     {
-        private static readonly object _lock = new object();
-        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-        //cache all the settings in their correct types for speed
-        //fixes issue where we access settings a lot and have issues
-        private ConcurrentDictionary<string, object> _settingsCache = new ConcurrentDictionary<string, object>();
-
-        public string CurrentProfileName
-        {
-            get => _currentProfileName;
-            set
-            {
-                _settingsCache.Clear();
-                _currentProfileName = value;
-                //TODO trigger from here the change
-            }
-        }
-
-        public string Path { get; }
+        private static readonly object _lock = new();
 
         public static readonly Dictionary<string, string> DefaultSettingsProfileSettings =
-            new Dictionary<string, string>()
+            new()
             {
                 { ProfileSettingsKeys.RadioEffects.ToString(), "true" },
                 { ProfileSettingsKeys.RadioEffectsClipping.ToString(), "false" },
@@ -136,26 +117,15 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                 { ProfileSettingsKeys.FMNoiseVolume.ToString(), "0.4" }
             };
 
-
-        public List<string> ProfileNames => new List<string>(InputProfiles.Keys);
-
-        public Dictionary<InputBinding, InputDevice> GetCurrentInputProfile()
-        {
-            return InputProfiles[GetProfileName(CurrentProfileName)];
-        }
-
-        public Configuration GetCurrentProfile()
-        {
-            return InputConfigs[GetProfileCfgFileName(CurrentProfileName)];
-        }
-
-        public Dictionary<string, Dictionary<InputBinding, InputDevice>> InputProfiles { get; set; } =
-            new Dictionary<string, Dictionary<InputBinding, InputDevice>>();
-
-        private Dictionary<string, Configuration> InputConfigs = new Dictionary<string, Configuration>();
-
         private readonly GlobalSettingsStore _globalSettings;
+        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private string _currentProfileName = "default";
+
+        //cache all the settings in their correct types for speed
+        //fixes issue where we access settings a lot and have issues
+        private readonly ConcurrentDictionary<string, object> _settingsCache = new();
+
+        private readonly Dictionary<string, Configuration> InputConfigs = new();
 
         public ProfileSettingsStore(GlobalSettingsStore globalSettingsStore)
         {
@@ -201,7 +171,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                 catch (ParserException ex)
                 {
                     Logger.Info(
-                        $"Error with input config - creating a new default ");
+                        "Error with input config - creating a new default ");
                 }
 
                 if (_configuration == null)
@@ -226,6 +196,35 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             }
         }
 
+        public string CurrentProfileName
+        {
+            get => _currentProfileName;
+            set
+            {
+                _settingsCache.Clear();
+                _currentProfileName = value;
+                //TODO trigger from here the change
+            }
+        }
+
+        public string Path { get; }
+
+
+        public List<string> ProfileNames => new(InputProfiles.Keys);
+
+        public Dictionary<string, Dictionary<InputBinding, InputDevice>> InputProfiles { get; set; } =
+            new();
+
+        public Dictionary<InputBinding, InputDevice> GetCurrentInputProfile()
+        {
+            return InputProfiles[GetProfileName(CurrentProfileName)];
+        }
+
+        public Configuration GetCurrentProfile()
+        {
+            return InputConfigs[GetProfileCfgFileName(CurrentProfileName)];
+        }
+
         private void MigrateOldSettings()
         {
             try
@@ -242,12 +241,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                     File.AppendAllText(Path + "default.cfg", inputText, Encoding.UTF8);
 
                     Logger.Info(
-                        $"Migrated the previous input-default.cfg and global settings to the new profile");
+                        "Migrated the previous input-default.cfg and global settings to the new profile");
                 }
                 else
                 {
                     Logger.Info(
-                        $"No need to migrate - migration complete");
+                        "No need to migrate - migration complete");
                 }
             }
             catch (Exception ex)

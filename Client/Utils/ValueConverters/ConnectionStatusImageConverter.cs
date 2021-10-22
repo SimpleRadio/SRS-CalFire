@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Globalization;
 using System.Windows.Data;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI;
-using Ciribob.SRS.Common.Network.Singletons;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils.ValueConverters
 {
@@ -10,17 +10,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils.ValueConverters
     {
         private ClientStateSingleton _clientState { get; } = ClientStateSingleton.Instance;
 
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var connected = (bool)value;
             if (connected)
                 return Images.IconConnected;
-            else
-                return Images.IconDisconnected;
+            return Images.IconDisconnected;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter,
-            System.Globalization.CultureInfo culture)
+            CultureInfo culture)
         {
             throw new NotImplementedException();
         }

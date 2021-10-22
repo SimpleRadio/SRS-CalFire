@@ -10,8 +10,8 @@ using NAudio.CoreAudioApi.Interfaces;
 namespace NAudio.CoreAudioApi
 {
     /// <summary>
-    /// AudioSessionControl object for information
-    /// regarding an audio session
+    ///     AudioSessionControl object for information
+    ///     regarding an audio session
     /// </summary>
     public class AudioSessionControl : IDisposable
     {
@@ -20,7 +20,7 @@ namespace NAudio.CoreAudioApi
         private AudioSessionEventsCallback audioSessionEventCallback;
 
         /// <summary>
-        /// Constructor.
+        ///     Constructor.
         /// </summary>
         /// <param name="audioSessionControl"></param>
         public AudioSessionControl(IAudioSessionControl audioSessionControl)
@@ -38,44 +38,18 @@ namespace NAudio.CoreAudioApi
                 SimpleAudioVolume = new SimpleAudioVolume(volume);
         }
 
-        #region IDisposable Members
-
         /// <summary>
-        /// Dispose
-        /// </summary>
-        public void Dispose()
-        {
-            if (audioSessionEventCallback != null)
-            {
-                Marshal.ThrowExceptionForHR(
-                    audioSessionControlInterface.UnregisterAudioSessionNotification(audioSessionEventCallback));
-                audioSessionEventCallback = null;
-            }
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Finalizer
-        /// </summary>
-        ~AudioSessionControl()
-        {
-            Dispose();
-        }
-
-        #endregion
-
-        /// <summary>
-        /// Audio meter information of the audio session.
+        ///     Audio meter information of the audio session.
         /// </summary>
         public AudioMeterInformation AudioMeterInformation { get; }
 
         /// <summary>
-        /// Simple audio volume of the audio session (for volume and mute status).
+        ///     Simple audio volume of the audio session (for volume and mute status).
         /// </summary>
         public SimpleAudioVolume SimpleAudioVolume { get; }
 
         /// <summary>
-        /// The current state of the audio session.
+        ///     The current state of the audio session.
         /// </summary>
         public AudioSessionState State
         {
@@ -90,7 +64,7 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        /// The name of the audio session.
+        ///     The name of the audio session.
         /// </summary>
         public string DisplayName
         {
@@ -104,15 +78,13 @@ namespace NAudio.CoreAudioApi
             }
             set
             {
-                if (value != String.Empty)
-                {
+                if (value != string.Empty)
                     Marshal.ThrowExceptionForHR(audioSessionControlInterface.SetDisplayName(value, Guid.Empty));
-                }
             }
         }
 
         /// <summary>
-        /// the path to the icon shown in the mixer.
+        ///     the path to the icon shown in the mixer.
         /// </summary>
         public string IconPath
         {
@@ -126,15 +98,13 @@ namespace NAudio.CoreAudioApi
             }
             set
             {
-                if (value != String.Empty)
-                {
+                if (value != string.Empty)
                     Marshal.ThrowExceptionForHR(audioSessionControlInterface.SetIconPath(value, Guid.Empty));
-                }
             }
         }
 
         /// <summary>
-        /// The session identifier of the audio session.
+        ///     The session identifier of the audio session.
         /// </summary>
         public string GetSessionIdentifier
         {
@@ -149,7 +119,7 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        /// The session instance identifier of the audio session.
+        ///     The session instance identifier of the audio session.
         /// </summary>
         public string GetSessionInstanceIdentifier
         {
@@ -164,7 +134,7 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        /// The process identifier of the audio session.
+        ///     The process identifier of the audio session.
         /// </summary>
         public uint GetProcessID
         {
@@ -179,7 +149,7 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        /// Is the session a system sounds session.
+        ///     Is the session a system sounds session.
         /// </summary>
         public bool IsSystemSoundsSession
         {
@@ -187,12 +157,12 @@ namespace NAudio.CoreAudioApi
             {
                 if (audioSessionControlInterface2 == null)
                     throw new InvalidOperationException("Not supported on this version of Windows");
-                return (audioSessionControlInterface2.IsSystemSoundsSession() == 0);
+                return audioSessionControlInterface2.IsSystemSoundsSession() == 0;
             }
         }
 
         /// <summary>
-        /// the grouping param for an audio session grouping
+        ///     the grouping param for an audio session grouping
         /// </summary>
         /// <returns></returns>
         public Guid GetGroupingParam()
@@ -205,7 +175,7 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        /// For chanigng the grouping param and supplying the context of said change
+        ///     For chanigng the grouping param and supplying the context of said change
         /// </summary>
         /// <param name="groupingId"></param>
         /// <param name="context"></param>
@@ -215,7 +185,7 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        /// Registers an even client for callbacks
+        ///     Registers an even client for callbacks
         /// </summary>
         /// <param name="eventClient"></param>
         public void RegisterEventClient(IAudioSessionEventsHandler eventClient)
@@ -227,7 +197,7 @@ namespace NAudio.CoreAudioApi
         }
 
         /// <summary>
-        /// Unregisters an event client from receiving callbacks
+        ///     Unregisters an event client from receiving callbacks
         /// </summary>
         /// <param name="eventClient"></param>
         public void UnRegisterEventClient(IAudioSessionEventsHandler eventClient)
@@ -240,5 +210,32 @@ namespace NAudio.CoreAudioApi
                 audioSessionEventCallback = null;
             }
         }
+
+        #region IDisposable Members
+
+        /// <summary>
+        ///     Dispose
+        /// </summary>
+        public void Dispose()
+        {
+            if (audioSessionEventCallback != null)
+            {
+                Marshal.ThrowExceptionForHR(
+                    audioSessionControlInterface.UnregisterAudioSessionNotification(audioSessionEventCallback));
+                audioSessionEventCallback = null;
+            }
+
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        ///     Finalizer
+        /// </summary>
+        ~AudioSessionControl()
+        {
+            Dispose();
+        }
+
+        #endregion
     }
 }

@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NAudio.Utils;
+﻿using NAudio.Utils;
+using NAudio.Wave.WaveFormats;
+using NAudio.Wave.WaveOutputs;
 
-namespace NAudio.Wave.SampleProviders
+namespace NAudio.Wave.SampleChunkConverters
 {
-    class Mono16SampleChunkConverter : ISampleChunkConverter
+    internal class Mono16SampleChunkConverter : ISampleChunkConverter
     {
-        private int sourceSample;
         private byte[] sourceBuffer;
-        private WaveBuffer sourceWaveBuffer;
+        private int sourceSample;
         private int sourceSamples;
+        private WaveBuffer sourceWaveBuffer;
 
         public bool Supports(WaveFormat waveFormat)
         {
@@ -21,7 +20,7 @@ namespace NAudio.Wave.SampleProviders
 
         public void LoadNextChunk(IWaveProvider source, int samplePairsRequired)
         {
-            int sourceBytesRequired = samplePairsRequired * 2;
+            var sourceBytesRequired = samplePairsRequired * 2;
             sourceSample = 0;
             sourceBuffer = BufferHelpers.Ensure(sourceBuffer, sourceBytesRequired);
             sourceWaveBuffer = new WaveBuffer(sourceBuffer);
@@ -36,12 +35,10 @@ namespace NAudio.Wave.SampleProviders
                 sampleRight = sampleLeft;
                 return true;
             }
-            else
-            {
-                sampleLeft = 0.0f;
-                sampleRight = 0.0f;
-                return false;
-            }
+
+            sampleLeft = 0.0f;
+            sampleRight = 0.0f;
+            return false;
         }
     }
 }

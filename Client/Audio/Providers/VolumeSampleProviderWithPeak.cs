@@ -1,43 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NAudio.Wave;
+﻿using NAudio.Wave.WaveFormats;
+using NAudio.Wave.WaveOutputs;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
 {
     //From https://raw.githubusercontent.com/naudio/NAudio/master/NAudio/Wave/SampleProviders/VolumeSampleProvider.cs
     public class VolumeSampleProviderWithPeak : ISampleProvider
     {
-        private readonly ISampleProvider source;
-        private readonly SamplePeak _samplePeak;
-        private float volume;
-
         public delegate void SamplePeak(float peak);
 
+        private readonly SamplePeak _samplePeak;
+        private readonly ISampleProvider source;
+
+        private int count;
+        private float lastPeak;
+
         /// <summary>
-        /// Initializes a new instance of VolumeSampleProvider
+        ///     Initializes a new instance of VolumeSampleProvider
         /// </summary>
         /// <param name="source">Source Sample Provider</param>
         public VolumeSampleProviderWithPeak(ISampleProvider source, SamplePeak samplePeak)
         {
             this.source = source;
             _samplePeak = samplePeak;
-            volume = 1.0f;
+            Volume = 1.0f;
         }
 
         /// <summary>
-        /// WaveFormat
+        ///     Allows adjusting the volume, 1.0f = full volume
+        /// </summary>
+        public float Volume { get; set; }
+
+        /// <summary>
+        ///     WaveFormat
         /// </summary>
         public WaveFormat WaveFormat => source.WaveFormat;
 
-        private int count = 0;
-        private float lastPeak = 0;
-
         /// <summary>
-        /// Reads samples from this sample provider
+        ///     Reads samples from this sample provider
         /// </summary>
         /// <param name="buffer">Sample buffer</param>
         /// <param name="offset">Offset into sample buffer</param>
@@ -50,7 +49,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
             for (var n = 0; n < sampleCount; n++)
             {
                 var sample = buffer[offset + n];
-                sample *= volume;
+                sample *= Volume;
 
                 //stop over boosting
                 if (sample > 1.0F)
@@ -75,15 +74,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio
 
 
             return samplesRead;
-        }
-
-        /// <summary>
-        /// Allows adjusting the volume, 1.0f = full volume
-        /// </summary>
-        public float Volume
-        {
-            get => volume;
-            set => volume = value;
         }
     }
 }

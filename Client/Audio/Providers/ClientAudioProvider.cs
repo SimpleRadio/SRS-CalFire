@@ -1,35 +1,21 @@
 ﻿using System;
-using System.Diagnostics;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI;
-using Ciribob.SRS.Common;
-using MathNet.Filtering;
-using NAudio.Dsp;
-using NAudio.Wave;
-using NAudio.Wave.SampleProviders;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.DSP;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.PlayerState;
 using FragLabs.Audio.Codecs;
+using MathNet.Filtering;
+using NAudio.Dsp;
+using NAudio.Wave.SampleProviders;
+using NAudio.Wave.WaveFormats;
 using NLog;
-using static Ciribob.SRS.Common.Radio;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
 {
     public class ClientAudioProvider : AudioProvider
     {
         public static readonly int SILENCE_PAD = 200;
-
-        private readonly Random _random = new Random();
-
-        private int _lastReceivedOn = -1;
-        private OnlineFilter[] _filters;
-
-        private readonly BiQuadFilter _highPassFilter;
-        private readonly BiQuadFilter _lowPassFilter;
-
-        private OpusDecoder _decoder;
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -40,30 +26,40 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
 
         private static readonly double HQ_RESET_CHANCE = 0.8;
 
-        private int hqTonePosition = 0;
-        private int natoPosition = 0;
-        private int fmNoisePosition = 0;
-        private int vhfNoisePosition = 0;
-        private int uhfNoisePosition = 0;
-        private int hfNoisePosition = 0;
+        private readonly BiQuadFilter _highPassFilter;
+        private readonly BiQuadFilter _lowPassFilter;
+
+        private readonly Random _random = new();
 
         private readonly CachedAudioEffectProvider effectProvider = CachedAudioEffectProvider.Instance;
 
-        private bool natoToneEnabled;
-        private bool hqToneEnabled;
-        private bool radioEffectsEnabled;
+        private OpusDecoder _decoder;
+        private readonly OnlineFilter[] _filters;
+
+        private int _lastReceivedOn = -1;
         private bool clippingEnabled;
-        private double hqToneVolume;
-        private double natoToneVolume;
+        private int fmNoisePosition;
 
         private double fmVol;
+        private int hfNoisePosition;
         private double hfVol;
+        private bool hqToneEnabled;
+
+        private int hqTonePosition;
+        private double hqToneVolume;
+
+        private long lastRefresh; //last refresh of settings
+        private int natoPosition;
+
+        private bool natoToneEnabled;
+        private double natoToneVolume;
+
+        private readonly bool passThrough;
+        private bool radioEffectsEnabled;
+        private int uhfNoisePosition;
         private double uhfVol;
+        private int vhfNoisePosition;
         private double vhfVol;
-
-        private long lastRefresh = 0; //last refresh of settings
-
-        private bool passThrough;
 
         public ClientAudioProvider(bool passThrough = false)
         {
@@ -199,11 +195,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
 
                 return null;
             }
-            else
-            {
-                //return MONO PCM 16 as bytes
-                return ConversionHelpers.ShortArrayToByteArray(audio.PcmAudioShort);
-            }
+
+            //return MONO PCM 16 as bytes
+            return ConversionHelpers.ShortArrayToByteArray(audio.PcmAudioShort);
 
             //timer.Stop();
         }
@@ -304,7 +298,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
                     && natoToneEnabled)
                 {
                     var natoTone = effectProvider.NATOTone.AudioEffectDouble;
-                    audio += (double)natoTone[natoPosition] * natoToneVolume;
+                    audio += natoTone[natoPosition] * natoToneVolume;
                     natoPosition++;
 
                     if (natoPosition == natoTone.Length) natoPosition = 0;
@@ -316,7 +310,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
                 {
                     var hqTone = effectProvider.HAVEQUICKTone.AudioEffectDouble;
 
-                    audio += (double)hqTone[hqTonePosition] * hqToneVolume;
+                    audio += hqTone[hqTonePosition] * hqToneVolume;
                     hqTonePosition++;
 
                     if (hqTonePosition == hqTone.Length)
@@ -368,7 +362,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
                         {
                             //VHF Band? - Very rough
                             var noise = effectProvider.VHFNoise.AudioEffectDouble;
-                            audio += (double)noise[vhfNoisePosition] * vhfVol;
+                            audio += noise[vhfNoisePosition] * vhfVol;
                             vhfNoisePosition++;
 
                             if (vhfNoisePosition == noise.Length) vhfNoisePosition = 0;
@@ -380,7 +374,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
                         {
                             //HF!
                             var noise = effectProvider.HFNoise.AudioEffectDouble;
-                            audio += (double)noise[hfNoisePosition] * hfVol;
+                            audio += noise[hfNoisePosition] * hfVol;
                             hfNoisePosition++;
 
                             if (hfNoisePosition == noise.Length) hfNoisePosition = 0;
@@ -395,7 +389,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
                         //HF!
                         var noise = effectProvider.FMNoise.AudioEffectDouble;
                         //UHF Band?
-                        audio += (double)noise[fmNoisePosition] * fmVol;
+                        audio += noise[fmNoisePosition] * fmVol;
                         fmNoisePosition++;
 
                         if (fmNoisePosition == noise.Length) fmNoisePosition = 0;

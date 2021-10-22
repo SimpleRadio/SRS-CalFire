@@ -1,31 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace NAudio.Wave
+﻿namespace NAudio.FileFormats.Mp3
 {
     /// <summary>
-    /// MPEG Layer flags
+    ///     MPEG Layer flags
     /// </summary>
     public enum MpegLayer
     {
         /// <summary>
-        /// Reserved
+        ///     Reserved
         /// </summary>
         Reserved,
 
         /// <summary>
-        /// Layer 3
+        ///     Layer 3
         /// </summary>
         Layer3,
 
         /// <summary>
-        /// Layer 2
+        ///     Layer 2
         /// </summary>
         Layer2,
 
         /// <summary>
-        /// Layer 1
+        ///     Layer 1
         /// </summary>
         Layer1
     }

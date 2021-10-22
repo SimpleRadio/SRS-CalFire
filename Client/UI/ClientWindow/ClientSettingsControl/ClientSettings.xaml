@@ -1,9 +1,8 @@
-﻿<UserControl x:Class="Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSettings"
+﻿<UserControl x:Class="Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSettingsControl.ClientSettings"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:ui="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.UI"
              xmlns:local="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSettingsControl"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
@@ -599,102 +598,102 @@
                                    HorizontalContentAlignment="Center"
                                    VerticalContentAlignment="Center"
                                    Content="Radio 1 Audio Channel" />
-                            <ui:RadioChannelConfigUi x:Name="Radio1Config"
-                                                     Grid.Row="0"
-                                                     Grid.Column="1"
-                                                     VolumeValue="{Binding RadioChannel1, Mode=TwoWay}" />
+                            <local:RadioChannelConfigUi x:Name="Radio1Config"
+                                                        Grid.Row="0"
+                                                        Grid.Column="1"
+                                                        VolumeValue="{Binding RadioChannel1, Mode=TwoWay}" />
 
                             <Label Grid.Row="1"
                                    Grid.Column="0"
                                    HorizontalContentAlignment="Center"
                                    VerticalContentAlignment="Center"
                                    Content="Radio 2 Audio Channel" />
-                            <ui:RadioChannelConfigUi x:Name="Radio2Config"
-                                                     Grid.Row="1"
-                                                     Grid.Column="1"
-                                                     VolumeValue="{Binding RadioChannel2, Mode=TwoWay}" />
+                            <local:RadioChannelConfigUi x:Name="Radio2Config"
+                                                        Grid.Row="1"
+                                                        Grid.Column="1"
+                                                        VolumeValue="{Binding RadioChannel2, Mode=TwoWay}" />
 
                             <Label Grid.Row="2"
                                    Grid.Column="0"
                                    HorizontalContentAlignment="Center"
                                    VerticalContentAlignment="Center"
                                    Content="Radio 3 Audio Channel" />
-                            <ui:RadioChannelConfigUi x:Name="Radio3Config"
-                                                     Grid.Row="2"
-                                                     Grid.Column="1"
-                                                     VolumeValue="{Binding RadioChannel3, Mode=TwoWay}" />
+                            <local:RadioChannelConfigUi x:Name="Radio3Config"
+                                                        Grid.Row="2"
+                                                        Grid.Column="1"
+                                                        VolumeValue="{Binding RadioChannel3, Mode=TwoWay}" />
                             <Label Grid.Row="3"
                                    Grid.Column="0"
                                    HorizontalContentAlignment="Center"
                                    VerticalContentAlignment="Center"
                                    Content="Radio 4 Audio Channel" />
-                            <ui:RadioChannelConfigUi x:Name="Radio4Config"
-                                                     Grid.Row="3"
-                                                     Grid.Column="1"
-                                                     VolumeValue="{Binding RadioChannel4, Mode=TwoWay}" />
+                            <local:RadioChannelConfigUi x:Name="Radio4Config"
+                                                        Grid.Row="3"
+                                                        Grid.Column="1"
+                                                        VolumeValue="{Binding RadioChannel4, Mode=TwoWay}" />
                             <Label Grid.Row="4"
                                    Grid.Column="0"
                                    HorizontalContentAlignment="Center"
                                    VerticalContentAlignment="Center"
                                    Content="Radio 5 Audio Channel" />
-                            <ui:RadioChannelConfigUi x:Name="Radio5Config"
-                                                     Grid.Row="4"
-                                                     Grid.Column="1"
-                                                     VolumeValue="{Binding RadioChannel5, Mode=TwoWay}" />
+                            <local:RadioChannelConfigUi x:Name="Radio5Config"
+                                                        Grid.Row="4"
+                                                        Grid.Column="1"
+                                                        VolumeValue="{Binding RadioChannel5, Mode=TwoWay}" />
                             <Label Grid.Row="5"
                                    Grid.Column="0"
                                    HorizontalContentAlignment="Center"
                                    VerticalContentAlignment="Center"
                                    Content="Radio 6 Audio Channel" />
-                            <ui:RadioChannelConfigUi x:Name="Radio6Config"
-                                                     Grid.Row="5"
-                                                     Grid.Column="1"
-                                                     VolumeValue="{Binding RadioChannel6, Mode=TwoWay}" />
+                            <local:RadioChannelConfigUi x:Name="Radio6Config"
+                                                        Grid.Row="5"
+                                                        Grid.Column="1"
+                                                        VolumeValue="{Binding RadioChannel6, Mode=TwoWay}" />
                             <Label Grid.Row="6"
                                    Grid.Column="0"
                                    HorizontalContentAlignment="Center"
                                    VerticalContentAlignment="Center"
                                    Content="Radio 7 Audio Channel" />
-                            <ui:RadioChannelConfigUi x:Name="Radio7Config"
-                                                     Grid.Row="6"
-                                                     Grid.Column="1"
-                                                     VolumeValue="{Binding RadioChannel7, Mode=TwoWay}" />
+                            <local:RadioChannelConfigUi x:Name="Radio7Config"
+                                                        Grid.Row="6"
+                                                        Grid.Column="1"
+                                                        VolumeValue="{Binding RadioChannel7, Mode=TwoWay}" />
                             <Label Grid.Row="7"
                                    Grid.Column="0"
                                    HorizontalContentAlignment="Center"
                                    VerticalContentAlignment="Center"
                                    Content="Radio 8 Audio Channel" />
-                            <ui:RadioChannelConfigUi x:Name="Radio8Config"
-                                                     Grid.Row="7"
-                                                     Grid.Column="1"
-                                                     VolumeValue="{Binding RadioChannel8, Mode=TwoWay}" />
+                            <local:RadioChannelConfigUi x:Name="Radio8Config"
+                                                        Grid.Row="7"
+                                                        Grid.Column="1"
+                                                        VolumeValue="{Binding RadioChannel8, Mode=TwoWay}" />
                             <Label Grid.Row="8"
                                    Grid.Column="0"
                                    HorizontalContentAlignment="Center"
                                    VerticalContentAlignment="Center"
                                    Content="Radio 9 Audio Channel" />
-                            <ui:RadioChannelConfigUi x:Name="Radio9Config"
-                                                     Grid.Row="8"
-                                                     Grid.Column="1"
-                                                     VolumeValue="{Binding RadioChannel9, Mode=TwoWay}" />
+                            <local:RadioChannelConfigUi x:Name="Radio9Config"
+                                                        Grid.Row="8"
+                                                        Grid.Column="1"
+                                                        VolumeValue="{Binding RadioChannel9, Mode=TwoWay}" />
                             <Label Grid.Row="9"
                                    Grid.Column="0"
                                    HorizontalContentAlignment="Center"
                                    VerticalContentAlignment="Center"
                                    Content="Radio 10 Audio Channel" />
-                            <ui:RadioChannelConfigUi x:Name="Radio10Config"
-                                                     Grid.Row="9"
-                                                     Grid.Column="1"
-                                                     VolumeValue="{Binding RadioChannel10, Mode=TwoWay}" />
+                            <local:RadioChannelConfigUi x:Name="Radio10Config"
+                                                        Grid.Row="9"
+                                                        Grid.Column="1"
+                                                        VolumeValue="{Binding RadioChannel10, Mode=TwoWay}" />
                             <Label Grid.Row="10"
                                    Grid.Column="0"
                                    HorizontalContentAlignment="Center"
                                    VerticalContentAlignment="Center"
                                    Content="Intercom Audio Channel" />
-                            <ui:RadioChannelConfigUi x:Name="IntercomConfig"
-                                                     Grid.Row="10"
-                                                     Grid.Column="1"
-                                                     VolumeValue="{Binding Intercom, Mode=TwoWay}" />
+                            <local:RadioChannelConfigUi x:Name="IntercomConfig"
+                                                        Grid.Row="10"
+                                                        Grid.Column="1"
+                                                        VolumeValue="{Binding Intercom, Mode=TwoWay}" />
                         </Grid>
                     </GroupBox>
                 </Grid>

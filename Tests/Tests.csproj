@@ -2,8 +2,8 @@
   <PropertyGroup>
     <TargetFramework>net5.0-windows</TargetFramework>
     <OutputType>Library</OutputType>
-    <RootNamespace>DCS_SR_CommonTests</RootNamespace>
-    <AssemblyName>DCS-SR-CommonTests</AssemblyName>
+    <RootNamespace>Ciribob.FS3D.SimpleRadio.Standalone.Tests</RootNamespace>
+    <AssemblyName>FSD-Tests</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">

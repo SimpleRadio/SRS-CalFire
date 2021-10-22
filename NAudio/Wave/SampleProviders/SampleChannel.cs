@@ -1,23 +1,24 @@
 ﻿using System;
+using NAudio.Wave.WaveFormats;
+using NAudio.Wave.WaveOutputs;
 
 namespace NAudio.Wave.SampleProviders
 {
     /// <summary>
-    /// Utility class that takes an IWaveProvider input at any bit depth
-    /// and exposes it as an ISampleProvider. Can turn mono inputs into stereo,
-    /// and allows adjusting of volume
-    /// (The eventual successor to WaveChannel32)
-    /// This class also serves as an example of how you can link together several simple 
-    /// Sample Providers to form a more useful class.
+    ///     Utility class that takes an IWaveProvider input at any bit depth
+    ///     and exposes it as an ISampleProvider. Can turn mono inputs into stereo,
+    ///     and allows adjusting of volume
+    ///     (The eventual successor to WaveChannel32)
+    ///     This class also serves as an example of how you can link together several simple
+    ///     Sample Providers to form a more useful class.
     /// </summary>
     public class SampleChannel : ISampleProvider
     {
-        private readonly VolumeSampleProvider volumeProvider;
         private readonly MeteringSampleProvider preVolumeMeter;
-        private readonly WaveFormat waveFormat;
+        private readonly VolumeSampleProvider volumeProvider;
 
         /// <summary>
-        /// Initialises a new instance of SampleChannel
+        ///     Initialises a new instance of SampleChannel
         /// </summary>
         /// <param name="waveProvider">Source wave provider, must be PCM or IEEE</param>
         public SampleChannel(IWaveProvider waveProvider)
@@ -26,26 +27,34 @@ namespace NAudio.Wave.SampleProviders
         }
 
         /// <summary>
-        /// Initialises a new instance of SampleChannel
+        ///     Initialises a new instance of SampleChannel
         /// </summary>
         /// <param name="waveProvider">Source wave provider, must be PCM or IEEE</param>
         /// <param name="forceStereo">force mono inputs to become stereo</param>
         public SampleChannel(IWaveProvider waveProvider, bool forceStereo)
         {
-            ISampleProvider sampleProvider =
+            var sampleProvider =
                 SampleProviderConverters.ConvertWaveProviderIntoSampleProvider(waveProvider);
             if (sampleProvider.WaveFormat.Channels == 1 && forceStereo)
-            {
                 sampleProvider = new MonoToStereoSampleProvider(sampleProvider);
-            }
-            waveFormat = sampleProvider.WaveFormat;
+
+            WaveFormat = sampleProvider.WaveFormat;
             // let's put the meter before the volume (useful for drawing waveforms)
             preVolumeMeter = new MeteringSampleProvider(sampleProvider);
             volumeProvider = new VolumeSampleProvider(preVolumeMeter);
         }
 
         /// <summary>
-        /// Reads samples from this sample provider
+        ///     Allows adjusting the volume, 1.0f = full volume
+        /// </summary>
+        public float Volume
+        {
+            get => volumeProvider.Volume;
+            set => volumeProvider.Volume = value;
+        }
+
+        /// <summary>
+        ///     Reads samples from this sample provider
         /// </summary>
         /// <param name="buffer">Sample buffer</param>
         /// <param name="offset">Offset into sample buffer</param>
@@ -57,27 +66,18 @@ namespace NAudio.Wave.SampleProviders
         }
 
         /// <summary>
-        /// The WaveFormat of this Sample Provider
+        ///     The WaveFormat of this Sample Provider
         /// </summary>
-        public WaveFormat WaveFormat => waveFormat;
+        public WaveFormat WaveFormat { get; }
 
         /// <summary>
-        /// Allows adjusting the volume, 1.0f = full volume
-        /// </summary>
-        public float Volume
-        {
-            get { return volumeProvider.Volume; }
-            set { volumeProvider.Volume = value; }
-        }
-
-        /// <summary>
-        /// Raised periodically to inform the user of the max volume
-        /// (before the volume meter)
+        ///     Raised periodically to inform the user of the max volume
+        ///     (before the volume meter)
         /// </summary>
         public event EventHandler<StreamVolumeEventArgs> PreVolumeMeter
         {
-            add { preVolumeMeter.StreamVolume += value; }
-            remove { preVolumeMeter.StreamVolume -= value; }
+            add => preVolumeMeter.StreamVolume += value;
+            remove => preVolumeMeter.StreamVolume -= value;
         }
     }
 }

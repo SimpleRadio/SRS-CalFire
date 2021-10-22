@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using NAudio.Wave;
+using NAudio.Wave.WaveFormats;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility
 {
@@ -35,16 +31,24 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility
             // ReSharper disable InconsistentNaming
             // ReSharper disable UnusedMember.Local
 
-            /** Set preprocessor denoiser state */
+            /**
+             * Set preprocessor denoiser state
+             */
             SPEEX_PREPROCESS_SET_DENOISE = 0,
 
-            /** Get preprocessor denoiser state */
+            /**
+             * Get preprocessor denoiser state
+             */
             SPEEX_PREPROCESS_GET_DENOISE = 1,
 
-            /** Set preprocessor Automatic Gain Control state */
+            /**
+             * Set preprocessor Automatic Gain Control state
+             */
             SPEEX_PREPROCESS_SET_AGC = 2,
 
-            /** Get preprocessor Automatic Gain Control state */
+            /**
+             * Get preprocessor Automatic Gain Control state
+             */
             SPEEX_PREPROCESS_GET_AGC = 3,
 
             ///** Set preprocessor Voice Activity Detection state */
@@ -52,10 +56,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility
             ///** Get preprocessor Voice Activity Detection state */
             //SPEEX_PREPROCESS_GET_VAD = 5,
 
-            /** Set preprocessor Automatic Gain Control level (float) */
+            /**
+             * Set preprocessor Automatic Gain Control level (float)
+             */
             SPEEX_PREPROCESS_SET_AGC_LEVEL = 6,
 
-            /** Get preprocessor Automatic Gain Control level (float) */
+            /**
+             * Get preprocessor Automatic Gain Control level (float)
+             */
             SPEEX_PREPROCESS_GET_AGC_LEVEL = 7,
 
             //Dereverb is disabled in the preprocessor!
@@ -74,10 +82,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility
             ///** Get probability required for the VAD to stay in the voice state (integer percent) */
             //SPEEX_PREPROCESS_GET_PROB_CONTINUE = 17,
 
-            /** Set maximum attenuation of the noise in dB (negative number) */
+            /**
+             * Set maximum attenuation of the noise in dB (negative number)
+             */
             SPEEX_PREPROCESS_SET_NOISE_SUPPRESS = 18,
 
-            /** Get maximum attenuation of the noise in dB (negative number) */
+            /**
+             * Get maximum attenuation of the noise in dB (negative number)
+             */
             SPEEX_PREPROCESS_GET_NOISE_SUPPRESS = 19,
 
             ///** Set maximum attenuation of the residual echo in dB (negative number) */
@@ -95,56 +107,86 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility
             ///** Get the corresponding echo canceller state */
             //SPEEX_PREPROCESS_GET_ECHO_STATE = 25,
 
-            /** Set maximal gain increase in dB/second (int32) */
+            /**
+             * Set maximal gain increase in dB/second (int32)
+             */
             SPEEX_PREPROCESS_SET_AGC_INCREMENT = 26,
 
-            /** Get maximal gain increase in dB/second (int32) */
+            /**
+             * Get maximal gain increase in dB/second (int32)
+             */
             SPEEX_PREPROCESS_GET_AGC_INCREMENT = 27,
 
-            /** Set maximal gain decrease in dB/second (int32) */
+            /**
+             * Set maximal gain decrease in dB/second (int32)
+             */
             SPEEX_PREPROCESS_SET_AGC_DECREMENT = 28,
 
-            /** Get maximal gain decrease in dB/second (int32) */
+            /**
+             * Get maximal gain decrease in dB/second (int32)
+             */
             SPEEX_PREPROCESS_GET_AGC_DECREMENT = 29,
 
-            /** Set maximal gain in dB (int32) */
+            /**
+             * Set maximal gain in dB (int32)
+             */
             SPEEX_PREPROCESS_SET_AGC_MAX_GAIN = 30,
 
-            /** Get maximal gain in dB (int32) */
+            /**
+             * Get maximal gain in dB (int32)
+             */
             SPEEX_PREPROCESS_GET_AGC_MAX_GAIN = 31,
 
             /*  Can't set loudness */
-            /** Get loudness */
+            /**
+             * Get loudness
+             */
             SPEEX_PREPROCESS_GET_AGC_LOUDNESS = 33,
 
             /*  Can't set gain */
-            /** Get current gain (int32 percent) */
+            /**
+             * Get current gain (int32 percent)
+             */
             SPEEX_PREPROCESS_GET_AGC_GAIN = 35,
 
             /*  Can't set spectrum size */
-            /** Get spectrum size for power spectrum (int32) */
+            /**
+             * Get spectrum size for power spectrum (int32)
+             */
             SPEEX_PREPROCESS_GET_PSD_SIZE = 37,
 
             /*  Can't set power spectrum */
-            /** Get power spectrum (int32[] of squared values) */
+            /**
+             * Get power spectrum (int32[] of squared values)
+             */
             SPEEX_PREPROCESS_GET_PSD = 39,
 
             /*  Can't set noise size */
-            /** Get spectrum size for noise estimate (int32)  */
+            /**
+             * Get spectrum size for noise estimate (int32)
+             */
             SPEEX_PREPROCESS_GET_NOISE_PSD_SIZE = 41,
 
             /*  Can't set noise estimate */
-            /** Get noise estimate (int32[] of squared values) */
+            /**
+             * Get noise estimate (int32[] of squared values)
+             */
             SPEEX_PREPROCESS_GET_NOISE_PSD = 43,
 
             /* Can't set speech probability */
-            /** Get speech probability in last frame (int32).  */
+            /**
+             * Get speech probability in last frame (int32).
+             */
             SPEEX_PREPROCESS_GET_PROB = 45,
 
-            /** Set preprocessor Automatic Gain Control level (int32) */
+            /**
+             * Set preprocessor Automatic Gain Control level (int32)
+             */
             SPEEX_PREPROCESS_SET_AGC_TARGET = 46,
 
-            /** Get preprocessor Automatic Gain Control level (int32) */
+            /**
+             * Get preprocessor Automatic Gain Control level (int32)
+             */
             SPEEX_PREPROCESS_GET_AGC_TARGET = 47
 
             // ReSharper restore UnusedMember.Local
@@ -152,27 +194,102 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility
         }
 
         /// <summary>
-        /// A preprocessor for microphone input which performs denoising and automatic gain control
+        ///     A preprocessor for microphone input which performs denoising and automatic gain control
         /// </summary>
         public sealed class Preprocessor
             : IDisposable
         {
+            //every 40ms so 500
+            private int count;
+
+            public Preprocessor(int frameSize, int sampleRate)
+            {
+                FrameSize = frameSize;
+                Format = new WaveFormat(1, sampleRate);
+
+                Reset();
+                RefreshSettings(true);
+            }
+
+            /// <summary>
+            ///     Process a frame of data captured from the microphone
+            /// </summary>
+            /// <param name="frame"></param>
+            /// <returns>Returns true iff VAD is enabled and speech is detected</returns>
+            public void Process(ArraySegment<short> frame)
+            {
+                if (frame.Count != FrameSize)
+                    throw new ArgumentException(
+                        string.Format("Incorrect frame size, expected {0} but given {1}", FrameSize, frame.Count),
+                        "frame");
+
+                RefreshSettings(false);
+
+                using (var handle = frame.Pin())
+                {
+                    SpeexDspNativeMethods.speex_preprocess_run(_preprocessor, handle.Ptr);
+                }
+            }
+
+            public void Reset()
+            {
+                if (_preprocessor != IntPtr.Zero)
+                {
+                    SpeexDspNativeMethods.speex_preprocess_state_destroy(_preprocessor);
+                    _preprocessor = IntPtr.Zero;
+                }
+
+                _preprocessor = SpeexDspNativeMethods.speex_preprocess_state_init(FrameSize, Format.SampleRate);
+            }
+
+            private void RefreshSettings(bool force)
+            {
+                //only check every 5 seconds - 5000/40ms is 125 frames
+                if (count > 125 || force)
+                {
+                    //only check settings store every 5 seconds
+                    var settingsStore = GlobalSettingsStore.Instance;
+
+                    var agc = settingsStore.GetClientSettingBool(GlobalSettingsKeys.AGC);
+                    var agcTarget = settingsStore.GetClientSetting(GlobalSettingsKeys.AGCTarget).IntValue;
+                    var agcDecrement = settingsStore.GetClientSetting(GlobalSettingsKeys.AGCDecrement).IntValue;
+                    var agcLevelMax = settingsStore.GetClientSetting(GlobalSettingsKeys.AGCLevelMax).IntValue;
+
+                    var denoise = settingsStore.GetClientSettingBool(GlobalSettingsKeys.Denoise);
+                    var denoiseAttenuation =
+                        settingsStore.GetClientSetting(GlobalSettingsKeys.DenoiseAttenuation).IntValue;
+
+                    //From https://github.com/mumble-voip/mumble/blob/a189969521081565b8bda93d253670370778d471/src/mumble/Settings.cpp
+                    //and  https://github.com/mumble-voip/mumble/blob/3ffd9ad3ed18176774d8e1c64a96dffe0de69655/src/mumble/AudioInput.cpp#L605
+
+                    if (agc != AutomaticGainControl) AutomaticGainControl = agc;
+                    if (agcTarget != AutomaticGainControlTarget) AutomaticGainControlTarget = agcTarget;
+                    if (agcDecrement != AutomaticGainControlDecrement) AutomaticGainControlDecrement = agcDecrement;
+                    if (agcLevelMax != AutomaticGainControlLevelMax) AutomaticGainControlLevelMax = agcLevelMax;
+
+                    if (denoise != Denoise) Denoise = denoise;
+                    if (denoiseAttenuation != DenoiseAttenuation) DenoiseAttenuation = denoiseAttenuation;
+
+                    count = 0;
+                }
+
+                count++;
+            }
+
             #region fields
 
             private IntPtr _preprocessor;
 
-            private readonly int _frameSize;
-            public int FrameSize => _frameSize;
+            public int FrameSize { get; }
 
-            private readonly WaveFormat _format;
-            public WaveFormat Format => _format;
+            public WaveFormat Format { get; }
 
             #endregion
 
             #region denoise
 
             /// <summary>
-            /// Get or Set if denoise filter is enabled
+            ///     Get or Set if denoise filter is enabled
             /// </summary>
             public bool Denoise
             {
@@ -185,7 +302,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility
             }
 
             /// <summary>
-            /// Get or Set maximum attenuation of the noise in dB (negative number)
+            ///     Get or Set maximum attenuation of the noise in dB (negative number)
             /// </summary>
             public int DenoiseAttenuation
             {
@@ -238,88 +355,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility
             }
 
             /// <summary>
-            /// Get the current amount of AGC applied (0-1 indicating none -> max)
+            ///     Get the current amount of AGC applied (0-1 indicating none -> max)
             /// </summary>
             public float AutomaticGainControlCurrent => CTL_Int(SpeexDspCtl.SPEEX_PREPROCESS_GET_AGC_GAIN) / 100f;
 
             #endregion
-
-            public Preprocessor(int frameSize, int sampleRate)
-            {
-                _frameSize = frameSize;
-                _format = new WaveFormat(1, sampleRate);
-
-                Reset();
-                RefreshSettings(true);
-            }
-
-            /// <summary>
-            /// Process a frame of data captured from the microphone
-            /// </summary>
-            /// <param name="frame"></param>
-            /// <returns>Returns true iff VAD is enabled and speech is detected</returns>
-            public void Process(ArraySegment<short> frame)
-            {
-                if (frame.Count != _frameSize)
-                    throw new ArgumentException(
-                        string.Format("Incorrect frame size, expected {0} but given {1}", _frameSize, frame.Count),
-                        "frame");
-
-                RefreshSettings(false);
-
-                using (var handle = frame.Pin())
-                {
-                    SpeexDspNativeMethods.speex_preprocess_run(_preprocessor, handle.Ptr);
-                }
-            }
-
-            public void Reset()
-            {
-                if (_preprocessor != IntPtr.Zero)
-                {
-                    SpeexDspNativeMethods.speex_preprocess_state_destroy(_preprocessor);
-                    _preprocessor = IntPtr.Zero;
-                }
-
-                _preprocessor = SpeexDspNativeMethods.speex_preprocess_state_init(_frameSize, _format.SampleRate);
-            }
-
-            //every 40ms so 500
-            private int count = 0;
-
-            private void RefreshSettings(bool force)
-            {
-                //only check every 5 seconds - 5000/40ms is 125 frames
-                if (count > 125 || force)
-                {
-                    //only check settings store every 5 seconds
-                    var settingsStore = GlobalSettingsStore.Instance;
-
-                    var agc = settingsStore.GetClientSettingBool(GlobalSettingsKeys.AGC);
-                    var agcTarget = settingsStore.GetClientSetting(GlobalSettingsKeys.AGCTarget).IntValue;
-                    var agcDecrement = settingsStore.GetClientSetting(GlobalSettingsKeys.AGCDecrement).IntValue;
-                    var agcLevelMax = settingsStore.GetClientSetting(GlobalSettingsKeys.AGCLevelMax).IntValue;
-
-                    var denoise = settingsStore.GetClientSettingBool(GlobalSettingsKeys.Denoise);
-                    var denoiseAttenuation =
-                        settingsStore.GetClientSetting(GlobalSettingsKeys.DenoiseAttenuation).IntValue;
-
-                    //From https://github.com/mumble-voip/mumble/blob/a189969521081565b8bda93d253670370778d471/src/mumble/Settings.cpp
-                    //and  https://github.com/mumble-voip/mumble/blob/3ffd9ad3ed18176774d8e1c64a96dffe0de69655/src/mumble/AudioInput.cpp#L605
-
-                    if (agc != AutomaticGainControl) AutomaticGainControl = agc;
-                    if (agcTarget != AutomaticGainControlTarget) AutomaticGainControlTarget = agcTarget;
-                    if (agcDecrement != AutomaticGainControlDecrement) AutomaticGainControlDecrement = agcDecrement;
-                    if (agcLevelMax != AutomaticGainControlLevelMax) AutomaticGainControlLevelMax = agcLevelMax;
-
-                    if (denoise != Denoise) Denoise = denoise;
-                    if (denoiseAttenuation != DenoiseAttenuation) DenoiseAttenuation = denoiseAttenuation;
-
-                    count = 0;
-                }
-
-                count++;
-            }
 
             #region CTL
 
@@ -401,6 +441,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility
             _preprocessor = new SpeexDspNative.Preprocessor(frameSize, sampleRate);
         }
 
+        public void Dispose()
+        {
+            _preprocessor.Dispose();
+        }
+
 
         public void Process(ArraySegment<short> frame)
         {
@@ -411,18 +456,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility
         {
             _preprocessor.Reset();
         }
-
-        public void Dispose()
-        {
-            _preprocessor.Dispose();
-        }
     }
 
     //for the Pin for the arrays
     internal static class ArraySegmentExtensions
     {
         /// <summary>
-        /// Copy from the given array segment into the given array
+        ///     Copy from the given array segment into the given array
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="segment"></param>
@@ -442,7 +482,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility
         }
 
         /// <summary>
-        /// Copy as many samples as possible from the source array into the segment
+        ///     Copy as many samples as possible from the source array into the segment
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="segment"></param>
@@ -461,7 +501,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility
         }
 
         /// <summary>
-        /// Pin the array and return a pointer to the start of the segment
+        ///     Pin the array and return a pointer to the start of the segment
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="segment"></param>

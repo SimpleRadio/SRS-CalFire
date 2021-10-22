@@ -1,33 +1,20 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
-using System.IO;
-using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.SRS.Common.Helpers;
-using Microsoft.Win32;
 using NLog;
-using InputBinding = Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.InputBinding;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSettingsControl
 {
     public class ClientSettingsViewModel : PropertyChangedBase
     {
-        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
         private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
-
-        public ICommand ResetOverlayCommand { get; set; }
-
-        public ICommand CreateProfileCommand { get; set; }
-        public ICommand CopyProfileCommand { get; set; }
-        public ICommand RenameProfileCommand { get; set; }
-        public ICommand DeleteProfileCommand { get; set; }
+        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         public ClientSettingsViewModel()
         {
@@ -140,84 +127,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
             });
         }
 
-        private void ReloadSettings()
-        {
-            NotifyPropertyChanged(this.MinimiseToTray.ToString());
-            // NotifyPropertyChanged([StartMinimised]);
-            // NotifyPropertyChanged([MicAGC]);
-            // NotifyPropertyChanged([MicDenoise]);
-            // NotifyPropertyChanged([PlayConnectionSounds]);
-            // NotifyPropertyChanged([RadioSwitchIsPTT]);
-            // NotifyPropertyChanged([AutoSelectChannel]);
-            // NotifyPropertyChanged([PTTReleaseDelay]);
-            // NotifyPropertyChanged([PTTStartDelay]);
-            // NotifyPropertyChanged([HotIntercomMicToggle]);
-            // NotifyPropertyChanged([RadioRxStartToggle]);
-            // NotifyPropertyChanged([RadioRxEndToggle]);
-            // NotifyPropertyChanged([RadioTxStartToggle]);
-            // NotifyPropertyChanged([RadioTxEndToggle]);
-            // NotifyPropertyChanged([SelectedRadioTransmissionStartEffect]);
-            // NotifyPropertyChanged([SelectedRadioTransmissionEndEffect]);
-            // NotifyPropertyChanged([RadioSoundEffectsToggle]);
-            // NotifyPropertyChanged([RadioEffectsClippingToggle]);
-            // NotifyPropertyChanged([FMRadioToneToggle]);
-            // NotifyPropertyChanged([FMRadioToneVolume]);
-            // NotifyPropertyChanged([BackgroundRadioNoiseToggle]);
-            // NotifyPropertyChanged([UHFEffectVolume]);
-            // NotifyPropertyChanged([VHFEffectVolume]);
-            // NotifyPropertyChanged([HFEffectVolume]);
-            // NotifyPropertyChanged([FMEffectVolume]);
-            // NotifyPropertyChanged([RadioChannel1]);
-            // NotifyPropertyChanged([RadioChannel2]);
-            // NotifyPropertyChanged([RadioChannel3]);
-            // NotifyPropertyChanged([RadioChannel4]);
-            // NotifyPropertyChanged([RadioChannel5]);
-            // NotifyPropertyChanged([RadioChannel6]);
-            // NotifyPropertyChanged([RadioChannel7]);
-            // NotifyPropertyChanged([RadioChannel8]);
-            // NotifyPropertyChanged([RadioChannel9);
-            // NotifyPropertyChanged([RadioChannel10]);
-            // NotifyPropertyChanged([Intercom]);
-            // NotifyPropertyChanged([SelectedProfile]);
-            // NotifyPropertyChanged([AvailableProfiles]);
-            NotifyPropertyChanged("MinimiseToTray");
-            NotifyPropertyChanged("StartMinimised");
-            NotifyPropertyChanged("MicAGC");
-            NotifyPropertyChanged("MicDenoise");
-            NotifyPropertyChanged("PlayConnectionSounds");
-            NotifyPropertyChanged("RadioSwitchIsPTT");
-            NotifyPropertyChanged("AutoSelectChannel");
-            NotifyPropertyChanged("PTTReleaseDelay");
-            NotifyPropertyChanged("PTTStartDelay");
-            NotifyPropertyChanged("HotIntercomMicToggle");
-            NotifyPropertyChanged("RadioRxStartToggle");
-            NotifyPropertyChanged("RadioRxEndToggle");
-            NotifyPropertyChanged("RadioTxStartToggle");
-            NotifyPropertyChanged("RadioTxEndToggle");
-            NotifyPropertyChanged("SelectedRadioTransmissionStartEffect");
-            NotifyPropertyChanged("SelectedRadioTransmissionEndEffect");
-            NotifyPropertyChanged("RadioSoundEffectsToggle");
-            NotifyPropertyChanged("RadioEffectsClippingToggle");
-            NotifyPropertyChanged("FMRadioToneToggle");
-            NotifyPropertyChanged("FMRadioToneVolume");
-            NotifyPropertyChanged("BackgroundRadioNoiseToggle");
-            NotifyPropertyChanged("UHFEffectVolume");
-            NotifyPropertyChanged("VHFEffectVolume");
-            NotifyPropertyChanged("HFEffectVolume");
-            NotifyPropertyChanged("FMEffectVolume");
-            NotifyPropertyChanged("RadioChannel1");
-            NotifyPropertyChanged("RadioChannel2");
-            NotifyPropertyChanged("RadioChannel3");
-            NotifyPropertyChanged("RadioChannel4");
-            NotifyPropertyChanged("RadioChannel5");
-            NotifyPropertyChanged("RadioChannel6");
-            NotifyPropertyChanged("RadioChannel7");
-            NotifyPropertyChanged("RadioChannel8");
-            NotifyPropertyChanged("RadioChannel9");
-            NotifyPropertyChanged("RadioChannel10");
-            NotifyPropertyChanged("Intercom");
-            NotifyPropertyChanged("SelectedProfile");
-        }
+        public ICommand ResetOverlayCommand { get; set; }
+
+        public ICommand CreateProfileCommand { get; set; }
+        public ICommand CopyProfileCommand { get; set; }
+        public ICommand RenameProfileCommand { get; set; }
+        public ICommand DeleteProfileCommand { get; set; }
 
         /**
          * Global Settings
@@ -410,7 +325,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
             set
             {
                 GlobalSettingsStore.Instance.ProfileSettingsStore.SetClientSettingString(
-                    ProfileSettingsKeys.RadioTransmissionStartSelection, ((CachedAudioEffect)value).FileName);
+                    ProfileSettingsKeys.RadioTransmissionStartSelection, value.FileName);
                 NotifyPropertyChanged();
             }
             get => CachedAudioEffectProvider.Instance.SelectedRadioTransmissionStartEffect;
@@ -423,7 +338,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
             set
             {
                 GlobalSettingsStore.Instance.ProfileSettingsStore.SetClientSettingString(
-                    ProfileSettingsKeys.RadioTransmissionEndSelection, ((CachedAudioEffect)value).FileName);
+                    ProfileSettingsKeys.RadioTransmissionEndSelection, value.FileName);
                 NotifyPropertyChanged();
             }
             get => CachedAudioEffectProvider.Instance.SelectedRadioTransmissionEndEffect;
@@ -704,6 +619,85 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSetti
                 //do nothing
             }
             get => _globalSettings.ProfileSettingsStore.ProfileNames;
+        }
+
+        private void ReloadSettings()
+        {
+            NotifyPropertyChanged(MinimiseToTray.ToString());
+            // NotifyPropertyChanged([StartMinimised]);
+            // NotifyPropertyChanged([MicAGC]);
+            // NotifyPropertyChanged([MicDenoise]);
+            // NotifyPropertyChanged([PlayConnectionSounds]);
+            // NotifyPropertyChanged([RadioSwitchIsPTT]);
+            // NotifyPropertyChanged([AutoSelectChannel]);
+            // NotifyPropertyChanged([PTTReleaseDelay]);
+            // NotifyPropertyChanged([PTTStartDelay]);
+            // NotifyPropertyChanged([HotIntercomMicToggle]);
+            // NotifyPropertyChanged([RadioRxStartToggle]);
+            // NotifyPropertyChanged([RadioRxEndToggle]);
+            // NotifyPropertyChanged([RadioTxStartToggle]);
+            // NotifyPropertyChanged([RadioTxEndToggle]);
+            // NotifyPropertyChanged([SelectedRadioTransmissionStartEffect]);
+            // NotifyPropertyChanged([SelectedRadioTransmissionEndEffect]);
+            // NotifyPropertyChanged([RadioSoundEffectsToggle]);
+            // NotifyPropertyChanged([RadioEffectsClippingToggle]);
+            // NotifyPropertyChanged([FMRadioToneToggle]);
+            // NotifyPropertyChanged([FMRadioToneVolume]);
+            // NotifyPropertyChanged([BackgroundRadioNoiseToggle]);
+            // NotifyPropertyChanged([UHFEffectVolume]);
+            // NotifyPropertyChanged([VHFEffectVolume]);
+            // NotifyPropertyChanged([HFEffectVolume]);
+            // NotifyPropertyChanged([FMEffectVolume]);
+            // NotifyPropertyChanged([RadioChannel1]);
+            // NotifyPropertyChanged([RadioChannel2]);
+            // NotifyPropertyChanged([RadioChannel3]);
+            // NotifyPropertyChanged([RadioChannel4]);
+            // NotifyPropertyChanged([RadioChannel5]);
+            // NotifyPropertyChanged([RadioChannel6]);
+            // NotifyPropertyChanged([RadioChannel7]);
+            // NotifyPropertyChanged([RadioChannel8]);
+            // NotifyPropertyChanged([RadioChannel9);
+            // NotifyPropertyChanged([RadioChannel10]);
+            // NotifyPropertyChanged([Intercom]);
+            // NotifyPropertyChanged([SelectedProfile]);
+            // NotifyPropertyChanged([AvailableProfiles]);
+            NotifyPropertyChanged("MinimiseToTray");
+            NotifyPropertyChanged("StartMinimised");
+            NotifyPropertyChanged("MicAGC");
+            NotifyPropertyChanged("MicDenoise");
+            NotifyPropertyChanged("PlayConnectionSounds");
+            NotifyPropertyChanged("RadioSwitchIsPTT");
+            NotifyPropertyChanged("AutoSelectChannel");
+            NotifyPropertyChanged("PTTReleaseDelay");
+            NotifyPropertyChanged("PTTStartDelay");
+            NotifyPropertyChanged("HotIntercomMicToggle");
+            NotifyPropertyChanged("RadioRxStartToggle");
+            NotifyPropertyChanged("RadioRxEndToggle");
+            NotifyPropertyChanged("RadioTxStartToggle");
+            NotifyPropertyChanged("RadioTxEndToggle");
+            NotifyPropertyChanged("SelectedRadioTransmissionStartEffect");
+            NotifyPropertyChanged("SelectedRadioTransmissionEndEffect");
+            NotifyPropertyChanged("RadioSoundEffectsToggle");
+            NotifyPropertyChanged("RadioEffectsClippingToggle");
+            NotifyPropertyChanged("FMRadioToneToggle");
+            NotifyPropertyChanged("FMRadioToneVolume");
+            NotifyPropertyChanged("BackgroundRadioNoiseToggle");
+            NotifyPropertyChanged("UHFEffectVolume");
+            NotifyPropertyChanged("VHFEffectVolume");
+            NotifyPropertyChanged("HFEffectVolume");
+            NotifyPropertyChanged("FMEffectVolume");
+            NotifyPropertyChanged("RadioChannel1");
+            NotifyPropertyChanged("RadioChannel2");
+            NotifyPropertyChanged("RadioChannel3");
+            NotifyPropertyChanged("RadioChannel4");
+            NotifyPropertyChanged("RadioChannel5");
+            NotifyPropertyChanged("RadioChannel6");
+            NotifyPropertyChanged("RadioChannel7");
+            NotifyPropertyChanged("RadioChannel8");
+            NotifyPropertyChanged("RadioChannel9");
+            NotifyPropertyChanged("RadioChannel10");
+            NotifyPropertyChanged("Intercom");
+            NotifyPropertyChanged("SelectedProfile");
         }
 
 

@@ -2,14 +2,15 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Caliburn.Micro;
-using Easy.MessageHub;
 
 namespace Ciribob.SRS.Common.Network.Singletons
 {
     public class EventBus
     {
         private static EventBus _instance;
-        private static object _lock = new object();
+
+        private static readonly object _lock = new();
+
         //Caliburn.Micro
         private readonly IEventAggregator _eventAggregator;
 
@@ -41,22 +42,22 @@ namespace Ciribob.SRS.Common.Network.Singletons
         //FROM Caliburn.Micro.EventAggregatorExtensions
 
         /// <summary>
-        /// Subscribes an instance to all events declared through implementations of <see cref = "IHandle{T}" />.
+        ///     Subscribes an instance to all events declared through implementations of <see cref="IHandle{T}" />.
         /// </summary>
         /// <remarks>The subscription is invoked on the thread chosen by the publisher.</remarks>
         /// <param name="eventAggregator"></param>
-        /// <param name = "subscriber">The instance to subscribe for event publication.</param>
+        /// <param name="subscriber">The instance to subscribe for event publication.</param>
         public void SubscribeOnPublishedThread(object subscriber)
         {
             _eventAggregator.Subscribe(subscriber, f => f());
         }
 
         /// <summary>
-        /// Subscribes an instance to all events declared through implementations of <see cref = "IHandle{T}" />.
+        ///     Subscribes an instance to all events declared through implementations of <see cref="IHandle{T}" />.
         /// </summary>
         /// <remarks>The subscription is invoked on the thread chosen by the publisher.</remarks>
         /// <param name="eventAggregator"></param>
-        /// <param name = "subscriber">The instance to subscribe for event publication.</param>
+        /// <param name="subscriber">The instance to subscribe for event publication.</param>
         [Obsolete("Use SubscribeOnPublishedThread")]
         public void Subscribe(object subscriber)
         {
@@ -64,22 +65,23 @@ namespace Ciribob.SRS.Common.Network.Singletons
         }
 
         /// <summary>
-        /// Subscribes an instance to all events declared through implementations of <see cref = "IHandle{T}" />.
+        ///     Subscribes an instance to all events declared through implementations of <see cref="IHandle{T}" />.
         /// </summary>
         /// <remarks>The subscription is invoked on a new background thread.</remarks>
         /// <param name="eventAggregator"></param>
-        /// <param name = "subscriber">The instance to subscribe for event publication.</param>
+        /// <param name="subscriber">The instance to subscribe for event publication.</param>
         public void SubscribeOnBackgroundThread(object subscriber)
         {
-            _eventAggregator.Subscribe(subscriber, f => Task.Factory.StartNew(f, default, TaskCreationOptions.None, TaskScheduler.Default));
+            _eventAggregator.Subscribe(subscriber,
+                f => Task.Factory.StartNew(f, default, TaskCreationOptions.None, TaskScheduler.Default));
         }
 
         /// <summary>
-        /// Subscribes an instance to all events declared through implementations of <see cref = "IHandle{T}" />.
+        ///     Subscribes an instance to all events declared through implementations of <see cref="IHandle{T}" />.
         /// </summary>
         /// <remarks>The subscription is invoked on the UI thread.</remarks>
         /// <param name="eventAggregator"></param>
-        /// <param name = "subscriber">The instance to subscribe for event publication.</param>
+        /// <param name="subscriber">The instance to subscribe for event publication.</param>
         public void SubscribeOnUIThread(object subscriber)
         {
             _eventAggregator.Subscribe(subscriber, f =>
@@ -105,17 +107,19 @@ namespace Ciribob.SRS.Common.Network.Singletons
                 });
 
                 return taskCompletionSource.Task;
-
             });
         }
 
-    
+
         /// <summary>
-        /// Publishes a message on the current thread (synchrone).
+        ///     Publishes a message on the current thread (synchrone).
         /// </summary>
         /// <param name="eventAggregator">The event aggregator.</param>
-        /// <param name = "message">The message instance.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <param name="message">The message instance.</param>
+        /// <param name="cancellationToken">
+        ///     A cancellation token that can be used by other objects or threads to receive notice of
+        ///     cancellation.
+        /// </param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         public Task PublishOnCurrentThreadAsync(object message, CancellationToken cancellationToken)
         {
@@ -123,10 +127,10 @@ namespace Ciribob.SRS.Common.Network.Singletons
         }
 
         /// <summary>
-        /// Publishes a message on the current thread (synchrone).
+        ///     Publishes a message on the current thread (synchrone).
         /// </summary>
         /// <param name="eventAggregator">The event aggregator.</param>
-        /// <param name = "message">The message instance.</param>
+        /// <param name="message">The message instance.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         public Task PublishOnCurrentThreadAsync(object message)
         {
@@ -134,22 +138,27 @@ namespace Ciribob.SRS.Common.Network.Singletons
         }
 
         /// <summary>
-        /// Publishes a message on a background thread (async).
+        ///     Publishes a message on a background thread (async).
         /// </summary>
         /// <param name="eventAggregator">The event aggregator.</param>
-        /// <param name = "message">The message instance.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <param name="message">The message instance.</param>
+        /// <param name="cancellationToken">
+        ///     A cancellation token that can be used by other objects or threads to receive notice of
+        ///     cancellation.
+        /// </param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         public Task PublishOnBackgroundThreadAsync(object message, CancellationToken cancellationToken)
         {
-            return _eventAggregator.PublishAsync(message, f => Task.Factory.StartNew(f, default, TaskCreationOptions.None, TaskScheduler.Default), cancellationToken);
+            return _eventAggregator.PublishAsync(message,
+                f => Task.Factory.StartNew(f, default, TaskCreationOptions.None, TaskScheduler.Default),
+                cancellationToken);
         }
 
         /// <summary>
-        /// Publishes a message on a background thread (async).
+        ///     Publishes a message on a background thread (async).
         /// </summary>
         /// <param name="eventAggregator">The event aggregator.</param>
-        /// <param name = "message">The message instance.</param>
+        /// <param name="message">The message instance.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         public Task PublishOnBackgroundThreadAsync(object message)
         {
@@ -157,11 +166,14 @@ namespace Ciribob.SRS.Common.Network.Singletons
         }
 
         /// <summary>
-        /// Publishes a message on the UI thread.
+        ///     Publishes a message on the UI thread.
         /// </summary>
         /// <param name="eventAggregator">The event aggregator.</param>
-        /// <param name = "message">The message instance.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <param name="message">The message instance.</param>
+        /// <param name="cancellationToken">
+        ///     A cancellation token that can be used by other objects or threads to receive notice of
+        ///     cancellation.
+        /// </param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         public Task PublishOnUIThreadAsync(object message, CancellationToken cancellationToken)
         {
@@ -188,17 +200,16 @@ namespace Ciribob.SRS.Common.Network.Singletons
                 });
 
                 return taskCompletionSource.Task;
-
             }, cancellationToken);
         }
 
         /// <summary>
-        /// Publishes a message on the UI thread.
+        ///     Publishes a message on the UI thread.
         /// </summary>
         /// <param name="eventAggregator">The event aggregator.</param>
-        /// <param name = "message">The message instance.</param>
+        /// <param name="message">The message instance.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        public  Task PublishOnUIThreadAsync(object message)
+        public Task PublishOnUIThreadAsync(object message)
         {
             return _eventAggregator.PublishOnUIThreadAsync(message, default);
         }

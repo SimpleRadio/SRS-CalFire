@@ -1,13 +1,15 @@
-﻿namespace Ciribob.SRS.Common
+﻿using Ciribob.SRS.Common.PlayerState;
+
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
 {
     public class RadioReceivingPriority
     {
         public double Frequency;
-        public short Modulation;
         public float LineOfSightLoss;
+        public short Modulation;
         public double ReceivingPowerLossPercent;
+        public Radio ReceivingRadio;
 
         public RadioReceivingState ReceivingState;
-        public Radio ReceivingRadio;
     }
 }

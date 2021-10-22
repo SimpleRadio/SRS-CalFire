@@ -1,9 +1,9 @@
 ﻿namespace NAudio.Codecs
 {
     /// <summary>
-    /// mu-law encoder
-    /// based on code from:
-    /// http://hazelware.luggle.com/tutorials/mulawcompression.html
+    ///     mu-law encoder
+    ///     based on code from:
+    ///     http://hazelware.luggle.com/tutorials/mulawcompression.html
     /// </summary>
     public static class MuLawEncoder
     {
@@ -31,23 +31,23 @@
         };
 
         /// <summary>
-        /// Encodes a single 16 bit sample to mu-law
+        ///     Encodes a single 16 bit sample to mu-law
         /// </summary>
         /// <param name="sample">16 bit PCM sample</param>
         /// <returns>mu-law encoded byte</returns>
         public static byte LinearToMuLawSample(short sample)
         {
-            int sign = (sample >> 8) & 0x80;
+            var sign = (sample >> 8) & 0x80;
             if (sign != 0)
-                sample = (short) -sample;
+                sample = (short)-sample;
             if (sample > cClip)
                 sample = cClip;
-            sample = (short) (sample + cBias);
-            int exponent = (int) MuLawCompressTable[(sample >> 7) & 0xFF];
-            int mantissa = (sample >> (exponent + 3)) & 0x0F;
-            int compressedByte = ~(sign | (exponent << 4) | mantissa);
+            sample = (short)(sample + cBias);
+            int exponent = MuLawCompressTable[(sample >> 7) & 0xFF];
+            var mantissa = (sample >> (exponent + 3)) & 0x0F;
+            var compressedByte = ~(sign | (exponent << 4) | mantissa);
 
-            return (byte) compressedByte;
+            return (byte)compressedByte;
         }
     }
 }

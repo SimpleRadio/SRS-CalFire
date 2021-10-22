@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Ciribob.SRS.Common
+namespace Ciribob.SRS.Common.Helpers
 {
     public static class ListHelper
     {

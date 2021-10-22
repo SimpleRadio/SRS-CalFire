@@ -24,7 +24,7 @@ namespace FragLabs.Audio.Codecs
         /// <summary>
         ///     Gets the input sampling rate of the encoder.
         /// </summary>
-        public int InputSamplingRate { get; private set; }
+        public int InputSamplingRate { get; }
 
         /// <summary>
         ///     Gets the number of channels of the encoder.
@@ -34,7 +34,7 @@ namespace FragLabs.Audio.Codecs
         /// <summary>
         ///     Gets the coding mode of the encoder.
         /// </summary>
-        public Application Application { get; private set; }
+        public Application Application { get; }
 
         /// <summary>
         ///     Gets or sets the size of memory allocated for reading encoded data.
@@ -54,7 +54,7 @@ namespace FragLabs.Audio.Codecs
                 int bitrate;
                 var ret = API.opus_encoder_ctl(_encoder, Ctl.GetBitrateRequest, out bitrate);
                 if (ret < 0)
-                    throw new Exception("Encoder error - " + (Errors) ret);
+                    throw new Exception("Encoder error - " + (Errors)ret);
                 return bitrate;
             }
             set
@@ -63,7 +63,7 @@ namespace FragLabs.Audio.Codecs
                     throw new ObjectDisposedException("OpusEncoder");
                 var ret = API.opus_encoder_ctl(_encoder, Ctl.SetBitrateRequest, value);
                 if (ret < 0)
-                    throw new Exception("Encoder error - " + (Errors) ret);
+                    throw new Exception("Encoder error - " + (Errors)ret);
             }
         }
 
@@ -80,7 +80,7 @@ namespace FragLabs.Audio.Codecs
                 int fec;
                 var ret = API.opus_encoder_ctl(_encoder, Ctl.GetInbandFECRequest, out fec);
                 if (ret < 0)
-                    throw new Exception("Encoder error - " + (Errors) ret);
+                    throw new Exception("Encoder error - " + (Errors)ret);
 
                 return fec > 0;
             }
@@ -92,7 +92,7 @@ namespace FragLabs.Audio.Codecs
 
                 var ret = API.opus_encoder_ctl(_encoder, Ctl.SetInbandFECRequest, value ? 1 : 0);
                 if (ret < 0)
-                    throw new Exception("Encoder error - " + (Errors) ret);
+                    throw new Exception("Encoder error - " + (Errors)ret);
             }
         }
 
@@ -124,21 +124,19 @@ namespace FragLabs.Audio.Codecs
         /// <returns>A new <c>OpusEncoder</c></returns>
         public static OpusEncoder Create(int inputSamplingRate, int inputChannels, Application application)
         {
-            if ((inputSamplingRate != 8000) &&
-                (inputSamplingRate != 12000) &&
-                (inputSamplingRate != 16000) &&
-                (inputSamplingRate != 24000) &&
-                (inputSamplingRate != 48000))
+            if (inputSamplingRate != 8000 &&
+                inputSamplingRate != 12000 &&
+                inputSamplingRate != 16000 &&
+                inputSamplingRate != 24000 &&
+                inputSamplingRate != 48000)
                 throw new ArgumentOutOfRangeException("inputSamplingRate");
-            if ((inputChannels != 1) && (inputChannels != 2))
+            if (inputChannels != 1 && inputChannels != 2)
                 throw new ArgumentOutOfRangeException("inputChannels");
 
             IntPtr error;
-            var encoder = API.opus_encoder_create(inputSamplingRate, inputChannels, (int) application, out error);
-            if ((Errors) error != Errors.OK)
-            {
-                throw new Exception("Exception occured while creating encoder");
-            }
+            var encoder = API.opus_encoder_create(inputSamplingRate, inputChannels, (int)application, out error);
+            if ((Errors)error != Errors.OK) throw new Exception("Exception occured while creating encoder");
+
             return new OpusEncoder(encoder, inputSamplingRate, inputChannels, application);
         }
 
@@ -163,9 +161,10 @@ namespace FragLabs.Audio.Codecs
                 encodedPtr = new IntPtr(benc);
                 length = API.opus_encode(_encoder, inputPcmSamples, frames, encodedPtr, sampleLength);
             }
+
             encodedLength = length;
             if (length < 0)
-                throw new Exception("Encoding failed - " + (Errors) length);
+                throw new Exception("Encoding failed - " + (Errors)length);
 
             return encoded;
         }
@@ -191,9 +190,10 @@ namespace FragLabs.Audio.Codecs
                 encodedPtr = new IntPtr(benc);
                 length = API.opus_encode(_encoder, inputPcmSamples, frames, encodedPtr, sampleLength);
             }
+
             encodedLength = length;
             if (length < 0)
-                throw new Exception("Encoding failed - " + (Errors) length);
+                throw new Exception("Encoding failed - " + (Errors)length);
 
             return encoded;
         }

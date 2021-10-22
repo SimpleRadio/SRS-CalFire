@@ -1,29 +1,22 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Models;
-using Ciribob.SRS.Common.PlayerState;
-using Ciribob.SRS.Common.Setting;
 
 namespace Ciribob.SRS.Common.Network.Singletons
 {
     public sealed class ConnectedClientsSingleton : PropertyChangedBase
     {
-        private readonly ConcurrentDictionary<string, SRClient> _clients = new ConcurrentDictionary<string, SRClient>();
         private static volatile ConnectedClientsSingleton _instance;
-        private static object _lock = new object();
-        private readonly string _guid = ClientStateSingleton.Instance.GUID;
-        private readonly SyncedServerSettings _serverSettings = SyncedServerSettings.Instance;
-
-        public event PropertyChangedEventHandler PropertyChanged;
+        private static readonly object _lock = new();
 
         private ConnectedClientsSingleton()
         {
         }
+
+        public ConcurrentDictionary<string, SRClient> Clients { get; } = new();
 
         public static ConnectedClientsSingleton Instance
         {
@@ -40,81 +33,49 @@ namespace Ciribob.SRS.Common.Network.Singletons
             }
         }
 
+        public SRClient this[string key]
+        {
+            get => Clients[key];
+            set
+            {
+                Clients[key] = value;
+                NotifyAll();
+            }
+        }
+
+        public ICollection<SRClient> Values => Clients.Values;
+
+
+        public int Total => Clients.Count();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
         public void NotifyAll()
         {
             NotifyPropertyChanged("Total");
         }
 
-        public SRClient this[string key]
-        {
-            get => _clients[key];
-            set
-            {
-                _clients[key] = value;
-                NotifyAll();
-            }
-        }
-
-        public ICollection<SRClient> Values => _clients.Values;
-
-        public int Total => _clients.Count();
-
         public bool TryRemove(string key, out SRClient value)
         {
-            var result = _clients.TryRemove(key, out value);
+            var result = Clients.TryRemove(key, out value);
             if (result) NotifyPropertyChanged("Total");
             return result;
         }
 
         public void Clear()
         {
-            _clients.Clear();
+            Clients.Clear();
             NotifyPropertyChanged("Total");
         }
 
         public bool TryGetValue(string key, out SRClient value)
         {
-            return _clients.TryGetValue(key, out value);
+            return Clients.TryGetValue(key, out value);
         }
 
         public bool ContainsKey(string key)
         {
-            return _clients.ContainsKey(key);
-        }
-
-        public int ClientsOnFreq(double freq, Modulation modulation)
-        {
-            if (!_serverSettings.GetSettingAsBool(ServerSettingsKeys.SHOW_TUNED_COUNT))
-                //TODO make this client side controlled
-                return 0;
-
-            var currentUnitId = ClientStateSingleton.Instance.PlayerUnitState.UnitId;
-
-            var count = 0;
-
-            foreach (var client in _clients)
-                if (!client.Key.Equals(_guid))
-                {
-                    var radioInfo = client.Value.UnitState;
-
-                    if (radioInfo != null)
-                    {
-                        RadioReceivingState radioReceivingState = null;
-                        bool decryptable;
-                        var receivingRadio = radioInfo.CanHearTransmission(freq,
-                            modulation,
-                            0,
-                            currentUnitId,
-                            new List<int>(),
-                            out radioReceivingState,
-                            out decryptable);
-
-                        //only send if we can hear!
-                        if (receivingRadio != null) count++;
-                    }
-                }
-
-            return count;
+            return Clients.ContainsKey(key);
         }
     }
 }

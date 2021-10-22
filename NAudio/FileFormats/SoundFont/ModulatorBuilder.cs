@@ -1,18 +1,21 @@
-using System;
 using System.IO;
 
-namespace NAudio.SoundFont
+namespace NAudio.FileFormats.SoundFont
 {
-    class ModulatorBuilder : StructureBuilder<Modulator>
+    internal class ModulatorBuilder : StructureBuilder<Modulator>
     {
+        public override int Length => 10;
+
+        public Modulator[] Modulators => data.ToArray();
+
         public override Modulator Read(BinaryReader br)
         {
-            Modulator m = new Modulator();
+            var m = new Modulator();
             m.SourceModulationData = new ModulatorType(br.ReadUInt16());
-            m.DestinationGenerator = (GeneratorEnum) br.ReadUInt16();
+            m.DestinationGenerator = (GeneratorEnum)br.ReadUInt16();
             m.Amount = br.ReadInt16();
             m.SourceModulationAmount = new ModulatorType(br.ReadUInt16());
-            m.SourceTransform = (TransformEnum) br.ReadUInt16();
+            m.SourceTransform = (TransformEnum)br.ReadUInt16();
             data.Add(m);
             return m;
         }
@@ -21,16 +24,6 @@ namespace NAudio.SoundFont
         {
             //Zone z = (Zone) o;
             //bw.Write(p.---);
-        }
-
-        public override int Length
-        {
-            get { return 10; }
-        }
-
-        public Modulator[] Modulators
-        {
-            get { return data.ToArray(); }
         }
     }
 }

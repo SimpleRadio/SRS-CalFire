@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Ciribob.SRS.Common.DCSState;
-using Ciribob.SRS.Common.Network.Proxies;
 using Ciribob.SRS.Common.PlayerState;
 
-namespace Ciribob.SRS.Common.Network
+namespace Ciribob.SRS.Common.Network.Proxies
 {
     //TODO - proxy for playerState just for the network
 
@@ -15,9 +10,9 @@ namespace Ciribob.SRS.Common.Network
     {
         public int Coalition { get; set; }
 
-        public LatLngPosition LatLng { get; set; } = new LatLngPosition();
+        public LatLngPosition LatLng { get; set; } = new();
 
-        public TransponderBase Transponder { get; set; } = new TransponderBase();
+        public TransponderBase Transponder { get; set; } = new();
 
         public string UnitType { get; set; } = "";
 
@@ -25,16 +20,16 @@ namespace Ciribob.SRS.Common.Network
 
         public uint UnitId { get; set; }
 
-        public List<RadioBase> Radios { get; set; } = new List<RadioBase>();
+        public List<RadioBase> Radios { get; set; } = new();
         public long LastUpdate { get; set; }
 
         public RadioBase CanHearTransmission(double frequency,
-           Modulation modulation,
-           byte encryptionKey,
-           uint sendingUnitId,
-           List<int> blockedRadios,
-           out RadioReceivingState receivingState,
-           out bool decryptable)
+            Modulation modulation,
+            byte encryptionKey,
+            uint sendingUnitId,
+            List<int> blockedRadios,
+            out RadioReceivingState receivingState,
+            out bool decryptable)
         {
             RadioBase bestMatchingRadio = null;
             RadioReceivingState bestMatchingRadioState = null;

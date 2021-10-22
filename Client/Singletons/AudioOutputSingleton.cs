@@ -1,13 +1,10 @@
-﻿using NAudio.CoreAudioApi;
-using NAudio.Dmo;
-using NLog;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow;
+using NAudio.CoreAudioApi;
+using NAudio.Dmo;
+using NLog;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
 {
@@ -18,7 +15,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
         #region Singleton Definition
 
         private static volatile AudioOutputSingleton _instance;
-        private static object _lock = new object();
+        private static readonly object _lock = new();
 
         public static AudioOutputSingleton Instance
         {
@@ -80,7 +77,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
         {
             var outputs = new List<AudioDeviceListItem>
             {
-                new AudioDeviceListItem()
+                new()
                 {
                     Text = defaultItemText,
                     Value = null
@@ -110,9 +107,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
                 {
                     Logger.Info("Audio Output - " + device.DeviceFriendlyName + " " + device.ID + " CHN:" +
                                 device.AudioClient.MixFormat.Channels + " Rate:" +
-                                device.AudioClient.MixFormat.SampleRate.ToString());
+                                device.AudioClient.MixFormat.SampleRate);
 
-                    outputs.Add(new AudioDeviceListItem()
+                    outputs.Add(new AudioDeviceListItem
                     {
                         Text = device.FriendlyName,
                         Value = device

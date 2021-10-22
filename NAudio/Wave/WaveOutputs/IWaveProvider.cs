@@ -1,20 +1,20 @@
-﻿using System;
+﻿using NAudio.Wave.WaveFormats;
 
-namespace NAudio.Wave
+namespace NAudio.Wave.WaveOutputs
 {
     /// <summary>
-    /// Generic interface for all WaveProviders.
+    ///     Generic interface for all WaveProviders.
     /// </summary>
     public interface IWaveProvider
     {
         /// <summary>
-        /// Gets the WaveFormat of this WaveProvider.
+        ///     Gets the WaveFormat of this WaveProvider.
         /// </summary>
         /// <value>The wave format.</value>
         WaveFormat WaveFormat { get; }
 
         /// <summary>
-        /// Fill the specified buffer with wave data.
+        ///     Fill the specified buffer with wave data.
         /// </summary>
         /// <param name="buffer">The buffer to fill of wave data.</param>
         /// <param name="offset">Offset into buffer</param>
