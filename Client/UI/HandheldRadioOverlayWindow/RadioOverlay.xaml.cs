@@ -1,24 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Threading;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client;
-using Ciribob.SRS.Client.Network;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.RadioOverlayWindow;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common.PresetChannels;
 using NLog;
 using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.Network.Proxies;
+using Ciribob.SRS.Common.Network.Singletons;
 using Ciribob.SRS.Common.PlayerState;
 using Newtonsoft.Json;
 
@@ -117,15 +111,15 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Overlay
                             FrequencyControl = RadioConfig.FreqMode.COCKPIT,
                             VolumeControl = RadioConfig.VolumeMode.COCKPIT
                         },
-                        Frequency = 1,
-                        SecondaryFrequency = 0,
+                        Freq = 1,
+                        SecFreq = 0,
                         Modulation = Modulation.DISABLED,
                         Name = "Invalid Config"
                     };
 
                 handheldRadio[1] = new Radio
                 {
-                    Frequency = 1.51e+8,
+                    Freq = 1.51e+8,
                     Config = new RadioConfig()
                     {
                         MinimumFrequency = 1.0e+8,
@@ -133,24 +127,25 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Overlay
                         FrequencyControl = RadioConfig.FreqMode.OVERLAY,
                         VolumeControl = RadioConfig.VolumeMode.OVERLAY
                     },
-                    SecondaryFrequency = 1.215e+8,
+                    SecFreq = 1.215e+8,
                     Modulation = Modulation.AM,
                     Name = "BK RADIO"
                 };
             }
 
-            ClientStateSingleton.Instance.PlayerUnitState.Radios = new List<RadioBase>(handheldRadio);
+            //TODO fix
 
-            // Force an immediate update of radio information
-            _clientStateSingleton.LastSent = 0;
-
-
-            //load handheld-radio.json
-
-            var fixedChannels = _clientStateSingleton.FixedChannels;
-
-            for (var i = 1; i < ClientStateSingleton.Instance.PlayerUnitState.Radios.Count; i++)
-                fixedChannels[i - 1] = new PresetChannelsViewModel(new FilePresetChannelsStore(), i);
+            //
+            // ClientStateSingleton.Instance.PlayerUnitState.Radios = new List<RadioBase>(handheldRadio);
+            //
+            //
+            //
+            // //load handheld-radio.json
+            //
+            // var fixedChannels = _clientStateSingleton.FixedChannels;
+            //
+            // for (var i = 1; i < ClientStateSingleton.Instance.PlayerUnitState.Radios.Count; i++)
+            //     fixedChannels[i - 1] = new PresetChannelsViewModel(new FilePresetChannelsStore(), i);
         }
 
         private void Location_Changed(object sender, EventArgs e)

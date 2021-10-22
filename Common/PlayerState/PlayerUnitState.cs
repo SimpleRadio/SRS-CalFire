@@ -16,7 +16,8 @@ namespace Ciribob.SRS.Common
     {
    
 
-        [JsonIgnore] private static readonly int NUMBER_OF_RADIOS = 11;
+        [JsonIgnore] 
+        public static readonly int NUMBER_OF_RADIOS = 11;
 
         //HOTAS or IN COCKPIT controls
         public enum RadioSwitchControls
@@ -53,6 +54,8 @@ namespace Ciribob.SRS.Common
         {
             ENABLED_INTERNAL_SRS_CONTROLS = 1
         }
+
+        public new List<Radio> Radios { get; set; } = new List<Radio>();
 
         public PlayerUnitState()
         {
@@ -144,7 +147,7 @@ namespace Ciribob.SRS.Common
 
             clone.Transponder = Transponder.Copy();
             //ignore position
-            clone.Radios = new List<RadioBase>();
+            clone.Radios = new List<Radio>();
 
             //TODO come back to this
           //  for (var i = 0; i < Radios.Count; i++) clone.Radios.Add(Radios[i].DeepCopy());

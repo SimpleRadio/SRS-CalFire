@@ -1,6 +1,6 @@
 ﻿namespace Ciribob.SRS.Common.Network.Models.EventMessages
 {
-    internal class SRClientUpdateMessage
+    public class SRClientUpdateMessage
     {
         public SRClient SrClient { get; }
         public bool Connected { get; }

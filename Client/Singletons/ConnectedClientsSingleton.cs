@@ -3,25 +3,26 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.SRS.Common;
+using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network;
 using Ciribob.SRS.Common.Network.Models;
+using Ciribob.SRS.Common.Network.Singletons;
 using Ciribob.SRS.Common.PlayerState;
 using Ciribob.SRS.Common.Setting;
+using SyncedServerSettings = Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.SyncedServerSettings;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
 {
-    public sealed class ConnectedClientsSingleton : INotifyPropertyChanged
+    public sealed class ConnectedClientsSingleton : PropertyChangedBase
     {
         private readonly ConcurrentDictionary<string, SRClient> _clients = new ConcurrentDictionary<string, SRClient>();
         private static volatile ConnectedClientsSingleton _instance;
         private static object _lock = new object();
-        private readonly string _guid = ClientStateSingleton.Instance.ShortGUID;
+        private readonly string _guid = ClientStateSingleton.Instance.GUID;
         private readonly SyncedServerSettings _serverSettings = SyncedServerSettings.Instance;
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
+   
         private ConnectedClientsSingleton()
         {
         }
@@ -39,11 +40,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
 
                 return _instance;
             }
-        }
-
-        private void NotifyPropertyChanged(string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public void NotifyAll()
@@ -93,7 +89,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
             if (!_serverSettings.GetSettingAsBool(ServerSettingsKeys.SHOW_TUNED_COUNT))
                 //TODO make this client side controlled
                 return 0;
-            var currentClientPos = ClientStateSingleton.Instance.PlayerCoaltionLocationMetadata;
+            var currentClientPos = ClientStateSingleton.Instance.PlayerUnitState.LatLng;
             var currentUnitId = ClientStateSingleton.Instance.PlayerUnitState.UnitId;
 
             var count = 0;

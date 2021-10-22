@@ -5,8 +5,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Caliburn.Micro;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Models.EventMessages;
 using Ciribob.SRS.Common.Network.Singletons;
@@ -14,10 +16,11 @@ using Ciribob.SRS.Common.PlayerState;
 using Ciribob.SRS.Common.Setting;
 using Newtonsoft.Json;
 using NLog;
+using LogManager = NLog.LogManager;
 
 namespace Ciribob.SRS.Common.Network.Client
 {
-    public class TCPClientHandler
+    public class TCPClientHandler: IHandle<DisconnectRequestMessage>
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -25,6 +28,7 @@ namespace Ciribob.SRS.Common.Network.Client
 
         public static string ServerVersion = "Unknown";
         private readonly string _guid;
+        private readonly PlayerUnitState _initialPlayerUnitState;
         private IPEndPoint _serverEndpoint;
         private TcpClient _tcpClient;
 
@@ -34,21 +38,20 @@ namespace Ciribob.SRS.Common.Network.Client
         private static readonly int MAX_DECODE_ERRORS = 5;
 
         private long _lastSent = -1;
-        private readonly List<Guid> _subscriptions = new List<Guid>();
+        private readonly List<Guid> _subscriptions = new();
 
         private UDPVoiceHandler _udpVoiceHandler;
 
-        private ClientStateSingleton _clientState = ClientStateSingleton.Instance;
-
-
-        public TCPClientHandler()
+        public TCPClientHandler(string guid, PlayerUnitState initialPlayerUnitState)
         {
             _clients.Clear();
-            _guid = ClientStateSingleton.Instance.GUID;
+            _guid = guid;
+            _initialPlayerUnitState = initialPlayerUnitState;
         }
 
         public void TryConnect(IPEndPoint endpoint)
         {
+            EventBus.Instance.SubscribeOnBackgroundThread(this);
             _serverEndpoint = endpoint;
 
             var tcpThread = new Thread(Connect);
@@ -75,7 +78,7 @@ namespace Ciribob.SRS.Common.Network.Client
                     {
                         _tcpClient.NoDelay = true;
 
-                        ClientSyncLoop();
+                        ClientSyncLoop(_initialPlayerUnitState);
                     }
                     else
                     {
@@ -89,14 +92,9 @@ namespace Ciribob.SRS.Common.Network.Client
                 {
                     Logger.Error(ex, "Could not connect to server");
                     connectionError = true;
+                    Disconnect();
                 }
             }
-
-            //_radioSync.Stop();
-
-
-            //disconnect callback
-            MessageHubSingleton.Instance.Publish(new TCPClientStatusMessage(false));
         }
 
         private void ClientRadioUpdated(PlayerUnitStateBase unitState)
@@ -142,11 +140,8 @@ namespace Ciribob.SRS.Common.Network.Client
         }
 
 
-        private void ClientSyncLoop()
+        private void ClientSyncLoop(PlayerUnitStateBase initialState)
         {
-            //subscribe to disconnect
-            _subscriptions.Add(MessageHubSingleton.Instance.Subscribe<DisconnectRequestMessage>(msg => Disconnect()));
-
             //clear the clients list
             _clients.Clear();
             var decodeErrors = 0; //if the JSON is unreadable - new version likely
@@ -158,19 +153,19 @@ namespace Ciribob.SRS.Common.Network.Client
                     //TODO switch to proxy for everything
                     //TODO remove _clientstate and just pass in the initial state
                     //then use broadcasts / events for the rest
-                    var sideInfo = _clientState.PlayerUnitState;
+                 
                     //start the loop off by sending a SYNC Request
                     SendToServer(new NetworkMessage
                     {
                         Client = new SRClient
                         {
                             ClientGuid = _guid,
-                            UnitState = sideInfo
+                            UnitState = initialState
                         },
                         MsgType = NetworkMessage.MessageType.SYNC
                     });
 
-                    var udpHandler = new UDPVoiceHandler(_guid, _serverEndpoint);
+                    EventBus.Instance.PublishOnUIThreadAsync(new TCPClientStatusMessage(true, _serverEndpoint));
 
                     string line;
                     while ((line = reader.ReadLine()) != null)
@@ -220,7 +215,7 @@ namespace Ciribob.SRS.Common.Network.Client
                                         }
 
                                         srClient.LastUpdate = DateTime.Now.Ticks;
-                                        MessageHubSingleton.Instance.Publish(new SRClientUpdateMessage(srClient));
+                                        EventBus.Instance.PublishOnUIThreadAsync(new SRClientUpdateMessage(srClient));
 
                                         break;
                                     case NetworkMessage.MessageType.SYNC:
@@ -260,7 +255,7 @@ namespace Ciribob.SRS.Common.Network.Client
                                                 //0.0 is NO LOSS therefore full Line of sight
                                                 _clients[client.ClientGuid] = client;
 
-                                                MessageHubSingleton.Instance.Publish(new SRClientUpdateMessage(client));
+                                                EventBus.Instance.PublishOnUIThreadAsync(new SRClientUpdateMessage(client));
                                             }
 
                                         //add server settings
@@ -280,7 +275,7 @@ namespace Ciribob.SRS.Common.Network.Client
                                         _clients.TryRemove(serverMessage.Client.ClientGuid, out outClient);
 
                                         if (outClient != null)
-                                            MessageHubSingleton.Instance.Publish(
+                                            EventBus.Instance.PublishOnUIThreadAsync(
                                                 new SRClientUpdateMessage(outClient, false));
 
                                         break;
@@ -321,8 +316,6 @@ namespace Ciribob.SRS.Common.Network.Client
                 }
             }
 
-            //disconnected - reset DCS Info
-            ClientStateSingleton.Instance.PlayerUnitState.LastUpdate = 0;
 
             //clear the clients list
             _clients.Clear();
@@ -386,7 +379,7 @@ namespace Ciribob.SRS.Common.Network.Client
         //implement IDispose? To close stuff properly?
         public void Disconnect()
         {
-            foreach (var token in _subscriptions) MessageHubSingleton.Instance.Unsubscribe(token);
+            EventBus.Instance.Unsubcribe(this);
 
             _stop = true;
 
@@ -394,8 +387,12 @@ namespace Ciribob.SRS.Common.Network.Client
 
             try
             {
-                _tcpClient?.Close(); // this'll stop the socket blocking
-                _tcpClient = null;
+                if (_tcpClient != null)
+                {
+                    _tcpClient?.Close(); // this'll stop the socket blocking
+                    _tcpClient = null;
+                    EventBus.Instance.PublishOnUIThreadAsync(new TCPClientStatusMessage(false));
+                }
             }
             catch (Exception ex)
             {
@@ -412,9 +409,14 @@ namespace Ciribob.SRS.Common.Network.Client
 
             Logger.Error("Disconnecting from server");
 
-            MessageHubSingleton.Instance.Publish(new TCPClientStatusMessage(false));
+          
+        }
 
-            //CallOnMain(false);
+        public Task HandleAsync(DisconnectRequestMessage message, CancellationToken cancellationToken)
+        {
+            Disconnect();
+
+            return Task.CompletedTask;
         }
     }
 }

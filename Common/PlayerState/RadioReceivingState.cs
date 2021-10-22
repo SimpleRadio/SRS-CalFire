@@ -8,7 +8,7 @@ namespace Ciribob.SRS.Common
 {
     public class RadioReceivingState
     {
-        [JsonIgnore] public long LastReceviedAt { get; set; }
+        public long LastReceviedAt { get; set; }
 
         public bool IsSecondary { get; set; }
         public bool IsSimultaneous { get; set; }

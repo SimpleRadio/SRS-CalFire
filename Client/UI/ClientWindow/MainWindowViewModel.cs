@@ -1,13 +1,17 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
+using Caliburn.Micro;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
@@ -16,28 +20,34 @@ using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Client;
+using Ciribob.SRS.Common.Network.Models.EventMessages;
+using Ciribob.SRS.Common.Network.Singletons;
 using NAudio.CoreAudioApi;
 using NLog;
+using WPFCustomMessageBox;
+using ConnectedClientsSingleton = Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.ConnectedClientsSingleton;
+using LogManager = NLog.LogManager;
+using PropertyChangedBase = Ciribob.SRS.Common.Helpers.PropertyChangedBase;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
 {
-    public class MainWindowViewModel : INotifyPropertyChanged
+    public class MainWindowViewModel : PropertyChangedBase, IHandle<TCPClientStatusMessage>, IHandle<VOIPStatusMessage>
     {
+        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+
         private readonly AudioManager _audioManager;
 
         private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
-        private readonly DispatcherTimer _updateTimer;
-        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+        private readonly DispatcherTimer _updateTimer;
 
         private AudioPreview _audioPreview;
         private AwacsRadioOverlayWindow.RadioOverlayWindow _awacsRadioOverlay;
 
         private ClientListWindow _clientListWindow;
-        // private SRSClientSyncHandler _client;
 
         private Overlay.RadioOverlayWindow _radioOverlayWindow;
-
 
         private ServerSettingsWindow _serverSettingsWindow;
 
@@ -45,13 +55,39 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
         private long _toggleShowHide;
         private TCPClientHandler _client;
 
+        public ClientStateSingleton ClientState { get; } = ClientStateSingleton.Instance;
+        public ConnectedClientsSingleton Clients { get; } = ConnectedClientsSingleton.Instance;
+        public AudioInputSingleton AudioInput { get; } = AudioInputSingleton.Instance;
+        public AudioOutputSingleton AudioOutput { get; } = AudioOutputSingleton.Instance;
+
+        public InputDeviceManager InputManager { get; set; }
+
+        public bool Connected { get; set; }
+
+        public bool IsConnected { get; set; }
+
+        public bool IsVoIPConnected { get; set; }
+
+        public DelegateCommand TrayIconQuitCommand { get; set; }
+
+        public DelegateCommand TrayIconCommand { get; set; }
+
+        public DelegateCommand ConnectCommand { get; set; }
+
+        public ICommand PreviewCommand { get; set; }
+
+        public bool PreviewEnabled
+        {
+            get => AudioInput.MicrophoneAvailable && !IsConnected;
+        }
+
         public MainWindowViewModel()
         {
             _audioManager = new AudioManager(AudioOutput.WindowsN);
 
             PreviewCommand = new DelegateCommand(() => PreviewAudio());
                 
-            ConnectCommand = new DelegateCommand(Connect,()=>true);
+            ConnectCommand = new DelegateCommand(Connect);
 
             TrayIconCommand = new DelegateCommand(() =>
             {
@@ -64,31 +100,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
                 Application.Current.MainWindow.Close();
             });
 
-            // InitDefaultAddress();
-
-
-            // _audioManager.SpeakerBoost = VolumeConversionHelper.ConvertVolumeSliderToScale((float)SpeakerBoost.Value);
-            //
-            // if ((SpeakerBoostLabel != null) && (SpeakerBoost != null))
-            // {
-            //     SpeakerBoostLabel.Content = VolumeConversionHelper.ConvertLinearDiffToDB(_audioManager.SpeakerBoost);
-            // }
-
             _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
             _updateTimer.Tick += UpdatePlayerCountAndVUMeters;
             _updateTimer.Start();
+
+            ClientStateSingleton.Instance.PlayerUnitState.Name = Name;
+
+            EventBus.Instance.SubscribeOnUIThread(this);
         }
-
-        public DelegateCommand TrayIconQuitCommand { get; set; }
-
-        public DelegateCommand TrayIconCommand { get; set; }
-
-        public DelegateCommand ConnectCommand { get; set; }
-
-        public ClientStateSingleton ClientState { get; } = ClientStateSingleton.Instance;
-        public ConnectedClientsSingleton Clients { get; } = ConnectedClientsSingleton.Instance;
-        public AudioInputSingleton AudioInput { get; } = AudioInputSingleton.Instance;
-        public AudioOutputSingleton AudioOutput { get; } = AudioOutputSingleton.Instance;
 
         public float SpeakerVU
         {
@@ -114,15 +133,25 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             }
         }
 
-        public ICommand PreviewCommand { get; set; }
+
 
         public string PreviewText
         {
             get
             {
-                if (_audioPreview == null || !_audioPreview.IsPreviewing)
+                if (_audioPreview == null || !_audioPreview.IsPreviewing || IsConnected)
                     return "preview audio";
                 return "stop preview";
+            }
+        }
+
+        public string ConnectText
+        {
+            get
+            {
+                if (IsConnected)
+                    return "Disconnect";
+                return "connect";
             }
         }
 
@@ -142,8 +171,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
                 _audioManager.SpeakerBoost = VolumeConversionHelper.ConvertVolumeSliderToScale((float)value);
 
                 if (_audioPreview != null) _audioPreview.SpeakerBoost = _audioManager.SpeakerBoost;
-                NotifyPropertyChanged();
-                NotifyPropertyChanged("SpeakerBoostText");
+                // NotifyPropertyChanged();
+                // NotifyPropertyChanged("SpeakerBoostText");
             }
         }
 
@@ -151,8 +180,30 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             VolumeConversionHelper.ConvertLinearDiffToDB(
                 VolumeConversionHelper.ConvertVolumeSliderToScale((float)SpeakerBoost));
 
-        public InputDeviceManager InputManager { get; set; }
+        public string Name
+        {
+            get
+            {
+                var name = _globalSettings.GetClientSetting(GlobalSettingsKeys.LastSeenName);
 
+                if (name == null|| name.RawValue == "")
+                {
+                    return "FS3D Client";
+                }
+                else
+                {
+                    return name.RawValue;
+                }
+            }
+            set
+            {
+                if (value != null)
+                {
+                    _globalSettings.SetClientSetting(GlobalSettingsKeys.LastSeenName, value);
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         public string ServerAddress
         {
@@ -183,19 +234,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
         {
             get
             {
-                if (_audioPreview != null && _audioPreview.IsPreviewing) return false;
+                if (_audioPreview != null && _audioPreview.IsPreviewing || IsConnected) return false;
 
                 return true;
             }
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public void NotifyPropertyChanged([CallerMemberName] string caller = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
-        }
-
 
         private void UpdatePlayerCountAndVUMeters(object sender, EventArgs e)
         {
@@ -204,145 +247,84 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             ConnectedClientsSingleton.Instance.NotifyAll();
         }
 
-        private void Stop(bool connectionError = false)
-        {
-            // if (ClientState.IsConnected && _globalSettings.GetClientSettingBool(GlobalSettingsKeys.PlayConnectionSounds))
-            // {
-            //     try
-            //     {
-            //         Sounds.BeepDisconnected.Play();
-            //     }
-            //     catch (Exception ex)
-            //     {
-            //         Logger.Warn(ex, "Failed to play disconnect sound");
-            //     }
-            // }
-            //
-            // ClientState.IsConnectionErrored = connectionError;
-            //
-            // StartStop.Content = "Connect";
-            // StartStop.IsEnabled = true;
-            // Mic.IsEnabled = true;
-            // Speakers.IsEnabled = true;
-            // MicOutput.IsEnabled = true;
-            // Preview.IsEnabled = true;
-            // ClientState.IsConnected = false;
-            // ToggleServerSettings.IsEnabled = false;
-            //
-            // ConnectExternalAWACSMode.IsEnabled = false;
-            // ConnectExternalAWACSMode.Content = "Connect External AWACS MODE (EAM)";
-            //
-            // if (!string.IsNullOrWhiteSpace(ClientState.LastSeenName) &&
-            //     _globalSettings.GetClientSetting(GlobalSettingsKeys.LastSeenName).StringValue != ClientState.LastSeenName)
-            // {
-            //     _globalSettings.SetClientSetting(GlobalSettingsKeys.LastSeenName, ClientState.LastSeenName);
-            // }
-            //
-            // try
-            // {
-            //     _audioManager.StopEncoding();
-            // }
-            // catch (Exception ex)
-            // {
-            // }
-            //
-            // if (_client != null)
-            // {
-            //     _client.Disconnect();
-            //     _client = null;
-            // }
-            //
-            // ClientState.DcsPlayerRadioInfo.Reset();
-            // ClientState.PlayerCoaltionLocationMetadata.Reset();
-        }
-
         private void Connect()
         {
-            if (ClientState.IsConnected)
+            if (IsConnected)
             {
                 Stop();
             }
             else
             {
+                //stop preview
+                _audioPreview?.StopEncoding();
+                _audioPreview = null;
+
+                IsConnected = true;
                 SaveSelectedInputAndOutput();
-        
+
                 try
                 {
                     //process hostname
                     var resolvedAddresses = Dns.GetHostAddresses(GetAddressFromTextBox());
                     var ip = resolvedAddresses.FirstOrDefault(xa => xa.AddressFamily == AddressFamily.InterNetwork); // Ensure we get an IPv4 address in case the host resolves to both IPv6 and IPv4
-        
+
                     if (ip != null)
                     {
                         var resolvedIp = ip;
                         var port = GetPortFromTextBox();
 
-                        _client = new TCPClientHandler();
+                        _client = new TCPClientHandler(ClientStateSingleton.Instance.GUID, ClientStateSingleton.Instance.PlayerUnitState);
                         _client.TryConnect(new IPEndPoint(resolvedIp, port));
-
-                        // _client = new SRSClientSyncHandler(_guid, UpdateUICallback, delegate(string name)
-                        // {
-                        //     // try
-                        //     // {
-                        //     //     //on MAIN thread
-                        //     //     Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-                        //     //         new ThreadStart(() =>
-                        //     //         {
-                        //     //             //Handle Aircraft Name - find matching profile and select if you can
-                        //     //             name = Regex.Replace(name.Trim().ToLower(), "[^a-zA-Z0-9]", "");
-                        //     //
-                        //     //             foreach (var profileName in _globalSettings.ProfileSettingsStore.ProfileNames)
-                        //     //             {
-                        //     //                 if (name.StartsWith(Regex.Replace(profileName.Trim().ToLower(), "[^a-zA-Z0-9]",
-                        //     //                     "")))
-                        //     //                 {
-                        //     //                     ControlsProfile.SelectedItem = profileName;
-                        //     //                     return;
-                        //     //                 }
-                        //     //             }
-                        //     //
-                        //     //             ControlsProfile.SelectedIndex = 0;
-                        //     //
-                        //     //         }));
-                        //     // }
-                        //     // catch (Exception ex)
-                        //     // {
-                        //     // }
-                        //
-                        // });
-                        // _client.TryConnect(new IPEndPoint(_resolvedIp, _port), ConnectCallback);
-                        //
-                        // StartStop.Content = "Connecting...";
-                        // StartStop.IsEnabled = false;
-                        // Mic.IsEnabled = false;
-                        // Speakers.IsEnabled = false;
-                        // MicOutput.IsEnabled = false;
-
-                        if (_audioPreview != null)
-                        {
-                            _audioPreview.StopEncoding();
-                            _audioPreview = null;
-                        }
                     }
                     else
                     {
                         //invalid ID
                         MessageBox.Show("Invalid IP or Host Name!", "Host Name Error", MessageBoxButton.OK,
                             MessageBoxImage.Error);
-        
-                        ClientState.IsConnected = false;
-                        // ToggleServerSettings.IsEnabled = false;
+
+                        IsConnected = false;
                     }
                 }
                 catch (Exception ex) when (ex is SocketException || ex is ArgumentException)
                 {
                     MessageBox.Show("Invalid IP or Host Name!", "Host Name Error", MessageBoxButton.OK,
                         MessageBoxImage.Error);
-        
-                    ClientState.IsConnected = false;
-                    // ToggleServerSettings.IsEnabled = false;
+
+                    IsConnected = false;
                 }
             }
+        }
+
+        private void Stop(TCPClientStatusMessage.ErrorCode connectionError = TCPClientStatusMessage.ErrorCode.TIMEOUT)
+        {
+            if (IsConnected && _globalSettings.GetClientSettingBool(GlobalSettingsKeys.PlayConnectionSounds))
+            {
+                try
+                {
+                    Sounds.BeepDisconnected.Play();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn(ex, "Failed to play disconnect sound");
+                }
+            }
+
+            IsConnected = false;
+
+            try
+            {
+                _audioManager.StopEncoding();
+            }
+            catch (Exception ex)
+            {
+            }
+            
+            _client?.Disconnect();
+            _client = null;
+            
+            //TODO
+            // ClientState.DcsPlayerRadioInfo.Reset();
+            // ClientState.PlayerCoaltionLocationMetadata.Reset();
         }
 
         private string GetAddressFromTextBox()
@@ -374,56 +356,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             return 5002;
         }
 
-        // private void Stop(bool connectionError = false)
-        // {
-        //     if (ClientState.IsConnected && _globalSettings.GetClientSettingBool(GlobalSettingsKeys.PlayConnectionSounds))
-        //     {
-        //         try
-        //         {
-        //             Sounds.BeepDisconnected.Play();
-        //         }
-        //         catch (Exception ex)
-        //         {
-        //             Logger.Warn(ex, "Failed to play disconnect sound");
-        //         }
-        //     }
-        //
-        //     ClientState.IsConnectionErrored = connectionError;
-        //
-        //     StartStop.Content = "Connect";
-        //     StartStop.IsEnabled = true;
-        //     Mic.IsEnabled = true;
-        //     Speakers.IsEnabled = true;
-        //     MicOutput.IsEnabled = true;
-        //     Preview.IsEnabled = true;
-        //     ClientState.IsConnected = false;
-        //     ToggleServerSettings.IsEnabled = false;
-        //
-        //
-        //     if (!string.IsNullOrWhiteSpace(ClientState.LastSeenName) &&
-        //         _globalSettings.GetClientSetting(GlobalSettingsKeys.LastSeenName).StringValue != ClientState.LastSeenName)
-        //     {
-        //         _globalSettings.SetClientSetting(GlobalSettingsKeys.LastSeenName, ClientState.LastSeenName);
-        //     }
-        //
-        //     try
-        //     {
-        //         _audioManager.StopEncoding();
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //     }
-        //     //
-        //     // if (_client != null)
-        //     // {
-        //     //     _client.Disconnect();
-        //     //     _client = null;
-        //     // }
-        //
-        //     ClientState.PlayerUnitState.Reset();
-        //     ClientState.PlayerCoaltionLocationMetadata.Reset();
-        // }
-
+        
         private void SaveSelectedInputAndOutput()
         {
             //save app settings
@@ -474,98 +407,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
                     "Warning", MessageBoxButton.OK,
                     MessageBoxImage.Warning);
         }
-        //
-        // private void ConnectCallback(bool result, bool connectionError, string connection)
-        // {
-        //     string currentConnection = ServerIp.Text.Trim();
-        //     if (!currentConnection.Contains(":"))
-        //     {
-        //         currentConnection += ":5002";
-        //     }
-        //
-        //     if (result)
-        //     {
-        //         if (!ClientState.IsConnected)
-        //         {
-        //             try
-        //             {
-        //                 StartStop.Content = "Disconnect";
-        //                 StartStop.IsEnabled = true;
-        //
-        //                 ClientState.IsConnected = true;
-        //                 ClientState.IsVoipConnected = false;
-        //
-        //                 if (_globalSettings.GetClientSettingBool(GlobalSettingsKeys.PlayConnectionSounds))
-        //                 {
-        //                     try
-        //                     {
-        //                         Sounds.BeepConnected.Play();
-        //                     }
-        //                     catch (Exception ex)
-        //                     {
-        //                         Logger.Warn(ex, "Failed to play connect sound");
-        //                     }
-        //                 }
-        //
-        //                 _globalSettings.SetClientSetting(GlobalSettingsKeys.LastServer, ServerIp.Text);
-        //
-        //                 _audioManager.StartEncoding(_guid, InputManager,
-        //                     _resolvedIp, _port);
-        //             }
-        //             catch (Exception ex)
-        //             {
-        //                 Logger.Error(ex,
-        //                     "Unable to get audio device - likely output device error - Pick another. Error:" +
-        //                     ex.Message);
-        //                 Stop();
-        //
-        //                 var messageBoxResult = CustomMessageBox.ShowYesNo(
-        //                     "Problem initialising Audio Output!\n\nTry a different Output device and please post your clientlog.txt to the support Discord server.\n\nJoin support Discord server now?",
-        //                     "Audio Output Error",
-        //                     "OPEN PRIVACY SETTINGS",
-        //                     "JOIN DISCORD SERVER",
-        //                     MessageBoxImage.Error);
-        //
-        //                 if (messageBoxResult == MessageBoxResult.Yes) Process.Start("https://discord.gg/baw7g3t");
-        //             }
-        //         }
-        //     }
-        //     else if (string.Equals(currentConnection, connection, StringComparison.OrdinalIgnoreCase))
-        //     {
-        //         // Only stop connection/reset state if connection is currently active
-        //         // Autoconnect mismatch will quickly disconnect/reconnect, leading to double-callbacks
-        //         Stop(connectionError);
-        //     }
-        //     else
-        //     {
-        //         if (!ClientState.IsConnected)
-        //         {
-        //             Stop(connectionError);
-        //         }
-        //     }
-        // }
-
-        public void OnClosing()
-        {
-            if (!string.IsNullOrWhiteSpace(ClientState.LastSeenName) &&
-                _globalSettings.GetClientSetting(GlobalSettingsKeys.LastSeenName).StringValue !=
-                ClientState.LastSeenName)
-                _globalSettings.SetClientSetting(GlobalSettingsKeys.LastSeenName, ClientState.LastSeenName);
-
-            //stop timer
-            _updateTimer?.Stop();
-
-            // Stop();
-            //
-            // _audioPreview?.StopEncoding();
-            // _audioPreview = null;
-            //
-            // _radioOverlayWindow?.Close();
-            // _radioOverlayWindow = null;
-            //
-            // _awacsRadioOverlay?.Close();
-            // _awacsRadioOverlay = null;
-        }
 
         private void PreviewAudio()
         {
@@ -602,30 +443,62 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             NotifyPropertyChanged("AudioSettingsEnabled");
         }
 
+        public void StartAudio(IPEndPoint endPoint)
+        {
+            //Must be main thread
+            Application.Current.Dispatcher.Invoke(delegate {
+                try
+                {
+                    _audioManager.StartEncoding(ClientState.GUID, InputManager, endPoint);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex,
+                        "Unable to get audio device - likely output device error - Pick another. Error:" +
+                        ex.Message);
+                    Stop();
 
-        // private void SpeakerBoost_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        // {
-        //     var convertedValue = VolumeConversionHelper.ConvertVolumeSliderToScale((float)SpeakerBoost.Value);
-        //
-        //     if (_audioPreview != null)
-        //     {
-        //         _audioPreview.SpeakerBoost = convertedValue;
-        //     }
-        //     if (_audioManager != null)
-        //     {
-        //         _audioManager.SpeakerBoost = convertedValue;
-        //     }
-        //
-        //     _globalSettings.SetClientSetting(GlobalSettingsKeys.SpeakerBoost,
-        //         SpeakerBoost.Value.ToString(CultureInfo.InvariantCulture));
-        //
-        //
-        //     if ((SpeakerBoostLabel != null) && (SpeakerBoost != null))
-        //     {
-        //         SpeakerBoostLabel.Content = VolumeConversionHelper.ConvertLinearDiffToDB(convertedValue);
-        //     }
-        // }
+                    var messageBoxResult = CustomMessageBox.ShowOK(
+                        "Problem initialising Audio Output!\n\nTry a different Output device and check privacy settings\n\nIf the problem persists, disable ALL other outputs and restart FS3D SRS",
+                        "Audio Output Error",
+                        "Close",
+                        MessageBoxImage.Error);
 
+                }
+            });
+         
+
+        }
+
+
+        public async Task HandleAsync(TCPClientStatusMessage obj, CancellationToken cancellationToken)
+        {
+
+            if (obj.Connected)
+            {
+                IsConnected = true;
+                //connection sound
+                if (_globalSettings.GetClientSettingBool(GlobalSettingsKeys.PlayConnectionSounds))
+                {
+                    try
+                    {
+                        Sounds.BeepConnected.Play();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn(ex, "Failed to play connect sound");
+                    }
+                }
+
+                StartAudio(obj.Address);
+
+            }
+            else
+            {
+                //disconnect sound
+                Stop(obj.Error);
+            }
+        }
 
         private void ShowOverlay_OnClick(object sender, RoutedEventArgs e)
         {
@@ -721,6 +594,34 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
                 _clientListWindow?.Close();
                 _clientListWindow = null;
             }
+        }
+
+
+        public void OnClosing()
+        {
+
+            //stop timer
+            _updateTimer?.Stop();
+
+            _client?.Disconnect();
+            _client = null;
+
+            // Stop();
+            //
+            // _audioPreview?.StopEncoding();
+            // _audioPreview = null;
+            //
+            // _radioOverlayWindow?.Close();
+            // _radioOverlayWindow = null;
+            //
+            // _awacsRadioOverlay?.Close();
+            // _awacsRadioOverlay = null;
+        }
+
+        public Task HandleAsync(VOIPStatusMessage message, CancellationToken cancellationToken)
+        {
+            IsVoIPConnected = message.Connected;
+            return Task.CompletedTask;
         }
     }
 }

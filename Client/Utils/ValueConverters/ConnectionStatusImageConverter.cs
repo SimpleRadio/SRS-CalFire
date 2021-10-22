@@ -2,6 +2,7 @@
 using System.Windows.Data;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI;
+using Ciribob.SRS.Common.Network.Singletons;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils.ValueConverters
 {
@@ -14,8 +15,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils.ValueConverters
             var connected = (bool)value;
             if (connected)
                 return Images.IconConnected;
-            else if (_clientState.IsConnectionErrored)
-                return Images.IconDisconnectedError;
             else
                 return Images.IconDisconnected;
         }

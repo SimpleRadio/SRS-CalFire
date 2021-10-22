@@ -9,9 +9,12 @@ namespace Ciribob.SRS.Common.Network.Proxies
 {
     public class RadioBase
     {
-        public double Frequency { get; set; } = 1;
+        public double Freq { get; set; } = 1;
         public Modulation Modulation { get; set; } = Modulation.DISABLED;
-        public string Name { get; set; } = "";
-        public double SecondaryFrequency { get; set; } = 1;
+
+        public bool Encrypted { get; set; } = false;
+        public byte EncKey { get; set; } = 0;
+
+        public double SecFreq { get; set; } = 1;
     }
 }

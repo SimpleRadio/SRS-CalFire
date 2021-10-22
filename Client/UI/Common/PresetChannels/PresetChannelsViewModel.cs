@@ -5,6 +5,7 @@ using System.Windows.Input;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
+using Ciribob.SRS.Common.Network.Singletons;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common.PresetChannels
 {
@@ -73,13 +74,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common.PresetChannels
             var radio = radios[_radioId];
 
             var i = 1;
-            foreach (var channel in _channelsStore.LoadFromStore(radio.Name))
-                if ((double)channel.Value < Max
-                    && (double)channel.Value > Min)
-                {
-                    channel.Channel = i++;
-                    PresetChannels.Add(channel);
-                }
+            //TODO
+            // foreach (var channel in _channelsStore.LoadFromStore(radio.Name))
+            //     if ((double)channel.Value < Max
+            //         && (double)channel.Value > Min)
+            //     {
+            //         channel.Channel = i++;
+            //         PresetChannels.Add(channel);
+            //     }
         }
 
         private void OnReload()

@@ -4,11 +4,12 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common.PresetChannels;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.SRS.Common;
+using Ciribob.SRS.Common.Network.Singletons;
 using Ciribob.SRS.Common.PlayerState;
+using ConnectedClientsSingleton = Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.ConnectedClientsSingleton;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using UserControl = System.Windows.Controls.UserControl;
 
@@ -59,7 +60,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
         //updates the binding so the changes are picked up for the linked FixedChannelsModel
         private void UpdateBinding()
         {
-            ChannelViewModel = _clientStateSingleton.FixedChannels[_radioId - 1];
+            //TODO fix
+            // ChannelViewModel = _clientStateSingleton.FixedChannels[_radioId - 1];
 
             var bindingExpression = PresetChannelsView.GetBindingExpression(DataContextProperty);
             bindingExpression?.UpdateTarget();

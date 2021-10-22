@@ -66,7 +66,7 @@ namespace Ciribob.SRS.Common.Network.Singletons
                 }
             }
 
-            MessageHubSingleton.Instance.Publish(new ServerSettingsUpdatedMessage(_settings));
+            EventBus.Instance.PublishOnBackgroundThreadAsync(new ServerSettingsUpdatedMessage(_settings));
         }
     }
 }

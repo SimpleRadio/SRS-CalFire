@@ -6,12 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
-using Ciribob.SRS.Client.Network;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
-using Ciribob.SRS.Common;
+using Ciribob.SRS.Common.Network.Singletons;
 using NLog;
 using SharpDX.DirectInput;
 

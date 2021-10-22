@@ -4,39 +4,43 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
+using Caliburn.Micro;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
+using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Models;
+using Ciribob.SRS.Common.Network.Models.EventMessages;
 using Ciribob.SRS.Common.Network.Singletons;
 using Ciribob.SRS.Common.PlayerState;
+using Ciribob.SRS.Common.Setting;
 using Easy.MessageHub;
 using FragLabs.Audio.Codecs;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NLog;
+using WPFCustomMessageBox;
 using Application = FragLabs.Audio.Codecs.Opus.Application;
-using ClientStateSingleton = Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.ClientStateSingleton;
+using LogManager = NLog.LogManager;
+using Timer = Cabhishek.Timers.Timer;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 {
-    public class AudioManager
+    public class AudioManager:IHandle<SRClientUpdateMessage>
     {
         public static readonly int MIC_SAMPLE_RATE = 16000;
-
         public static readonly int MIC_INPUT_AUDIO_LENGTH_MS = 40;
-
         public static readonly int MIC_SEGMENT_FRAMES = MIC_SAMPLE_RATE / 1000 * MIC_INPUT_AUDIO_LENGTH_MS;
-
         public static readonly int OUTPUT_SAMPLE_RATE = 48000;
-
         public static readonly int OUTPUT_AUDIO_LENGTH_MS = 40;
-
         public static readonly int OUTPUT_SEGMENT_FRAMES = OUTPUT_SAMPLE_RATE / 1000 * OUTPUT_AUDIO_LENGTH_MS;
+        public static readonly int JITTER_BUFFER = 50; //in milliseconds
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -79,6 +83,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
         private ClientAudioProvider _passThroughAudioProvider;
 
+   
         public AudioManager(bool windowsN)
         {
             this.windowsN = windowsN;
@@ -98,19 +103,109 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             }
         }
 
-        public void StartEncoding(string guid, InputDeviceManager inputManager,
-            IPAddress ipAddress, int port)
+        public void InitWaveOut()
         {
             MMDevice speakers = null;
             if (_audioOutputSingleton.SelectedAudioOutput.Value == null)
                 speakers = WasapiOut.GetDefaultAudioEndpoint();
             else
                 speakers = (MMDevice)_audioOutputSingleton.SelectedAudioOutput.Value;
+            _waveOut = new WasapiOut(speakers, AudioClientShareMode.Shared, true, 40, windowsN);
 
+            //add final volume boost to all mixed audio
+            _volumeSampleProvider = new VolumeSampleProviderWithPeak(_clientAudioMixer,
+                peak => SpeakerMax = (float)VolumeConversionHelper.ConvertFloatToDB(peak));
+            _volumeSampleProvider.Volume = SpeakerBoost;
+
+            if (speakers.AudioClient.MixFormat.Channels == 1)
+            {
+                if (_volumeSampleProvider.WaveFormat.Channels == 2)
+                    _waveOut.Init(_volumeSampleProvider.ToMono());
+                else
+                    //already mono
+                    _waveOut.Init(_volumeSampleProvider);
+            }
+            else
+            {
+                if (_volumeSampleProvider.WaveFormat.Channels == 1)
+                    _waveOut.Init(_volumeSampleProvider.ToStereo());
+                else
+                    //already stereo
+                    _waveOut.Init(_volumeSampleProvider);
+            }
+
+            _waveOut.Play();
+        }
+
+        public void InitMicPassthrough()
+        {
             MMDevice micOutput = null;
             if (_audioOutputSingleton.SelectedMicAudioOutput.Value != null)
+            {
                 micOutput = (MMDevice)_audioOutputSingleton.SelectedMicAudioOutput.Value;
 
+                _passThroughAudioProvider = new ClientAudioProvider(true);
+                _micWaveOut = new WasapiOut(micOutput, AudioClientShareMode.Shared, true, 40, windowsN);
+
+                _micWaveOutBuffer = new BufferedWaveProvider(new WaveFormat(OUTPUT_SAMPLE_RATE, 16, 1));
+                _micWaveOutBuffer.ReadFully = true;
+                _micWaveOutBuffer.DiscardOnBufferOverflow = true;
+
+                var sampleProvider = _micWaveOutBuffer.ToSampleProvider();
+
+                if (micOutput.AudioClient.MixFormat.Channels == 1)
+                {
+                    if (sampleProvider.WaveFormat.Channels == 2)
+                        _micWaveOut.Init(sampleProvider.ToMono());
+                    else
+                        //already mono
+                        _micWaveOut.Init(sampleProvider);
+                }
+                else
+                {
+                    if (sampleProvider.WaveFormat.Channels == 1)
+                        _micWaveOut.Init(sampleProvider.ToStereo());
+                    else
+                        //already stereo
+                        _micWaveOut.Init(sampleProvider);
+                }
+
+                _micWaveOut.Play();
+            }
+        }
+
+        public void InitEncodersSpeex()
+        {
+            //opus
+            _encoder = OpusEncoder.Create(MIC_SAMPLE_RATE, 1, Application.Voip);
+            _encoder.ForwardErrorCorrection = false;
+
+            //speex
+            _speex = new Preprocessor(MIC_SEGMENT_FRAMES, MIC_SAMPLE_RATE);
+        }
+
+
+        public void InitMicInput()
+        {
+            var device = (MMDevice)_audioInputSingleton.SelectedAudioInput.Value;
+
+            if (device == null) device = WasapiCapture.GetDefaultCaptureDevice();
+
+            device.AudioEndpointVolume.Mute = false;
+
+            _wasapiCapture = new WasapiCapture(device, true);
+            _wasapiCapture.ShareMode = AudioClientShareMode.Shared;
+            _wasapiCapture.DataAvailable += WasapiCaptureOnDataAvailable;
+            _wasapiCapture.RecordingStopped += WasapiCaptureOnRecordingStopped;
+
+            _wasapiCapture.StartRecording();
+        }
+
+        public void StartEncoding(string guid, InputDeviceManager inputManager,
+            IPEndPoint endPoint)
+        {
+            InitEncodersSpeex();
+            
             try
             {
                 _micInputQueue.Clear();
@@ -121,119 +216,32 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
                 //Audio manager should start / stop and cleanup based on connection successfull and disconnect
                 //Should use listeners to synchronise all the state
-
-                _waveOut = new WasapiOut(speakers, AudioClientShareMode.Shared, true, 40, windowsN);
-
-                //add final volume boost to all mixed audio
-                _volumeSampleProvider = new VolumeSampleProviderWithPeak(_clientAudioMixer,
-                    peak => SpeakerMax = (float)VolumeConversionHelper.ConvertFloatToDB(peak));
-                _volumeSampleProvider.Volume = SpeakerBoost;
-
-                if (speakers.AudioClient.MixFormat.Channels == 1)
-                {
-                    if (_volumeSampleProvider.WaveFormat.Channels == 2)
-                        _waveOut.Init(_volumeSampleProvider.ToMono());
-                    else
-                        //already mono
-                        _waveOut.Init(_volumeSampleProvider);
-                }
-                else
-                {
-                    if (_volumeSampleProvider.WaveFormat.Channels == 1)
-                        _waveOut.Init(_volumeSampleProvider.ToStereo());
-                    else
-                        //already stereo
-                        _waveOut.Init(_volumeSampleProvider);
-                }
-
-                _waveOut.Play();
-
-                //opus
-                _encoder = OpusEncoder.Create(MIC_SAMPLE_RATE, 1, Application.Voip);
-                _encoder.ForwardErrorCorrection = false;
-
-                //speex
-                _speex = new Preprocessor(MIC_SEGMENT_FRAMES, MIC_SAMPLE_RATE);
+                InitWaveOut();
             }
             catch (Exception ex)
             {
                 Logger.Error(ex, "Error starting audio Output - Quitting! " + ex.Message);
-
-
                 ShowOutputError("Problem Initialising Audio Output!");
-
-
                 Environment.Exit(1);
             }
 
-            if (micOutput != null) // && micOutput !=speakers
-                //TODO handle case when they're the same?
+            try
+            {
+                InitMicPassthrough();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Error starting mic audio Output - Quitting! " + ex.Message);
 
-                try
-                {
-                    _passThroughAudioProvider = new ClientAudioProvider(true);
-                    _micWaveOut = new WasapiOut(micOutput, AudioClientShareMode.Shared, true, 40, windowsN);
-
-                    _micWaveOutBuffer = new BufferedWaveProvider(new WaveFormat(OUTPUT_SAMPLE_RATE, 16, 1));
-                    _micWaveOutBuffer.ReadFully = true;
-                    _micWaveOutBuffer.DiscardOnBufferOverflow = true;
-
-                    var sampleProvider = _micWaveOutBuffer.ToSampleProvider();
-
-                    if (micOutput.AudioClient.MixFormat.Channels == 1)
-                    {
-                        if (sampleProvider.WaveFormat.Channels == 2)
-                            _micWaveOut.Init(sampleProvider.ToMono());
-                        else
-                            //already mono
-                            _micWaveOut.Init(sampleProvider);
-                    }
-                    else
-                    {
-                        if (sampleProvider.WaveFormat.Channels == 1)
-                            _micWaveOut.Init(sampleProvider.ToStereo());
-                        else
-                            //already stereo
-                            _micWaveOut.Init(sampleProvider);
-                    }
-
-                    _micWaveOut.Play();
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error(ex, "Error starting mic audio Output - Quitting! " + ex.Message);
-
-                    ShowOutputError("Problem Initialising Mic Audio Output!");
-
-
-                    Environment.Exit(1);
-                }
+                ShowOutputError("Problem Initialising Mic Audio Output!");
+                Environment.Exit(1);
+            }
 
             if (_audioInputSingleton.MicrophoneAvailable)
             {
                 try
                 {
-                    var device = (MMDevice)_audioInputSingleton.SelectedAudioInput.Value;
-
-                    if (device == null) device = WasapiCapture.GetDefaultCaptureDevice();
-
-                    device.AudioEndpointVolume.Mute = false;
-
-                    _wasapiCapture = new WasapiCapture(device, true);
-                    _wasapiCapture.ShareMode = AudioClientShareMode.Shared;
-                    _wasapiCapture.DataAvailable += WasapiCaptureOnDataAvailable;
-                    _wasapiCapture.RecordingStopped += WasapiCaptureOnRecordingStopped;
-
-                    //TODO
-                    // _udpVoiceHandler =
-                    //     new UDPVoiceHandler(guid, ipAddress, port, this, inputManager);
-                    var voiceSenderThread = new Thread(_udpVoiceHandler.Listen);
-
-                    voiceSenderThread.Start();
-
-                    _wasapiCapture.StartRecording();
-
-                    MessageHubSingleton.Instance.Subscribe<SRClient>(RemoveClientBuffer);
+                    InitMicInput();
                 }
                 catch (Exception ex)
                 {
@@ -244,16 +252,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                     Environment.Exit(1);
                 }
             }
-            else
-            {
-                //TODO
-                //no mic....
-                // _udpVoiceHandler =
-                //     new UdpVoiceHandler(guid, ipAddress, port, this, inputManager);
-                MessageHubSingleton.Instance.Subscribe<SRClient>(RemoveClientBuffer);
-                var voiceSenderThread = new Thread(_udpVoiceHandler.Listen);
-                voiceSenderThread.Start();
-            }
+
+
+            //Start UDP handler
+            _udpVoiceHandler =
+                new UDPVoiceHandler(guid, endPoint);
+            _udpVoiceHandler.Connect();
+
+            _audioProcessor = new AudioProcessor(_udpVoiceHandler,this, guid);
+
+            EventBus.Instance.SubscribeOnBackgroundThread(this);
         }
 
         private void WasapiCaptureOnRecordingStopped(object sender, StoppedEventArgs e)
@@ -366,48 +374,46 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         {
             if (Environment.OSVersion.Version.Major == 10)
             {
-                //TODO
-                // var messageBoxResult = CustomMessageBox.ShowYesNoCancel(
-                //     $"{message}\n\n" +
-                //     $"If you are using Windows 10, this could be caused by your privacy settings (make sure to allow apps to access your microphone)." +
-                //     $"\nAlternatively, try a different Input device and please post your client log to the support Discord server.",
-                //     "Audio Input Error",
-                //     "OPEN PRIVACY SETTINGS",
-                //     "JOIN DISCORD SERVER",
-                //     "CLOSE",
-                //     MessageBoxImage.Error);
-                //
-                // if (messageBoxResult == MessageBoxResult.Yes)
-                //     Process.Start("ms-settings:privacy-microphone");
-                // else if (messageBoxResult == MessageBoxResult.No) Process.Start("https://discord.gg/baw7g3t");
+                
+                 var messageBoxResult = CustomMessageBox.ShowYesNoCancel(
+                     $"{message}\n\n" +
+                     $"If you are using Windows 10, this could be caused by your privacy settings (make sure to allow apps to access your microphone)." +
+                     $"\nAlternatively, try a different Input device and please post your client log to the support Discord server.",
+                     "Audio Input Error",
+                     "OPEN PRIVACY SETTINGS",
+                     "JOIN DISCORD SERVER",
+                     "CLOSE",
+                     MessageBoxImage.Error);
+                
+                 if (messageBoxResult == MessageBoxResult.Yes)
+                     Process.Start("ms-settings:privacy-microphone");
+                 else if (messageBoxResult == MessageBoxResult.No) Process.Start("https://discord.gg/baw7g3t");
             }
             else
             {
-                //TODO
-                // var messageBoxResult = CustomMessageBox.ShowYesNo(
-                //     $"{message}\n\n" +
-                //     "Try a different Input device and please post your client log to the support Discord server.",
-                //     "Audio Input Error",
-                //     "JOIN DISCORD SERVER",
-                //     "CLOSE",
-                //     MessageBoxImage.Error);
-                //
-                // if (messageBoxResult == MessageBoxResult.Yes) Process.Start("https://discord.gg/baw7g3t");
+                var messageBoxResult = CustomMessageBox.ShowYesNo(
+                    $"{message}\n\n" +
+                    "Try a different Input device and please post your client log to the support Discord server.",
+                    "Audio Input Error",
+                    "JOIN DISCORD SERVER",
+                    "CLOSE",
+                    MessageBoxImage.Error);
+                
+                if (messageBoxResult == MessageBoxResult.Yes) Process.Start("https://discord.gg/baw7g3t");
             }
         }
 
         private void ShowOutputError(string message)
         {
-            //TODO
-            // var messageBoxResult = CustomMessageBox.ShowYesNo(
-            //     $"{message}\n\n" +
-            //     "Try a different output device and please post your client log to the support Discord server.",
-            //     "Audio Output Error",
-            //     "JOIN DISCORD SERVER",
-            //     "CLOSE",
-            //     MessageBoxImage.Error);
-            //
-            // if (messageBoxResult == MessageBoxResult.Yes) Process.Start("https://discord.gg/baw7g3t");
+            var messageBoxResult = CustomMessageBox.ShowYesNo(
+                $"{message}\n\n" +
+                "Try a different output device and please post your client log to the support Discord server.",
+                "Audio Output Error",
+                "JOIN DISCORD SERVER",
+                "CLOSE",
+                MessageBoxImage.Error);
+            
+            if (messageBoxResult == MessageBoxResult.Yes) Process.Start("https://discord.gg/baw7g3t");
         }
 
         private void InitMixers()
@@ -574,11 +580,18 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         //Stopwatch _stopwatch = new Stopwatch();
 
         private object lockObj = new object();
+       
+        private AudioProcessor _audioProcessor;
 
         public void StopEncoding()
         {
             lock (lockObj)
             {
+                //TODO
+                //Stop input handler
+                _audioProcessor?.Stop();
+                _audioProcessor = null;
+
                 _wasapiCapture?.StopRecording();
                 _wasapiCapture?.Dispose();
                 _wasapiCapture = null;
@@ -622,10 +635,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 MicMax = -100;
 
                 _effectsOutputBuffer = null;
-                //TODO change this line
-                MessageHubSingleton.Instance.ClearSubscriptions();
+                EventBus.Instance.Unsubcribe(this);
             }
         }
+
+
 
         public void AddClientAudio(ClientAudio audio)
         {
@@ -652,6 +666,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
         private void RemoveClientBuffer(SRClient srClient)
         {
+            //TODO test this
             ClientAudioProvider clientAudio = null;
             _clientsBufferedAudio.TryRemove(srClient.ClientGuid, out clientAudio);
 
@@ -665,6 +680,18 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             {
                 Logger.Error(ex, "Error removing client input");
             }
+        }
+
+
+
+        public Task HandleAsync(SRClientUpdateMessage message, CancellationToken cancellationToken)
+        {
+            if (!message.Connected)
+            {
+                RemoveClientBuffer(message.SrClient);
+            }
+
+            return Task.CompletedTask;
         }
     }
 }

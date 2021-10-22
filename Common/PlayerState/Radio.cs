@@ -11,9 +11,8 @@ namespace Ciribob.SRS.Common
     public class Radio:RadioBase
     {
         public RadioConfig Config { get; set; } = new RadioConfig();
+        public string Name { get; set; } = "";
 
-        public bool Encrypted { get; set; } = false;
-        public byte EncryptionKey { get; set; } = 0;
 
         //should the radio restransmit?
         public bool Retransmit { get; set; } = false;
@@ -42,12 +41,12 @@ namespace Ciribob.SRS.Common
             var compare = (Radio)obj;
 
             if (!Name.Equals(compare.Name)) return false;
-            if (!PlayerUnitState.FreqCloseEnough(Frequency, compare.Frequency)) return false;
+            if (!PlayerUnitState.FreqCloseEnough(Freq, compare.Freq)) return false;
             if (Modulation != compare.Modulation) return false;
             if (Encrypted != compare.Encrypted) return false;
-            if (EncryptionKey != compare.EncryptionKey) return false;
+            if (EncKey != compare.EncKey) return false;
             if (Retransmit != compare.Retransmit) return false;
-            if (!PlayerUnitState.FreqCloseEnough(SecondaryFrequency, compare.SecondaryFrequency)) return false;
+            if (!PlayerUnitState.FreqCloseEnough(SecFreq, compare.SecFreq)) return false;
 
             if (Config != null && compare.Config == null) return false;
             if (Config == null && compare.Config != null) return false;
@@ -62,10 +61,10 @@ namespace Ciribob.SRS.Common
             {
                 CurrentChannel = CurrentChannel,
                 Encrypted = Encrypted,
-                EncryptionKey = EncryptionKey,
-                Frequency = Frequency,
+                EncKey = EncKey,
+                Freq = Freq,
                 Modulation = Modulation,
-                SecondaryFrequency = SecondaryFrequency,
+                SecFreq = SecFreq,
                 Name = Name,
                 SimultaneousTransmission = SimultaneousTransmission,
                 Volume = Volume,
@@ -80,11 +79,11 @@ namespace Ciribob.SRS.Common
             {
                 var hashCode = Config != null ? Config.GetHashCode() : 0;
                 hashCode = (hashCode * 397) ^ Encrypted.GetHashCode();
-                hashCode = (hashCode * 397) ^ EncryptionKey.GetHashCode();
-                hashCode = (hashCode * 397) ^ Frequency.GetHashCode();
+                hashCode = (hashCode * 397) ^ EncKey.GetHashCode();
+                hashCode = (hashCode * 397) ^ Freq.GetHashCode();
                 hashCode = (hashCode * 397) ^ (int)Modulation;
                 hashCode = (hashCode * 397) ^ (Name != null ? Name.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ SecondaryFrequency.GetHashCode();
+                hashCode = (hashCode * 397) ^ SecFreq.GetHashCode();
                 hashCode = (hashCode * 397) ^ Retransmit.GetHashCode();
                 hashCode = (hashCode * 397) ^ Volume.GetHashCode();
                 hashCode = (hashCode * 397) ^ CurrentChannel;

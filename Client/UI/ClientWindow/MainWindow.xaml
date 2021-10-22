@@ -60,7 +60,7 @@
                             Content="{Binding PreviewText}"
 
                             ToolTipService.ShowOnDisabled="True"
-                            IsEnabled="{Binding AudioInput.MicrophoneAvailable}"
+                            IsEnabled="{Binding PreviewEnabled}"
                             ToolTip="{Binding Path=AudioInput.MicrophoneAvailable, Converter={StaticResource MicAvailabilityTooltipConverter}}" />
 
                     <Label x:Name="SpeakerLabel"
@@ -146,8 +146,7 @@
                                 Margin="0,10,20,0"
                                 HorizontalAlignment="Center"
                                 Command="{Binding Path=ConnectCommand}"
-                                Content="Connect"
-
+                                Content="{Binding Path=ConnectText}"
                                 ToolTip="{Binding Path=AudioInput.MicrophoneAvailable, Converter={StaticResource MicAvailabilityTooltipConverter}}" />
                         <Button x:Name="ToggleServerSettings"
                                 Width="125"
@@ -155,7 +154,7 @@
                                 HorizontalAlignment="Center"
                                 Command="{Binding Path=ServerSettingsCommad}"
                                 Content="Show Server Settings"
-                                IsEnabled="False" />
+                                IsEnabled="{Binding IsConnected}" />
 
                     </StackPanel>
                     <StackPanel Margin="0"
@@ -211,13 +210,13 @@
                         </StackPanel.Resources>
                         <Label HorizontalAlignment="Center" HorizontalContentAlignment="Center" Content="Server" />
                         <Image x:Name="ServerConnectionStatus"
-                               Source="{Binding Path=ClientState.IsConnected, Converter={StaticResource ConnectionStatusImageConverter}}"
+                               Source="{Binding Path=IsConnected, Converter={StaticResource ConnectionStatusImageConverter}}"
                                HorizontalAlignment="Center"
                                Height="26"
                                Margin="5,0,5,0" />
                         <Label HorizontalAlignment="Center" HorizontalContentAlignment="Center" Content="VOIP" />
                         <Image x:Name="VOIPConnectionStatus"
-                               Source="{Binding Path=ClientState.IsVoipConnected, Converter={StaticResource ConnectionStatusImageConverter}}"
+                               Source="{Binding Path=IsVoIPConnected, Converter={StaticResource ConnectionStatusImageConverter}}"
                                Height="26"
                                HorizontalAlignment="Center"
                                Margin="5,0,5,0" />

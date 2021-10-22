@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.PlayerState;
 using Ciribob.SRS.Common.Setting;
 
 namespace Ciribob.SRS.Common.Network.Singletons
 {
-    public sealed class ConnectedClientsSingleton : INotifyPropertyChanged
+    public sealed class ConnectedClientsSingleton : PropertyChangedBase
     {
         private readonly ConcurrentDictionary<string, SRClient> _clients = new ConcurrentDictionary<string, SRClient>();
         private static volatile ConnectedClientsSingleton _instance;
@@ -37,11 +38,6 @@ namespace Ciribob.SRS.Common.Network.Singletons
 
                 return _instance;
             }
-        }
-
-        private void NotifyPropertyChanged(string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public void NotifyAll()

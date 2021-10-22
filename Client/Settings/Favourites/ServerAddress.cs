@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Ciribob.SRS.Common.Helpers;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
 {
-    public class ServerAddress : INotifyPropertyChanged
+    public class ServerAddress : PropertyChangedBase
     {
         public ServerAddress(string name, string address, bool isDefault = false)
         {
@@ -23,7 +24,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
                 if (_name != value)
                 {
                     _name = value;
-                    OnPropertyChanged();
+                    NotifyPropertyChanged();
                 }
             }
         }
@@ -38,7 +39,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
                 if (_address != value)
                 {
                     _address = value;
-                    OnPropertyChanged();
+                    NotifyPropertyChanged();
                 }
             }
         }
@@ -51,15 +52,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI
             set
             {
                 _isDefault = value;
-                OnPropertyChanged();
+                NotifyPropertyChanged();
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+      
     }
 }

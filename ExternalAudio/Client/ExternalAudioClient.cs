@@ -45,12 +45,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
         public void Start()
         {
 
-            MessageHubSingleton.Instance.Subscribe<ReadyMessage>(ReadyToSend);
-            MessageHubSingleton.Instance.Subscribe<DisconnectedMessage>(Disconnected);
+            EventBus.Instance.Subscribe<ReadyMessage>(ReadyToSend);
+            EventBus.Instance.Subscribe<DisconnectedMessage>(Disconnected);
 
             gameState = new PlayerUnitState();
             gameState.Radios[1].Modulation = modulation[0];
-            gameState.Radios[1].Frequency = freq[0]; // get into Hz
+            gameState.Radios[1].Freq = freq[0]; // get into Hz
             gameState.Radios[1].Name = opts.Name;
 
             Logger.Info($"Starting with params:");
@@ -77,7 +77,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
             udpVoiceHandler?.RequestStop();
             srsClientSyncHandler?.Disconnect();
 
-            MessageHubSingleton.Instance.ClearSubscriptions();
+            EventBus.Instance.ClearSubscriptions();
         }
 
         private void ReadyToSend(ReadyMessage ready)

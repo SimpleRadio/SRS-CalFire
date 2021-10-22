@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.SRS.Common;
 using Ciribob.SRS.Common.DCSState;
+using Ciribob.SRS.Common.Network.Singletons;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 {
@@ -37,7 +38,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 
         public static bool ToggleIdent()
         {
-            ClientStateSingleton.Instance.LastSent = 0;
+            //TODO fix
+            // ClientStateSingleton.Instance.LastSent = 0;
             var trans = GetTransponder(true);
 
             if (trans != null && trans.status != Transponder.IFFStatus.OFF)

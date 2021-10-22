@@ -73,9 +73,9 @@ namespace Ciribob.SRS.Common.Network
                     }
 
                     //within 1khz
-                    if (FreqCloseEnough(receivingRadio.Frequency, frequency)
+                    if (FreqCloseEnough(receivingRadio.Freq, frequency)
                         && receivingRadio.Modulation == modulation
-                        && receivingRadio.Frequency > 10000)
+                        && receivingRadio.Freq > 10000)
                     {
                         var isDecryptable = true;
 
@@ -101,8 +101,8 @@ namespace Ciribob.SRS.Common.Network
                         bestMatchingDecryptable = isDecryptable;
                     }
 
-                    if (receivingRadio.SecondaryFrequency == frequency
-                        && receivingRadio.SecondaryFrequency > 10000)
+                    if (receivingRadio.SecFreq == frequency
+                        && receivingRadio.SecFreq > 10000)
                     {
                         //TODO come back too
                         // if (encryptionKey == 0 || (receivingRadio.Encrypted ? receivingRadio.EncryptionKey : (byte)0) ==

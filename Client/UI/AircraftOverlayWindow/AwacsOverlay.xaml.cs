@@ -2,12 +2,9 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Threading;
-using Ciribob.SRS.Client.Network;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
-using Ciribob.SRS.Common;
+using Ciribob.SRS.Common.Network.Singletons;
 using NLog;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
@@ -101,9 +98,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AwacsRadioOverlayWindow
             }
 
             var playerRadioInfo = _clientStateSingleton.PlayerUnitState;
-            if (playerRadioInfo != null)
-                if (_clientStateSingleton.IsConnected)
-                    ToggleGlobalSimultaneousTransmissionButton.IsEnabled = true;
+
+            //TODO fix
+            // if (playerRadioInfo != null)
+            //     if (_clientStateSingleton.IsConnected)
+            //         ToggleGlobalSimultaneousTransmissionButton.IsEnabled = true;
         }
 
         private void WrapPanel_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

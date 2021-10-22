@@ -120,13 +120,20 @@
     <Resource Include="status-disconnected.png" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Caliburn.Micro" Version="4.0.173" />
+    <PackageReference Include="Caliburn.Micro.Core" Version="4.0.173" />
     <PackageReference Include="ControlzEx" Version="5.0.1" />
+    <PackageReference Include="Fody" Version="6.5.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
     <PackageReference Include="MahApps.Metro" Version="2.4.9" />
     <PackageReference Include="MathNet.Filtering" Version="0.7.0" />
     <PackageReference Include="MathNet.Numerics" Version="4.15.0" />
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="5.0.2" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.37" />
+    <PackageReference Include="PropertyChanged.Fody" Version="3.4.0" />
     <PackageReference Include="Sentry" Version="3.10.0" />
     <PackageReference Include="Sentry.PlatformAbstractions" Version="1.1.1" />
     <PackageReference Include="Sentry.Protocol" Version="2.1.8" />
@@ -136,6 +143,7 @@
     <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.3.246501">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="WPFCustomMessageBox.Fork" Version="1.0.9" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Audio\BufferedSampleProvider.cs" />
@@ -165,5 +173,8 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Network\Sync\Models\" />
   </ItemGroup>
 </Project>

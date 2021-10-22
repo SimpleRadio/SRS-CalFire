@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Threading;
-using Ciribob.SRS.Client.Network;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.SRS.Common.Setting;
 using MahApps.Metro.Controls;

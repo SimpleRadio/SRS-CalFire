@@ -3,6 +3,7 @@ using System.Linq;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.SRS.Common;
+using Ciribob.SRS.Common.Network.Singletons;
 using Ciribob.SRS.Common.PlayerState;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
@@ -17,13 +18,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                 if (radio.Config.FrequencyControl == RadioConfig.FreqMode.OVERLAY ||
                     radio.Config.GuardFrequencyControl == RadioConfig.FreqMode.OVERLAY)
                 {
-                    if (radio.SecondaryFrequency > 0)
-                        radio.SecondaryFrequency = 0; // 0 indicates we want it overridden + disabled
+                    if (radio.SecFreq > 0)
+                        radio.SecFreq = 0; // 0 indicates we want it overridden + disabled
                     else
-                        radio.SecondaryFrequency = 1; //indicates we want it back
+                        radio.SecFreq = 1; //indicates we want it back
 
                     //make radio data stale to force resysnc
-                    ClientStateSingleton.Instance.LastSent = 0;
+                   // ClientStateSingleton.Instance.LastSent = 0;
                 }
         }
 
@@ -36,12 +37,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                     radio.Config.GuardFrequencyControl == RadioConfig.FreqMode.OVERLAY)
                 {
                     if (!enabled)
-                        radio.SecondaryFrequency = 0; // 0 indicates we want it overridden + disabled
+                        radio.SecFreq = 0; // 0 indicates we want it overridden + disabled
                     else
-                        radio.SecondaryFrequency = 1; //indicates we want it back
+                        radio.SecFreq = 1; //indicates we want it back
 
                     //make radio data stale to force resysnc
-                    ClientStateSingleton.Instance.LastSent = 0;
+                  //  ClientStateSingleton.Instance.LastSent = 0;
                 }
         }
 
@@ -60,27 +61,27 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                     && radio.Config.FrequencyControl == RadioConfig.FreqMode.OVERLAY)
                 {
                     if (delta)
-                        radio.Frequency = (int)Math.Round(radio.Frequency + frequency);
+                        radio.Freq = (int)Math.Round(radio.Freq + frequency);
                     else
-                        radio.Frequency = (int)Math.Round(frequency);
+                        radio.Freq = (int)Math.Round(frequency);
 
                     //make sure we're not over or under a limit
-                    if (radio.Frequency > radio.Config.MaxFrequency)
+                    if (radio.Freq > radio.Config.MaxFrequency)
                     {
                         inLimit = false;
-                        radio.Frequency = radio.Config.MaxFrequency;
+                        radio.Freq = radio.Config.MaxFrequency;
                     }
-                    else if (radio.Frequency < radio.Config.MinimumFrequency)
+                    else if (radio.Freq < radio.Config.MinimumFrequency)
                     {
                         inLimit = false;
-                        radio.Frequency = radio.Config.MinimumFrequency;
+                        radio.Freq = radio.Config.MinimumFrequency;
                     }
 
                     //set to no channel
                     radio.CurrentChannel = -1;
 
                     //make radio data stale to force resysnc
-                    ClientStateSingleton.Instance.LastSent = 0;
+                    //ClientStateSingleton.Instance.LastSent = 0;
                 }
 
             return inLimit;
@@ -196,32 +197,33 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                     && ClientStateSingleton.Instance.PlayerUnitState.control ==
                     PlayerUnitState.RadioSwitchControls.HOTAS)
                 {
-                    var fixedChannels = ClientStateSingleton.Instance.FixedChannels;
-
-                    //now get model
-                    if (fixedChannels != null && fixedChannels[radioId - 1] != null)
-                    {
-                        var radioChannels = fixedChannels[radioId - 1];
-
-                        if (radioChannels.PresetChannels.Count > 0)
-                        {
-                            var next = currentRadio.CurrentChannel + 1;
-
-                            if (radioChannels.PresetChannels.Count < next || currentRadio.CurrentChannel < 1)
-                            {
-                                //set to first radio
-                                SelectRadioChannel(radioChannels.PresetChannels[0], radioId);
-                                radioChannels.SelectedPresetChannel = radioChannels.PresetChannels[0];
-                            }
-                            else
-                            {
-                                var preset = radioChannels.PresetChannels[next - 1];
-
-                                SelectRadioChannel(preset, radioId);
-                                radioChannels.SelectedPresetChannel = preset;
-                            }
-                        }
-                    }
+                    //TODO fix
+                    // var fixedChannels = ClientStateSingleton.Instance.FixedChannels;
+                    //
+                    // //now get model
+                    // if (fixedChannels != null && fixedChannels[radioId - 1] != null)
+                    // {
+                    //     var radioChannels = fixedChannels[radioId - 1];
+                    //
+                    //     if (radioChannels.PresetChannels.Count > 0)
+                    //     {
+                    //         var next = currentRadio.CurrentChannel + 1;
+                    //
+                    //         if (radioChannels.PresetChannels.Count < next || currentRadio.CurrentChannel < 1)
+                    //         {
+                    //             //set to first radio
+                    //             SelectRadioChannel(radioChannels.PresetChannels[0], radioId);
+                    //             radioChannels.SelectedPresetChannel = radioChannels.PresetChannels[0];
+                    //         }
+                    //         else
+                    //         {
+                    //             var preset = radioChannels.PresetChannels[next - 1];
+                    //
+                    //             SelectRadioChannel(preset, radioId);
+                    //             radioChannels.SelectedPresetChannel = preset;
+                    //         }
+                    //     }
+                    // }
                 }
         }
 
@@ -234,32 +236,33 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                     && ClientStateSingleton.Instance.PlayerUnitState.control ==
                     PlayerUnitState.RadioSwitchControls.HOTAS)
                 {
-                    var fixedChannels = ClientStateSingleton.Instance.FixedChannels;
-
-                    //now get model
-                    if (fixedChannels != null && fixedChannels[radioId - 1] != null)
-                    {
-                        var radioChannels = fixedChannels[radioId - 1];
-
-                        if (radioChannels.PresetChannels.Count > 0)
-                        {
-                            var previous = currentRadio.CurrentChannel - 1;
-
-                            if (previous < 1)
-                            {
-                                //set to last radio
-                                SelectRadioChannel(radioChannels.PresetChannels.Last(), radioId);
-                                radioChannels.SelectedPresetChannel = radioChannels.PresetChannels.Last();
-                            }
-                            else
-                            {
-                                var preset = radioChannels.PresetChannels[previous - 1];
-                                //set to previous radio
-                                SelectRadioChannel(preset, radioId);
-                                radioChannels.SelectedPresetChannel = preset;
-                            }
-                        }
-                    }
+                    //TODO fix
+                    // var fixedChannels = ClientStateSingleton.Instance.FixedChannels;
+                    //
+                    // //now get model
+                    // if (fixedChannels != null && fixedChannels[radioId - 1] != null)
+                    // {
+                    //     var radioChannels = fixedChannels[radioId - 1];
+                    //
+                    //     if (radioChannels.PresetChannels.Count > 0)
+                    //     {
+                    //         var previous = currentRadio.CurrentChannel - 1;
+                    //
+                    //         if (previous < 1)
+                    //         {
+                    //             //set to last radio
+                    //             SelectRadioChannel(radioChannels.PresetChannels.Last(), radioId);
+                    //             radioChannels.SelectedPresetChannel = radioChannels.PresetChannels.Last();
+                    //         }
+                    //         else
+                    //         {
+                    //             var preset = radioChannels.PresetChannels[previous - 1];
+                    //             //set to previous radio
+                    //             SelectRadioChannel(preset, radioId);
+                    //             radioChannels.SelectedPresetChannel = preset;
+                    //         }
+                    //     }
+                   // }
                 }
         }
 
@@ -287,7 +290,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                     radio.Retransmit = !radio.Retransmit;
 
                     //make radio data stale to force resysnc
-                    ClientStateSingleton.Instance.LastSent = 0;
+                   // ClientStateSingleton.Instance.LastSent = 0;
                 }
         }
     }

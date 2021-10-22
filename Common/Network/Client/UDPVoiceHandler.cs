@@ -30,7 +30,6 @@ namespace Ciribob.SRS.Common.Network.Client
 
         private UdpClient _listener;
 
-        private ulong _packetNumber = 1;
 
         public bool Ready { get; private set; }
         private readonly IPEndPoint _serverEndpoint;
@@ -41,9 +40,9 @@ namespace Ciribob.SRS.Common.Network.Client
         public delegate void ConnectionState(bool voipConnected);
 
         private readonly ConnectedClientsSingleton _clients = ConnectedClientsSingleton.Instance;
-        private readonly MessageHub _hubSingleton = MessageHubSingleton.Instance;
+        private readonly EventBus _eventBus = EventBus.Instance;
 
-        public ConnectionState ConnectionStateDelegate { get; }
+        private bool _started = false;
 
         public UDPVoiceHandler(string guid, IPEndPoint endPoint)
         {
@@ -63,20 +62,24 @@ namespace Ciribob.SRS.Common.Network.Client
             //ping every 10 so after 40 seconds VoIP UDP issue
             if (diff.TotalSeconds > UDP_VOIP_TIMEOUT)
             {
-                //TODO emit event / callback
-
-                ConnectionStateDelegate?.Invoke(false);
-                _hubSingleton.Publish(new VOIPStatusMessage(false));
+                _eventBus.PublishOnCurrentThreadAsync(new VOIPStatusMessage(false));
             }
             else
             {
-                ConnectionStateDelegate?.Invoke(true);
-                _hubSingleton.Publish(new VOIPStatusMessage(true));
+                _eventBus.PublishOnCurrentThreadAsync(new VOIPStatusMessage(true));
             }
         }
 
+        public void Connect()
+        {
+            if (!_started)
+            {
+                _started = true;
+                new Thread(StartUDP).Start();
+            }
+        }
 
-        public void Listen()
+        private void StartUDP()
         {
             _udpLastReceived = 0;
             Ready = false;
@@ -90,8 +93,6 @@ namespace Ciribob.SRS.Common.Network.Client
             }
 
             StartPing();
-
-            _packetNumber = 1; //reset packet number
 
             while (!_stop)
                 if (Ready)
@@ -122,9 +123,9 @@ namespace Ciribob.SRS.Common.Network.Client
             //stop UI Refreshing
             _updateTimer.Stop();
 
-            //TODO send event & callback
-            ConnectionStateDelegate?.Invoke(false);
-            _hubSingleton.Publish(new VOIPStatusMessage(false));
+            _eventBus.PublishOnCurrentThreadAsync(new VOIPStatusMessage(false));
+
+            _started = false;
         }
 
 
@@ -148,8 +149,9 @@ namespace Ciribob.SRS.Common.Network.Client
             {
             }
 
-            ConnectionStateDelegate?.Invoke(false);
-            _hubSingleton.Publish(new VOIPStatusMessage(false));
+            _started = false;
+
+            _eventBus.PublishOnCurrentThreadAsync(new VOIPStatusMessage(false));
         }
 
         public bool Send(UDPVoicePacket udpVoicePacket)
@@ -160,7 +162,17 @@ namespace Ciribob.SRS.Common.Network.Client
                 try
                 {
                     //TODO check this
-                    udpVoicePacket.PacketNumber++;
+
+                    if (udpVoicePacket.GuidBytes == null)
+                    {
+                        udpVoicePacket.GuidBytes = _guidAsciiBytes;
+                    }
+
+                    if (udpVoicePacket.OriginalClientGuidBytes == null)
+                    {
+                        udpVoicePacket.OriginalClientGuidBytes = _guidAsciiBytes;
+                    }
+                  
                     var encodedUdpVoicePacket = udpVoicePacket.EncodePacket();
 
                     _listener.Send(encodedUdpVoicePacket, encodedUdpVoicePacket.Length, _serverEndpoint);

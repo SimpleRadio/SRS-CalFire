@@ -88,7 +88,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
 
             //disconnect callback
             //TODO send disconnect
-            MessageHubSingleton.Instance.Publish(new DisconnectedMessage());
+           // EventBus.Instance.Publish(new DisconnectedMessage());
         }
 
         private void ClientSyncLoop()
@@ -146,7 +146,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
                                         break;
                                     case NetworkMessage.MessageType.SYNC:
                                         // response to sync - kick off everything
-                                        MessageHubSingleton.Instance.Publish(new ReadyMessage());
+                                       // EventBus.Instance.Publish(new ReadyMessage());
 
                                        break;
                                     case NetworkMessage.MessageType.VERSION_MISMATCH:
@@ -230,12 +230,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
                 {
                     _tcpClient.Close(); // this'll stop the socket blocking
 
-                    MessageHubSingleton.Instance.Publish(new DisconnectedMessage());
+                  //  EventBus.Instance.Publish(new DisconnectedMessage());
                 }
             }
             catch (Exception ex)
             {
-                MessageHubSingleton.Instance.Publish(new DisconnectedMessage());
+             //   EventBus.Instance.Publish(new DisconnectedMessage());
             }
 
             Logger.Info("Disconnecting from server");
