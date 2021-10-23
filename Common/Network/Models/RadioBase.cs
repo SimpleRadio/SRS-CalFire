@@ -5,6 +5,28 @@ namespace Ciribob.SRS.Common.Network.Models
 {
     public class RadioBase
     {
+        protected bool Equals(RadioBase other)
+        {
+            return FreqCloseEnough(Freq,other.Freq) 
+                   && Modulation == other.Modulation 
+                   && Encrypted == other.Encrypted 
+                   && EncKey == other.EncKey 
+                   && FreqCloseEnough(SecFreq, other.SecFreq);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((RadioBase)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Freq, (int)Modulation, Encrypted, EncKey, SecFreq);
+        }
+
         public double Freq { get; set; } = 1;
         public Modulation Modulation { get; set; } = Modulation.DISABLED;
 
@@ -127,6 +149,18 @@ namespace Ciribob.SRS.Common.Network.Models
             var diff = Math.Abs(freq1 - freq2);
 
             return diff < 500;
+        }
+
+        public RadioBase DeepClone()
+        {
+            return new RadioBase()
+            {
+                Encrypted = Encrypted,
+                Modulation = Modulation,
+                SecFreq = SecFreq,
+                EncKey = EncKey,
+                Freq = Freq
+            };
         }
     }
 }

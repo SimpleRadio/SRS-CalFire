@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using Caliburn.Micro;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Models.EventMessages;
@@ -17,7 +18,7 @@ using LogManager = NLog.LogManager;
 
 namespace Ciribob.SRS.Common.Network.Client
 {
-    public class TCPClientHandler : IHandle<DisconnectRequestMessage>
+    public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitUpdateMessage>
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -26,7 +27,7 @@ namespace Ciribob.SRS.Common.Network.Client
         private static readonly int MAX_DECODE_ERRORS = 5;
         private readonly ConnectedClientsSingleton _clients = ConnectedClientsSingleton.Instance;
         private readonly string _guid;
-        private readonly PlayerUnitStateBase _initialPlayerUnitState;
+        private PlayerUnitStateBase _playerUnitState;
 
         private readonly SyncedServerSettings _serverSettings = SyncedServerSettings.Instance;
         private readonly List<Guid> _subscriptions = new();
@@ -39,11 +40,11 @@ namespace Ciribob.SRS.Common.Network.Client
 
         private UDPVoiceHandler _udpVoiceHandler;
 
-        public TCPClientHandler(string guid, PlayerUnitStateBase initialPlayerUnitState)
+        public TCPClientHandler(string guid, PlayerUnitStateBase playerUnitState)
         {
             _clients.Clear();
             _guid = guid;
-            _initialPlayerUnitState = initialPlayerUnitState;
+            _playerUnitState = playerUnitState;
         }
 
         public Task HandleAsync(DisconnectRequestMessage message, CancellationToken cancellationToken)
@@ -83,7 +84,7 @@ namespace Ciribob.SRS.Common.Network.Client
                     {
                         _tcpClient.NoDelay = true;
 
-                        ClientSyncLoop(_initialPlayerUnitState);
+                        ClientSyncLoop(_playerUnitState);
                     }
                     else
                     {
@@ -102,46 +103,59 @@ namespace Ciribob.SRS.Common.Network.Client
             }
         }
 
-        private void ClientRadioUpdated(PlayerUnitStateBase unitState)
+        private void ClientRadioUpdated(PlayerUnitStateBase updatedUnitState)
         {
             Logger.Debug("Sending Full Update to Server");
 
-            var message = new NetworkMessage
-            {
-                Client = new SRClientBase
-                {
-                    ClientGuid = _guid,
-                    UnitState = unitState
-                },
-                MsgType = NetworkMessage.MessageType.FULL_UPDATE
-            };
-
             var needValidPosition = _serverSettings.GetSettingAsBool(ServerSettingsKeys.DISTANCE_ENABLED) ||
                                     _serverSettings.GetSettingAsBool(ServerSettingsKeys.LOS_ENABLED);
-            //TODO come back too
-            if (!needValidPosition) message.Client.UnitState.LatLng = new LatLngPosition();
 
-            SendToServer(message);
+            if (!needValidPosition) updatedUnitState.LatLng = new LatLngPosition();
+            //Only send if there is an actual change
+            if (!updatedUnitState.Equals(_playerUnitState))
+            {
+                _playerUnitState = updatedUnitState;
+                var message = new NetworkMessage
+                {
+                    Client = new SRClientBase
+                    {
+                        ClientGuid = _guid,
+                        UnitState = updatedUnitState
+                    },
+                    MsgType = NetworkMessage.MessageType.FULL_UPDATE
+                };
+
+                SendToServer(message);
+            }
         }
 
-        private void ClientCoalitionUpdate(PlayerUnitStateBase unitState)
+        private void ClientCoalitionUpdate(PlayerUnitStateBase updatedMetadata)
         {
-            var message = new NetworkMessage
-            {
-                Client = new SRClientBase
-                {
-                    ClientGuid = _guid,
-                    UnitState = unitState
-                },
-                MsgType = NetworkMessage.MessageType.PARTIAL_UPDATE
-            };
 
             var needValidPosition = _serverSettings.GetSettingAsBool(ServerSettingsKeys.DISTANCE_ENABLED) ||
                                     _serverSettings.GetSettingAsBool(ServerSettingsKeys.LOS_ENABLED);
-            //TODO come back too
-            if (!needValidPosition) message.Client.UnitState.LatLng = new LatLngPosition();
+            if (!needValidPosition) updatedMetadata.LatLng = new LatLngPosition();
 
-            SendToServer(message);
+            //only send if there is an actual change to metadata
+            if (!_playerUnitState.MetaDataEquals(updatedMetadata))
+            {
+                _playerUnitState.UpdateMetadata(updatedMetadata);
+                //dont send radios to cut down size
+                updatedMetadata.Radios = new List<RadioBase>();
+
+                var message = new NetworkMessage
+                {
+                    Client = new SRClientBase
+                    {
+                        ClientGuid = _guid,
+                        UnitState = updatedMetadata
+                    },
+                    MsgType = NetworkMessage.MessageType.PARTIAL_UPDATE
+                };
+
+                //update state
+                SendToServer(message);
+            }
         }
 
 
@@ -331,8 +345,7 @@ namespace Ciribob.SRS.Common.Network.Client
 
         private void HandlePartialUpdate(NetworkMessage networkMessage, SRClientBase client)
         {
-            var updatedSrClient = networkMessage.Client;
-            //TODO change to internal proxy
+          
             client.UnitState.Transponder = client.UnitState.Transponder;
             client.UnitState.Coalition = client.UnitState.Coalition;
             client.UnitState.LatLng = client.UnitState.LatLng;
@@ -342,20 +355,17 @@ namespace Ciribob.SRS.Common.Network.Client
         private void HandleFullUpdate(NetworkMessage networkMessage, SRClientBase client)
         {
             var updatedSrClient = networkMessage.Client;
-            //TODO change to internal proxy
             client.UnitState = updatedSrClient.UnitState;
         }
 
         private void ShowVersionMistmatchWarning(string serverVersion)
         {
-            //TODO send message to alert about this
-            // MessageBox.Show($"The SRS server you're connecting to is incompatible with this Client. " +
-            //                 $"\n\nMake sure to always run the latest version of the SRS Server & Client" +
-            //                 $"\n\nServer Version: {serverVersion}" +
-            //                 $"\nClient Version: {UpdaterChecker.VERSION}",
-            //                 "SRS Server Incompatible",
-            //                 MessageBoxButton.OK,
-            //                 MessageBoxImage.Error);
+            MessageBox.Show($"The SRS server you're connecting to is incompatible with this Client. " +
+                            $"\n\nMake sure to always run the latest version of the SRS Server & Client" +
+                            $"\nClient Version: {UpdaterChecker.VERSION}",
+                            "SRS Server Incompatible",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
         }
 
         private void SendToServer(NetworkMessage message)
@@ -414,6 +424,20 @@ namespace Ciribob.SRS.Common.Network.Client
             }
 
             Logger.Error("Disconnecting from server");
+        }
+
+        public Task HandleAsync(UnitUpdateMessage message, CancellationToken cancellationToken)
+        {
+            if (message.FullUpdate)
+            {
+                ClientRadioUpdated(message.UnitUpdate);
+            }
+            else
+            {
+                ClientCoalitionUpdate(message.UnitUpdate);
+            }
+
+            return Task.CompletedTask;
         }
     }
 }

@@ -32,11 +32,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWind
 
         public RadioOverlayWindow()
         {
-            LoadHandheldRadioConfig();
+            ClientStateSingleton.Instance.PlayerUnitState.SelectedRadio = 1;
             //load opacity before the intialising as the slider changed
             //method fires after initialisation
             InitializeComponent();
-
 
             WindowStartupLocation = WindowStartupLocation.Manual;
 
@@ -61,7 +60,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWind
             //  Window_Loaded(null, null);
             CalculateScale();
 
-            LocationChanged += Location_Changed;
 
             RadioRefresh(null, null);
 
@@ -76,27 +74,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWind
             //load the fixed channel files
             //send the new radio channel config (use the singleton to co-ordinate)
             //on closing the overlay, set all the radios to disabled
+
+
         }
-
-        private void LoadHandheldRadioConfig()
-        {
-            
-
-            //TODO fix
-
-            //
-            // ClientStateSingleton.Instance.PlayerUnitState.Radios = new List<RadioBase>(handheldRadio);
-            //
-            //
-            //
-            // //load handheld-radio.json
-            //
-            // var fixedChannels = _clientStateSingleton.FixedChannels;
-            //
-            // for (var i = 1; i < ClientStateSingleton.Instance.PlayerUnitState.Radios.Count; i++)
-            //     fixedChannels[i - 1] = new PresetChannelsViewModel(new FilePresetChannelsStore(), i);
-        }
-
         private void Location_Changed(object sender, EventArgs e)
         {
         }

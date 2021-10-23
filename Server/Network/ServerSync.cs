@@ -297,9 +297,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                     //shouldnt be the case but just incase...
                     if (message.Client.UnitState == null) message.Client.UnitState = new PlayerUnitStateBase();
 
-                    //update to local ticks
-                    message.Client.UnitState.LastUpdate = DateTime.Now.Ticks;
-
                     var changed = false;
 
                     if (client.UnitState == null)

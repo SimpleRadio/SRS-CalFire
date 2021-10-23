@@ -1,4 +1,6 @@
-﻿namespace Ciribob.SRS.Common.Network.Models
+﻿using System;
+
+namespace Ciribob.SRS.Common.Network.Models
 {
     public class TransponderBase
     {
@@ -22,10 +24,32 @@
         public bool Mode4 { get; set; }
 
         public IFFStatus Status { get; set; } = IFFStatus.OFF;
-
-        public TransponderBase Copy()
+        protected bool Equals(TransponderBase other)
         {
-            return new TransponderBase { Mode1 = Mode1, Mode3 = Mode3, Mode4 = Mode4, Status = Status };
+            return Mode1 == other.Mode1 && Mode3 == other.Mode3 && Mode4 == other.Mode4 && Status == other.Status;
+        }
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((TransponderBase)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Mode1, Mode3, Mode4, (int)Status);
+        }
+
+        public TransponderBase DeepClone()
+        {
+            return new TransponderBase()
+            {
+                Mode1 = Mode1,
+                Mode3 = Mode3,
+                Mode4 = Mode4,
+                Status = Status
+            };
         }
     }
 }
