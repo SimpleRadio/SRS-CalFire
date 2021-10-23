@@ -9,9 +9,7 @@ using System.Threading.Tasks;
 using Caliburn.Micro;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Models.EventMessages;
-using Ciribob.SRS.Common.Network.Proxies;
 using Ciribob.SRS.Common.Network.Singletons;
-using Ciribob.SRS.Common.PlayerState;
 using Ciribob.SRS.Common.Setting;
 using Newtonsoft.Json;
 using NLog;
@@ -110,7 +108,7 @@ namespace Ciribob.SRS.Common.Network.Client
 
             var message = new NetworkMessage
             {
-                Client = new SRClient
+                Client = new SRClientBase
                 {
                     ClientGuid = _guid,
                     UnitState = unitState
@@ -130,7 +128,7 @@ namespace Ciribob.SRS.Common.Network.Client
         {
             var message = new NetworkMessage
             {
-                Client = new SRClient
+                Client = new SRClientBase
                 {
                     ClientGuid = _guid,
                     UnitState = unitState
@@ -164,7 +162,7 @@ namespace Ciribob.SRS.Common.Network.Client
                     //start the loop off by sending a SYNC Request
                     SendToServer(new NetworkMessage
                     {
-                        Client = new SRClient
+                        Client = new SRClientBase
                         {
                             ClientGuid = _guid,
                             UnitState = initialState
@@ -193,7 +191,7 @@ namespace Ciribob.SRS.Common.Network.Client
                                         if (serverMessage.ServerSettings != null)
                                             _serverSettings.Decode(serverMessage.ServerSettings);
 
-                                        SRClient srClient;
+                                        SRClientBase srClient;
                                         if (_clients.TryGetValue(serverMessage.Client.ClientGuid, out srClient))
                                         {
                                             if (serverMessage.MsgType == NetworkMessage.MessageType.FULL_UPDATE)
@@ -279,7 +277,7 @@ namespace Ciribob.SRS.Common.Network.Client
                                         break;
                                     case NetworkMessage.MessageType.CLIENT_DISCONNECT:
 
-                                        SRClient outClient;
+                                        SRClientBase outClient;
                                         _clients.TryRemove(serverMessage.Client.ClientGuid, out outClient);
 
                                         if (outClient != null)
@@ -331,7 +329,7 @@ namespace Ciribob.SRS.Common.Network.Client
             Disconnect();
         }
 
-        private void HandlePartialUpdate(NetworkMessage networkMessage, SRClient client)
+        private void HandlePartialUpdate(NetworkMessage networkMessage, SRClientBase client)
         {
             var updatedSrClient = networkMessage.Client;
             //TODO change to internal proxy
@@ -341,7 +339,7 @@ namespace Ciribob.SRS.Common.Network.Client
             client.UnitState.Name = client.UnitState.Name;
         }
 
-        private void HandleFullUpdate(NetworkMessage networkMessage, SRClient client)
+        private void HandleFullUpdate(NetworkMessage networkMessage, SRClientBase client)
         {
             var updatedSrClient = networkMessage.Client;
             //TODO change to internal proxy

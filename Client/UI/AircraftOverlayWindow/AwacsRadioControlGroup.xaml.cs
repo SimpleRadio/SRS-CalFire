@@ -6,8 +6,8 @@ using System.Windows.Media;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common.PresetChannels;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
+using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Singletons;
-using Ciribob.SRS.Common.PlayerState;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AircraftOverlayWindow
 {
@@ -67,7 +67,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AircraftOverlayWindow
         {
             var playerRadioInfo = _clientStateSingleton.PlayerUnitState;
 
-            if (playerRadioInfo == null || !playerRadioInfo.IsCurrent() ||
+            if (playerRadioInfo == null  ||
                 RadioId > playerRadioInfo.Radios.Count - 1 || RadioId < 0)
             {
                 //remove focus to somewhere else

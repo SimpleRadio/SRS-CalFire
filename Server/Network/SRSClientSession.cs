@@ -16,12 +16,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly HashSet<IPAddress> _bannedIps;
 
-        private readonly ConcurrentDictionary<string, SRClient> _clients;
+        private readonly ConcurrentDictionary<string, SRClientBase> _clients;
 
         // Received data string.
         private readonly StringBuilder _receiveBuffer = new();
 
-        public SRSClientSession(ServerSync server, ConcurrentDictionary<string, SRClient> client,
+        public SRSClientSession(ServerSync server, ConcurrentDictionary<string, SRClientBase> client,
             HashSet<IPAddress> bannedIps) : base(server)
         {
             _clients = client;

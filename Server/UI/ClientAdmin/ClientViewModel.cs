@@ -14,14 +14,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.ClientAdmin
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly IEventAggregator _eventAggregator;
 
-        public ClientViewModel(SRClient client, IEventAggregator eventAggregator)
+        public ClientViewModel(SRClientBase client, IEventAggregator eventAggregator)
         {
             _eventAggregator = eventAggregator;
             Client = client;
             Client.PropertyChanged += ClientOnPropertyChanged;
         }
 
-        public SRClient Client { get; }
+        public SRClientBase Client { get; }
 
         public string ClientName => Client?.UnitState?.Name;
 

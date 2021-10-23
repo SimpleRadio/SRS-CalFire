@@ -11,7 +11,6 @@ using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.NetCoreServer;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings;
 using Ciribob.SRS.Common.Network.Models;
-using Ciribob.SRS.Common.Network.Proxies;
 using Ciribob.SRS.Common.Setting;
 using NLog;
 using LogManager = NLog.LogManager;
@@ -24,13 +23,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
 
         private readonly HashSet<IPAddress> _bannedIps;
 
-        private readonly ConcurrentDictionary<string, SRClient> _clients = new();
+        private readonly ConcurrentDictionary<string, SRClientBase> _clients = new();
         private readonly IEventAggregator _eventAggregator;
 
         private readonly ServerSettingsStore _serverSettings;
 
 
-        public ServerSync(ConcurrentDictionary<string, SRClient> connectedClients, HashSet<IPAddress> _bannedIps,
+        public ServerSync(ConcurrentDictionary<string, SRClientBase> connectedClients, HashSet<IPAddress> _bannedIps,
             IEventAggregator eventAggregator) : base(IPAddress.Any, ServerSettingsStore.Instance.GetServerPort())
         {
             _clients = connectedClients;
@@ -90,7 +89,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
             if (state != null && state.SRSGuid != null)
             {
                 //removed
-                SRClient client;
+                SRClientBase client;
                 _clients.TryRemove(state.SRSGuid, out client);
 
                 if (client != null)
@@ -105,7 +104,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                 try
                 {
                     _eventAggregator.PublishOnUIThreadAsync(
-                        new ServerStateMessage(true, new List<SRClient>(_clients.Values)));
+                        new ServerStateMessage(true, new List<SRClientBase>(_clients.Values)));
                 }
                 catch (Exception ex)
                 {
@@ -201,7 +200,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
 
 
                 _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(true,
-                    new List<SRClient>(_clients.Values)));
+                    new List<SRClientBase>(_clients.Values)));
             }
 
             return true;
@@ -249,7 +248,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                     var replyMessage = new NetworkMessage
                     {
                         MsgType = NetworkMessage.MessageType.PARTIAL_UPDATE,
-                        Client = new SRClient
+                        Client = new SRClientBase
                         {
                             ClientGuid = client.ClientGuid,
                             UnitState = client.UnitState
@@ -264,12 +263,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                     // Only redraw client admin UI of server if really needed
                     if (redrawClientAdminList)
                         _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(true,
-                            new List<SRClient>(_clients.Values)));
+                            new List<SRClientBase>(_clients.Values)));
                 }
             }
         }
 
-        private void HandleClientDisconnect(SRSClientSession srsSession, SRClient client)
+        private void HandleClientDisconnect(SRSClientSession srsSession, SRClientBase client)
         {
             var message = new NetworkMessage
             {
@@ -329,7 +328,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                             replyMessage = new NetworkMessage
                             {
                                 MsgType = NetworkMessage.MessageType.FULL_UPDATE,
-                                Client = new SRClient
+                                Client = new SRClientBase
                                 {
                                     ClientGuid = client.ClientGuid,
                                     UnitState = client.UnitState //send radio info
@@ -348,7 +347,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
             var replyMessage = new NetworkMessage
             {
                 MsgType = NetworkMessage.MessageType.SYNC,
-                Clients = new List<SRClient>(_clients.Values),
+                Clients = new List<SRClientBase>(_clients.Values),
                 ServerSettings = _serverSettings.ToDictionary(),
                 Version = UpdaterChecker.VERSION
             };
@@ -360,7 +359,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
             var update = new NetworkMessage
             {
                 MsgType = NetworkMessage.MessageType.FULL_UPDATE,
-                Client = new SRClient
+                Client = new SRClientBase
                 {
                     ClientGuid = message.Client.ClientGuid,
                     UnitState = message.Client.UnitState

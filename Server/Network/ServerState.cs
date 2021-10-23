@@ -23,7 +23,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
 
         private readonly HashSet<IPAddress> _bannedIps = new();
 
-        private readonly ConcurrentDictionary<string, SRClient> _connectedClients =
+        private readonly ConcurrentDictionary<string, SRClientBase> _connectedClients =
             new();
 
         private readonly IEventAggregator _eventAggregator;
@@ -56,14 +56,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
         {
             StartServer();
             _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(true,
-                new List<SRClient>(_connectedClients.Values)));
+                new List<SRClientBase>(_connectedClients.Values)));
         }
 
         public async Task HandleAsync(StopServerMessage message, CancellationToken cancellationToken)
         {
             StopServer();
             _eventAggregator.PublishOnUIThreadAsync(new ServerStateMessage(false,
-                new List<SRClient>(_connectedClients.Values)));
+                new List<SRClientBase>(_connectedClients.Values)));
         }
 
 
@@ -113,7 +113,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
             }
         }
 
-        private void KickClient(SRClient client)
+        private void KickClient(SRClientBase client)
         {
             if (client != null)
                 try
@@ -126,7 +126,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                 }
         }
 
-        private void WriteBanIP(SRClient client)
+        private void WriteBanIP(SRClientBase client)
         {
             try
             {

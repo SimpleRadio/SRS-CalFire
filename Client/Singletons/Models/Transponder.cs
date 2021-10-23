@@ -1,4 +1,4 @@
-﻿using Ciribob.SRS.Common.Network.Proxies;
+﻿using Ciribob.SRS.Common.Network.Models;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
 {

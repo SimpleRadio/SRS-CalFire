@@ -174,7 +174,4 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Network\Sync\Models\" />
-  </ItemGroup>
 </Project>

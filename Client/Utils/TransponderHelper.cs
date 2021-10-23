@@ -1,6 +1,6 @@
 ﻿using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models;
-using Ciribob.SRS.Common.Network.Proxies;
+using Ciribob.SRS.Common.Network.Models;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 {
@@ -12,7 +12,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
 
             var transponder = (Transponder)dcsPlayerRadioInfo.Transponder;
 
-            if (dcsPlayerRadioInfo != null && dcsPlayerRadioInfo.IsCurrent() &&
+            if (dcsPlayerRadioInfo != null &&
                 transponder != null &&
                 transponder.Control != Transponder.IFFControlMode.DISABLED)
             {

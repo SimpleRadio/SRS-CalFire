@@ -2,10 +2,10 @@
 {
     public class SRClientUpdateMessage
     {
-        public SRClient SrClient { get; }
+        public SRClientBase SrClient { get; }
         public bool Connected { get; }
 
-        public SRClientUpdateMessage(SRClient srClient, bool connected = true)
+        public SRClientUpdateMessage(SRClientBase srClient, bool connected = true)
         {
             SrClient = srClient;
             Connected = connected;

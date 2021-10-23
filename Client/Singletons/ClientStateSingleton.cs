@@ -1,15 +1,21 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Threading;
+using System.Threading.Tasks;
+using Caliburn.Micro;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models;
-using Ciribob.SRS.Common.Helpers;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.SRS.Common.Network.Models;
+using Ciribob.SRS.Common.Network.Models.EventMessages;
 using Ciribob.SRS.Common.Network.Singletons;
-using Ciribob.SRS.Common.PlayerState;
 using Ciribob.SRS.Common.Setting;
+using PropertyChangedBase = Ciribob.SRS.Common.Helpers.PropertyChangedBase;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
 {
-    public class ClientStateSingleton : PropertyChangedBase
+    public class ClientStateSingleton : PropertyChangedBase, IHandle<TCPClientStatusMessage>
     {
+ 
         private static volatile ClientStateSingleton _instance;
         private static readonly object _lock = new();
 
@@ -22,6 +28,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
             for (var i = 0; i < RadioReceivingState.Length; i++) RadioReceivingState[i] = new RadioReceivingState();
 
             RadioSendingState = new RadioSendingState();
+            EventBus.Instance.SubscribeOnUIThread(this);
         }
 
         public ShortGuid GUID { get; }
@@ -69,11 +76,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
                     {
                         RadioReceivingState radioReceivingState = null;
                         bool decryptable;
-                        var receivingRadio = radioInfo.CanHearTransmission(freq,
+                        var receivingRadio = RadioBase.CanHearTransmission(freq,
                             modulation,
                             0,
                             currentUnitId,
                             new List<int>(),
+                            radioInfo.Radios,
+                            radioInfo.UnitId,
                             out radioReceivingState,
                             out decryptable);
 
@@ -83,6 +92,20 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
                 }
 
             return count;
+        }
+
+        public Task HandleAsync(TCPClientStatusMessage message, CancellationToken cancellationToken)
+        {
+            if (message.Connected)
+            {
+               //TODO
+            }
+            else
+            {
+               // PlayerUnitState.Reset();
+            }
+
+            return Task.CompletedTask;
         }
     }
 }

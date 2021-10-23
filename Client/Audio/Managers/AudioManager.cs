@@ -16,7 +16,6 @@ using Ciribob.SRS.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Models.EventMessages;
 using Ciribob.SRS.Common.Network.Singletons;
-using Ciribob.SRS.Common.PlayerState;
 using FragLabs.Audio.Codecs;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
@@ -274,6 +273,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             _udpVoiceHandler.Connect();
 
             _udpClientAudioProcessor = new UDPClientAudioProcessor(_udpVoiceHandler, this, guid);
+            _udpClientAudioProcessor.Start();
 
             EventBus.Instance.SubscribeOnBackgroundThread(this);
         }
@@ -343,8 +343,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                             Buffer.BlockCopy(buff, 0, encoded, 0, len);
 
                             // Console.WriteLine("Sending: " + e.BytesRecorded);
-                            //TODO
-                            /*var clientAudio = _udpVoiceHandler.Send(encoded, len);
+                          
+                            var clientAudio = _udpClientAudioProcessor.Send(encoded, len);
 
                             // _beforeWaveFile.Write(pcmBytes, 0, pcmBytes.Length);
 
@@ -361,7 +361,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                                     _micWaveOutBuffer?.AddSamples(processedAudioBytes, 0, processedAudioBytes.Length);
                                 }
                                 
-                            }*/
+                            }
                         }
                         else
                         {
@@ -667,7 +667,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             client.AddClientAudioSamples(audio);
         }
 
-        private void RemoveClientBuffer(SRClient srClient)
+        private void RemoveClientBuffer(SRClientBase srClient)
         {
             //TODO test this
             ClientAudioProvider clientAudio = null;

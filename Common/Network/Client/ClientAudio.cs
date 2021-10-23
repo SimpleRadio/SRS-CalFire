@@ -1,4 +1,4 @@
-﻿using Ciribob.SRS.Common.PlayerState;
+﻿using Ciribob.SRS.Common.Network.Models;
 
 namespace Ciribob.SRS.Common.Network.Client
 {

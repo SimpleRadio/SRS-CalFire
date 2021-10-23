@@ -14,16 +14,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models
 
     public class ServerStateMessage
     {
-        private readonly List<SRClient> _srClients;
+        private readonly List<SRClientBase> _srClients;
 
-        public ServerStateMessage(bool isRunning, List<SRClient> srClients)
+        public ServerStateMessage(bool isRunning, List<SRClientBase> srClients)
         {
             _srClients = srClients;
             IsRunning = isRunning;
         }
 
         //SUPER SAFE
-        public ReadOnlyCollection<SRClient> Clients => new(_srClients);
+        public ReadOnlyCollection<SRClientBase> Clients => new(_srClients);
 
         public bool IsRunning { get; }
         public int Count => _srClients.Count;
@@ -31,22 +31,22 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models
 
     public class KickClientMessage
     {
-        public KickClientMessage(SRClient client)
+        public KickClientMessage(SRClientBase client)
         {
             Client = client;
         }
 
-        public SRClient Client { get; }
+        public SRClientBase Client { get; }
     }
 
     public class BanClientMessage
     {
-        public BanClientMessage(SRClient client)
+        public BanClientMessage(SRClientBase client)
         {
             Client = client;
         }
 
-        public SRClient Client { get; }
+        public SRClientBase Client { get; }
     }
 
     public class ServerSettingsChangedMessage

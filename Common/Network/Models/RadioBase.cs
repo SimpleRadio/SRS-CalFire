@@ -1,33 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using Ciribob.SRS.Common.PlayerState;
 
-namespace Ciribob.SRS.Common.Network.Proxies
+namespace Ciribob.SRS.Common.Network.Models
 {
-    //TODO - proxy for playerState just for the network
-
-    public class PlayerUnitStateBase
+    public class RadioBase
     {
-        public int Coalition { get; set; }
+        public double Freq { get; set; } = 1;
+        public Modulation Modulation { get; set; } = Modulation.DISABLED;
 
-        public LatLngPosition LatLng { get; set; } = new();
+        public bool Encrypted { get; set; } = false;
+        public byte EncKey { get; set; } = 0;
 
-        public TransponderBase Transponder { get; set; } = new();
-
-        public string UnitType { get; set; } = "";
-
-        public string Name { get; set; } = "";
-
-        public uint UnitId { get; set; }
-
-        public List<RadioBase> Radios { get; set; } = new();
-        public long LastUpdate { get; set; }
-
-        public RadioBase CanHearTransmission(double frequency,
+        public double SecFreq { get; set; } = 1;
+        public static RadioBase CanHearTransmission(double frequency,
             Modulation modulation,
             byte encryptionKey,
             uint sendingUnitId,
             List<int> blockedRadios,
+            List<RadioBase> receivingRadios,
+            uint receivingUnitId,
             out RadioReceivingState receivingState,
             out bool decryptable)
         {
@@ -35,9 +26,9 @@ namespace Ciribob.SRS.Common.Network.Proxies
             RadioReceivingState bestMatchingRadioState = null;
             var bestMatchingDecryptable = false;
 
-            for (var i = 0; i < Radios.Count; i++)
+            for (var i = 0; i < receivingRadios.Count; i++)
             {
-                var receivingRadio = Radios[i];
+                var receivingRadio = receivingRadios[i];
 
                 if (receivingRadio != null)
                 {
@@ -49,8 +40,8 @@ namespace Ciribob.SRS.Common.Network.Proxies
                     if (receivingRadio.Modulation == Modulation.INTERCOM &&
                         modulation == Modulation.INTERCOM)
                     {
-                        if (UnitId > 0 && sendingUnitId > 0
-                                       && UnitId == sendingUnitId)
+                        if (receivingUnitId > 0 && sendingUnitId > 0
+                                                && receivingUnitId == sendingUnitId)
                         {
                             receivingState = new RadioReceivingState
                             {
@@ -100,18 +91,18 @@ namespace Ciribob.SRS.Common.Network.Proxies
                         && receivingRadio.SecFreq > 10000)
                     {
                         //TODO come back too
-                        // if (encryptionKey == 0 || (receivingRadio.Encrypted ? receivingRadio.EncryptionKey : (byte)0) ==
-                        //     encryptionKey)
-                        // {
-                        //     receivingState = new RadioReceivingState
-                        //     {
-                        //         IsSecondary = true,
-                        //         LastReceviedAt = DateTime.Now.Ticks,
-                        //         ReceivedOn = i
-                        //     };
-                        //     decryptable = true;
-                        //     return receivingRadio;
-                        // }
+                        if (encryptionKey == 0 || (receivingRadio.Encrypted ? receivingRadio.EncKey : (byte)0) ==
+                            encryptionKey)
+                        {
+                            receivingState = new RadioReceivingState
+                            {
+                                IsSecondary = true,
+                                LastReceviedAt = DateTime.Now.Ticks,
+                                ReceivedOn = i
+                            };
+                            decryptable = true;
+                            return receivingRadio;
+                        }
 
                         bestMatchingRadio = receivingRadio;
                         bestMatchingRadioState = new RadioReceivingState

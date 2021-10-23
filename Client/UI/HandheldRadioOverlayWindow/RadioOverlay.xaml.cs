@@ -7,7 +7,6 @@ using System.Windows.Threading;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models;
-using Ciribob.SRS.Common.PlayerState;
 using Newtonsoft.Json;
 using NLog;
 
@@ -18,7 +17,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWind
     /// </summary>
     public partial class RadioOverlayWindow : Window
     {
-        private static readonly string HANDHELD_RADIO_JSON = "handheld-radio.json";
 
         private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
 
@@ -82,50 +80,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWind
 
         private void LoadHandheldRadioConfig()
         {
-            Radio[] handheldRadio;
-            try
-            {
-                var radioJson = File.ReadAllText(HANDHELD_RADIO_JSON);
-                handheldRadio = JsonConvert.DeserializeObject<Radio[]>(radioJson);
-
-                if (handheldRadio.Length < 2) throw new Exception("Not enough radios configured");
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "Failed to load " + HANDHELD_RADIO_JSON);
-
-                handheldRadio = new Radio[11];
-                for (var i = 0; i < 11; i++)
-                    handheldRadio[i] = new Radio
-                    {
-                        Config = new RadioConfig
-                        {
-                            MinimumFrequency = 1,
-                            MaxFrequency = 1,
-                            FrequencyControl = RadioConfig.FreqMode.COCKPIT,
-                            VolumeControl = RadioConfig.VolumeMode.COCKPIT
-                        },
-                        Freq = 1,
-                        SecFreq = 0,
-                        Modulation = Modulation.DISABLED,
-                        Name = "Invalid Config"
-                    };
-
-                handheldRadio[1] = new Radio
-                {
-                    Freq = 1.51e+8,
-                    Config = new RadioConfig
-                    {
-                        MinimumFrequency = 1.0e+8,
-                        MaxFrequency = 3.51e+8,
-                        FrequencyControl = RadioConfig.FreqMode.OVERLAY,
-                        VolumeControl = RadioConfig.VolumeMode.OVERLAY
-                    },
-                    SecFreq = 1.215e+8,
-                    Modulation = Modulation.AM,
-                    Name = "BK RADIO"
-                };
-            }
+            
 
             //TODO fix
 

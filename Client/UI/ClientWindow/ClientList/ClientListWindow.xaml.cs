@@ -18,7 +18,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private readonly ObservableCollection<SRClient> _clientList = new();
+        private readonly ObservableCollection<SRClientBase> _clientList = new();
         private readonly DispatcherTimer _updateTimer;
 
 
@@ -38,7 +38,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientList
             _clientList.Clear();
 
             //first create temporary list to sort
-            var tempList = new List<SRClient>();
+            var tempList = new List<SRClientBase>();
 
 
             foreach (var srClient in ConnectedClientsSingleton.Instance.Values) tempList.Add(srClient);

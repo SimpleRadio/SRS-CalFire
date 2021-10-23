@@ -3,7 +3,7 @@ using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.SRS.Common.Helpers;
-using Ciribob.SRS.Common.PlayerState;
+using Ciribob.SRS.Common.Network.Models;
 using FragLabs.Audio.Codecs;
 using MathNet.Filtering;
 using NAudio.Dsp;

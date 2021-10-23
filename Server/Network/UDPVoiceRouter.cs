@@ -12,8 +12,6 @@ using Caliburn.Micro;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings;
 using Ciribob.SRS.Common.Network.Models;
-using Ciribob.SRS.Common.Network.Proxies;
-using Ciribob.SRS.Common.PlayerState;
 using Ciribob.SRS.Common.Setting;
 using NLog;
 using LogManager = NLog.LogManager;
@@ -28,7 +26,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
             _emptyBlockedRadios =
                 new(); // Used in radio reachability check below, server does not track blocked radios, so forward all
 
-        private readonly ConcurrentDictionary<string, SRClient> _clientsList;
+        private readonly ConcurrentDictionary<string, SRClientBase> _clientsList;
         private readonly IEventAggregator _eventAggregator;
 
         private readonly BlockingCollection<OutgoingUDPPackets>
@@ -49,7 +47,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
 
         private List<double> _testFrequencies = new();
 
-        public UDPVoiceRouter(ConcurrentDictionary<string, SRClient> clientsList, IEventAggregator eventAggregator)
+        public UDPVoiceRouter(ConcurrentDictionary<string, SRClientBase> clientsList, IEventAggregator eventAggregator)
         {
             _clientsList = clientsList;
             _eventAggregator = eventAggregator;
@@ -272,7 +270,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
         }
 
         private OutgoingUDPPackets GenerateOutgoingPacket(UDPVoicePacket udpVoice, PendingPacket pendingPacket,
-            SRClient fromClient)
+            SRClientBase fromClient)
         {
             var nodeHopCount =
                 _serverSettings.GetGeneralSetting(ServerSettingsKeys.RETRANSMISSION_NODE_LIMIT).IntValue;
@@ -295,7 +293,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                     {
                         for (var i = 0; i < udpVoice.Frequencies.Length; i++)
                             foreach (var testFrequency in _globalFrequencies)
-                                if (PlayerUnitStateBase.FreqCloseEnough(testFrequency, udpVoice.Frequencies[i]))
+                                if (RadioBase.FreqCloseEnough(testFrequency, udpVoice.Frequencies[i]))
                                 {
                                     //ignore everything as its global frequency
                                     global = true;
@@ -316,11 +314,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                                 {
                                     RadioReceivingState radioReceivingState = null;
                                     bool decryptable;
-                                    var receivingRadio = radioInfo.CanHearTransmission(udpVoice.Frequencies[i],
+                                    var receivingRadio = RadioBase.CanHearTransmission(udpVoice.Frequencies[i],
                                         (Modulation)udpVoice.Modulations[i],
                                         udpVoice.Encryptions[i],
                                         udpVoice.UnitId,
                                         _emptyBlockedRadios,
+                                        radioInfo.Radios,
+                                        radioInfo.UnitId,
                                         out radioReceivingState,
                                         out decryptable);
 
@@ -337,7 +337,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                     if (ip != null)
                         foreach (var frequency in udpVoice.Frequencies)
                         foreach (var testFrequency in _testFrequencies)
-                            if (PlayerUnitStateBase.FreqCloseEnough(testFrequency, frequency))
+                            if (RadioBase.FreqCloseEnough(testFrequency, frequency))
                             {
                                 //send back to sending client as its a test frequency
                                 outgoingList.Add(ip);

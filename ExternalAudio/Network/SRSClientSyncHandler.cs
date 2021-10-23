@@ -5,8 +5,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using Ciribob.SRS.Common.Network.Models;
-using Ciribob.SRS.Common.Network.Proxies;
-using Ciribob.SRS.Common.PlayerState;
 using Ciribob.SRS.Common.Setting;
 using Newtonsoft.Json;
 using NLog;
@@ -99,7 +97,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
                     //start the loop off by sending a SYNC Request
                     SendToServer(new NetworkMessage
                     {
-                        Client = new SRClient
+                        Client = new SRClientBase
                         {
                             ClientGuid = _guid,
                             UnitState = gameState
@@ -110,7 +108,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network
                     Logger.Info($"Sending radio update to {_serverEndpoint.Address}:{_serverEndpoint.Port} ");
                     SendToServer(new NetworkMessage
                     {
-                        Client = new SRClient
+                        Client = new SRClientBase
                         {
                             ClientGuid = _guid,
                             UnitState = gameState

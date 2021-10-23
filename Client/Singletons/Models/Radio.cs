@@ -4,17 +4,36 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Annotations;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.SRS.Common.Helpers;
-using Ciribob.SRS.Common.Network.Proxies;
-using Ciribob.SRS.Common.PlayerState;
+using Ciribob.SRS.Common.Network.Models;
+using NLog;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
 {
-    public class Radio : RadioBase, INotifyPropertyChanged
+    public class Radio: PropertyChangedBase
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private string _name = "";
         public RadioConfig Config { get; set; } = new();
-        public string Name { get; set; } = "";
 
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                _name = value;
+                ReloadChannels();
+            }
+        }
+
+        public double Freq { get; set; } = 1;
+        public Modulation Modulation { get; set; } = Modulation.DISABLED;
+
+        public bool Encrypted { get; set; } = false;
+        public byte EncKey { get; set; } = 0;
+
+        public double SecFreq { get; set; } = 1;
 
         //should the radio restransmit?
         public bool Retransmit { get; set; }
@@ -35,6 +54,33 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
             return Modulation != Modulation.DISABLED;
         }
 
+        public Radio()
+        {
+            ReloadChannels();
+        }
+
+        public void ReloadChannels()
+        {
+            PresetChannels.Clear();
+            if (Name.Length == 0 || !Available())
+            {
+                return;
+            }
+            foreach (var presetChannel in new FilePresetChannelsStore().LoadFromStore(Name))
+            {
+                var freq = (double)presetChannel.Value;
+                if (freq < Config.MaxFrequency && freq > Config.MinimumFrequency)
+                {
+                    PresetChannels.Add(presetChannel);
+                    Logger.Info($"Added {presetChannel.Text} for radio {Name} with frequency {freq}");
+                }
+                else
+                {
+                    Logger.Error($"Unable to add {presetChannel.Text} for radio {Name} with frequency {freq} - outside of radio range");
+                }
+            }
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null || GetType() != obj.GetType())
@@ -43,12 +89,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
             var compare = (Radio)obj;
 
             if (!Name.Equals(compare.Name)) return false;
-            if (!PlayerUnitStateBase.FreqCloseEnough(Freq, compare.Freq)) return false;
+            if (!RadioBase.FreqCloseEnough(Freq, compare.Freq)) return false;
             if (Modulation != compare.Modulation) return false;
             if (Encrypted != compare.Encrypted) return false;
             if (EncKey != compare.EncKey) return false;
             if (Retransmit != compare.Retransmit) return false;
-            if (!PlayerUnitStateBase.FreqCloseEnough(SecFreq, compare.SecFreq)) return false;
+            if (!RadioBase.FreqCloseEnough(SecFreq, compare.SecFreq)) return false;
 
             if (Config != null && compare.Config == null) return false;
             if (Config == null && compare.Config != null) return false;
@@ -56,51 +102,19 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
             return Config.Equals(compare.Config);
         }
 
-        internal Radio DeepCopy()
+        public RadioBase RadioBase
         {
-            //probably can use memberswise clone
-            return new Radio
+            get
             {
-                CurrentChannel = CurrentChannel,
-                Encrypted = Encrypted,
-                EncKey = EncKey,
-                Freq = Freq,
-                Modulation = Modulation,
-                SecFreq = SecFreq,
-                Name = Name,
-                SimultaneousTransmission = SimultaneousTransmission,
-                Volume = Volume,
-                Retransmit = Retransmit,
-                Config = Config?.DeepCopy()
-            };
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = Config != null ? Config.GetHashCode() : 0;
-                hashCode = (hashCode * 397) ^ Encrypted.GetHashCode();
-                hashCode = (hashCode * 397) ^ EncKey.GetHashCode();
-                hashCode = (hashCode * 397) ^ Freq.GetHashCode();
-                hashCode = (hashCode * 397) ^ (int)Modulation;
-                hashCode = (hashCode * 397) ^ (Name != null ? Name.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ SecFreq.GetHashCode();
-                hashCode = (hashCode * 397) ^ Retransmit.GetHashCode();
-                hashCode = (hashCode * 397) ^ Volume.GetHashCode();
-                hashCode = (hashCode * 397) ^ CurrentChannel;
-                hashCode = (hashCode * 397) ^ SimultaneousTransmission.GetHashCode();
-                hashCode = (hashCode * 397) ^ (PresetChannels != null ? PresetChannels.GetHashCode() : 0);
-                return hashCode;
+                return new RadioBase()
+                {
+                    Encrypted = Encrypted,
+                    EncKey = EncKey,
+                    Modulation = Modulation,
+                    Freq = Freq,
+                    SecFreq = SecFreq
+                };
             }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

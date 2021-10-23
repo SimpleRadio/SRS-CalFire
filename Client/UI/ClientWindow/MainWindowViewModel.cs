@@ -81,9 +81,17 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
 
         public InputDeviceManager InputManager { get; set; }
 
-        public bool Connected { get; set; }
 
         public bool IsConnected { get; set; }
+
+        //WPF cant invert a binding - this controls the input box for address
+        public bool IsNotConnected
+        {
+            get
+            {
+                return !IsConnected;
+            }
+        }
 
         public bool IsVoIPConnected { get; set; }
 
@@ -286,7 +294,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
                         var port = GetPortFromTextBox();
 
                         _client = new TCPClientHandler(ClientStateSingleton.Instance.GUID,
-                            ClientStateSingleton.Instance.PlayerUnitState);
+                            ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase);
                         _client.TryConnect(new IPEndPoint(resolvedIp, port));
                     }
                     else

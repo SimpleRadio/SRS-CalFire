@@ -1,20 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
-using Ciribob.SRS.Common.Helpers;
-using Ciribob.SRS.Common.Network.Proxies;
+using System.Text;
+using System.Threading.Tasks;
+using Ciribob.SRS.Common.Network.Models;
 using Newtonsoft.Json;
 
-namespace Ciribob.SRS.Common.Network.Models
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models
 {
-    public class SRClient : PropertyChangedBase
+    public class SRClient :SRClientBase
     {
-        [JsonIgnore] private float _lineOfSightLoss; // 0.0 is NO Loss therefore Full line of sight
-
         // Used by server client list to display last frequency client transmitted on
         private string _transmittingFrequency;
 
-        public string ClientGuid { get; set; }
-
+        [JsonIgnore] private float _lineOfSightLoss; // 0.0 is NO Loss therefore Full line of sight
         [JsonIgnore] public bool Muted { get; set; }
 
         [JsonIgnore] public long LastUpdate { get; set; }
@@ -22,8 +22,6 @@ namespace Ciribob.SRS.Common.Network.Models
         [JsonIgnore] public IPEndPoint VoipPort { get; set; }
 
         [JsonIgnore] public long LastRadioUpdateSent { get; set; }
-
-        public PlayerUnitStateBase UnitState { get; set; }
 
         [JsonIgnore]
         public float LineOfSightLoss

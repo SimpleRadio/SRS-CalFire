@@ -26,11 +26,11 @@ namespace Ciribob.SRS.Common.Network.Models
             EXTERNAL_AWACS_MODE_DISCONNECT // Received server side on "voluntary" disconnect by the client (without closing the server connection)
         }
 
-        public SRClient Client { get; set; }
+        public SRClientBase Client { get; set; }
 
         public MessageType MsgType { get; set; }
 
-        public List<SRClient> Clients { get; set; }
+        public List<SRClientBase> Clients { get; set; }
 
         public Dictionary<string, string> ServerSettings { get; set; }
 

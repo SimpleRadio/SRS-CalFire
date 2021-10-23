@@ -16,7 +16,7 @@ namespace Ciribob.SRS.Common.Network.Singletons
         {
         }
 
-        public ConcurrentDictionary<string, SRClient> Clients { get; } = new();
+        public ConcurrentDictionary<string, SRClientBase> Clients { get; } = new();
 
         public static ConnectedClientsSingleton Instance
         {
@@ -33,7 +33,7 @@ namespace Ciribob.SRS.Common.Network.Singletons
             }
         }
 
-        public SRClient this[string key]
+        public SRClientBase this[string key]
         {
             get => Clients[key];
             set
@@ -43,7 +43,7 @@ namespace Ciribob.SRS.Common.Network.Singletons
             }
         }
 
-        public ICollection<SRClient> Values => Clients.Values;
+        public ICollection<SRClientBase> Values => Clients.Values;
 
 
         public int Total => Clients.Count();
@@ -55,7 +55,7 @@ namespace Ciribob.SRS.Common.Network.Singletons
             NotifyPropertyChanged("Total");
         }
 
-        public bool TryRemove(string key, out SRClient value)
+        public bool TryRemove(string key, out SRClientBase value)
         {
             var result = Clients.TryRemove(key, out value);
             if (result) NotifyPropertyChanged("Total");
@@ -68,7 +68,7 @@ namespace Ciribob.SRS.Common.Network.Singletons
             NotifyPropertyChanged("Total");
         }
 
-        public bool TryGetValue(string key, out SRClient value)
+        public bool TryGetValue(string key, out SRClientBase value)
         {
             return Clients.TryGetValue(key, out value);
         }

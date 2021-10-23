@@ -6,7 +6,6 @@ using Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Network;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Singletons;
-using Ciribob.SRS.Common.PlayerState;
 using NLog;
 using Timer = Ciribob.SRS.Common.Timers.Timer;
 

@@ -531,7 +531,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
 
                                 var playerRadioInfo = ClientStateSingleton.Instance.PlayerUnitState;
 
-                                if (playerRadioInfo != null && playerRadioInfo.IsCurrent())
+                                if (playerRadioInfo != null)
                                     switch (bindState.MainDevice.InputBind)
                                     {
                                         case InputBinding.Up100:

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ciribob.SRS.Common.PlayerState
+namespace Ciribob.SRS.Common.Network.Models
 {
     public class RadioReceivingState
     {

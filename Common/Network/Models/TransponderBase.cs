@@ -1,4 +1,4 @@
-﻿namespace Ciribob.SRS.Common.Network.Proxies
+﻿namespace Ciribob.SRS.Common.Network.Models
 {
     public class TransponderBase
     {

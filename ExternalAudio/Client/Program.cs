@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Speech.Synthesis;
-using Ciribob.SRS.Common.PlayerState;
+using Ciribob.SRS.Common.Network.Models;
 using CommandLine;
 using NLog;
 using NLog.Config;

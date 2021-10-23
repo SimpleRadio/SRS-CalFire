@@ -11,7 +11,6 @@ using Caliburn.Micro;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings;
 using Ciribob.SRS.Common.Network.Models;
-using Ciribob.SRS.Common.PlayerState;
 using NLog;
 using LogManager = NLog.LogManager;
 
@@ -20,7 +19,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
     internal class UDPPositionHandler
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        private readonly ConcurrentDictionary<string, SRClient> _clientsList;
+        private readonly ConcurrentDictionary<string, SRClientBase> _clientsList;
 
         private readonly BlockingCollection<OutgoingUDPPackets>
             _outGoing = new();
@@ -37,7 +36,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
 
         private volatile bool _stop;
 
-        public UDPPositionHandler(ConcurrentDictionary<string, SRClient> clientsList, IEventAggregator eventAggregator)
+        public UDPPositionHandler(ConcurrentDictionary<string, SRClientBase> clientsList, IEventAggregator eventAggregator)
         {
             _clientsList = clientsList;
         }
@@ -230,7 +229,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
         }
 
         private OutgoingUDPPackets GenerateOutgoingPacket(UDPVoicePacket udpVoice, PendingPacket pendingPacket,
-            SRClient fromClient)
+            SRClientBase fromClient)
         {
             var outgoingList = new HashSet<IPEndPoint>();
 
