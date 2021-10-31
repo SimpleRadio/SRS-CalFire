@@ -25,6 +25,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels
             var channels = new List<PresetChannel>();
             var lines = File.ReadAllLines(filePath);
 
+            int channel = 1;
             const double MHz = 1000000;
             if (lines?.Length > 0)
                 foreach (var line in lines)
@@ -47,7 +48,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels
                             channels.Add(new PresetChannel
                             {
                                 Text = channelName ?? frequencyText, //use channel name if not null
-                                Value = frequency * MHz
+                                Value = frequency * MHz,
+                                Channel = channel++
                             });
                         }
                         catch (Exception ex)

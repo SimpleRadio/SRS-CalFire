@@ -1,12 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Annotations;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.SRS.Common.Helpers;
+using Ciribob.SRS.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Models;
+using Ciribob.SRS.Common.Network.Singletons;
+using Newtonsoft.Json;
 using NLog;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
@@ -38,7 +44,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
         //should the radio restransmit?
         public bool Retransmit { get; set; }
         public float Volume { get; set; } = 1.0f;
-        public int CurrentChannel { get; set; } = -1;
+        public PresetChannel CurrentChannel { get; set; }
         public bool SimultaneousTransmission { get; set; }
 
         //Channels
@@ -62,6 +68,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
         public void ReloadChannels()
         {
             PresetChannels.Clear();
+            PresetChannels.Add(new PresetChannel() { Channel = 0, Text = "No Channel", Value = 0 });
             if (Name.Length == 0 || !Available())
             {
                 return;
@@ -79,6 +86,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
                     Logger.Error($"Unable to add {presetChannel.Text} for radio {Name} with frequency {freq} - outside of radio range");
                 }
             }
+
+            CurrentChannel = PresetChannels.First();
         }
 
         public override bool Equals(object obj)
@@ -102,18 +111,89 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
             return Config.Equals(compare.Config);
         }
 
-        public RadioBase RadioBase
+
+        public static List<Radio> LoadRadioConfig(string file)
         {
-            get
+            Radio[] handheldRadio;
+            try
             {
-                return new RadioBase()
+                var radioJson = File.ReadAllText(file);
+                handheldRadio = JsonConvert.DeserializeObject<Radio[]>(radioJson);
+
+                if (handheldRadio.Length < 2) throw new Exception("Not enough radios configured");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Failed to load " + file);
+
+                handheldRadio = new Radio[11];
+                for (var i = 0; i < 11; i++)
+                    handheldRadio[i] = new Radio
+                    {
+                        Config = new RadioConfig
+                        {
+                            MinimumFrequency = 1,
+                            MaxFrequency = 1,
+                            FrequencyControl = RadioConfig.FreqMode.COCKPIT,
+                            VolumeControl = RadioConfig.VolumeMode.COCKPIT,
+                            GuardFrequency = 0,
+                        },
+                        Freq = 1,
+                        SecFreq = 0,
+                        Modulation = Modulation.DISABLED,
+                        Name = "Invalid Config"
+                    };
+
+                handheldRadio[1] = new Radio
                 {
-                    Encrypted = Encrypted,
-                    EncKey = EncKey,
-                    Modulation = Modulation,
-                    Freq = Freq,
-                    SecFreq = SecFreq
+                    Freq = 1.51e+8,
+                    Config = new RadioConfig
+                    {
+                        MinimumFrequency = 1.0e+8,
+                        MaxFrequency = 3.51e+8,
+                        FrequencyControl = RadioConfig.FreqMode.OVERLAY,
+                        VolumeControl = RadioConfig.VolumeMode.OVERLAY,
+                        GuardFrequency = 1.215e+8
+                    },
+                    SecFreq = 1.215e+8,
+                    Modulation = Modulation.AM,
+                    Name = "BK RADIO"
                 };
+            }
+
+
+
+            return new List<Radio>(handheldRadio);
+        }
+        public RadioBase RadioBase =>
+            new RadioBase()
+            {
+                Encrypted = Encrypted,
+                EncKey = EncKey,
+                Modulation = Modulation,
+                Freq = Freq,
+                SecFreq = SecFreq,
+            };
+
+        public void SelectRadioChannel(PresetChannel value)
+        {
+            if (value == null)
+            {
+                if (PresetChannels.Count > 0)
+                    CurrentChannel = PresetChannels.First();
+                else
+                    value = null;
+            }
+            else
+            {
+                CurrentChannel = value;
+
+                if (value.Channel > 0)
+                {
+                    Freq = (double)CurrentChannel.Value;
+                    EventBus.Instance.PublishOnBackgroundThreadAsync(new UnitUpdateMessage() { FullUpdate = true, UnitUpdate = ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase });
+                }
+                
             }
         }
     }

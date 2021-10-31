@@ -71,7 +71,7 @@
 
         <Separator Width="170" Margin="0 2" />
 
-        <handheldRadioOverlayWindow:RadioControlGroup x:Name="Radio1" RadioId="1" />
+        <handheldRadioOverlayWindow:RadioControlGroup x:Name="Radio1" />
 
         <Separator Width="170" Margin="0 2" />
 

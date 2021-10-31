@@ -37,7 +37,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
         private readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         private AudioPreview _audioPreview;
-        private RadioOverlayWindow _awacsRadioOverlay;
+        private MultiRadioOverlayWindow _awacsMultiRadioOverlay;
         private TCPClientHandler _client;
 
         private ClientListWindow _clientListWindow;
@@ -46,14 +46,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
 
         private ServerSettingsWindow.ServerSettingsWindow _serverSettingsWindow;
 
-        //used to debounce toggle
-        private long _toggleShowHide;
-
         public MainWindowViewModel()
         {
             _audioManager = new AudioManager(AudioOutput.WindowsN);
 
-            PreviewCommand = new DelegateCommand(() => PreviewAudio());
+            PreviewCommand = new DelegateCommand(PreviewAudio);
 
             ConnectCommand = new DelegateCommand(Connect);
 
@@ -62,6 +59,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
                 Application.Current.MainWindow.Show();
                 Application.Current.MainWindow.WindowState = WindowState.Normal;
             });
+
+            HandheldRadioOverlayCommand = new DelegateCommand(HandheldRadioOverlay);
+
+            MultiRadioOverlayCommand = new DelegateCommand(MultiRadioOverlay);
 
             TrayIconQuitCommand = new DelegateCommand(() => { Application.Current.MainWindow.Close(); });
 
@@ -73,6 +74,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
 
             EventBus.Instance.SubscribeOnUIThread(this);
         }
+
+        public DelegateCommand MultiRadioOverlayCommand { get; set; }
 
         public ClientStateSingleton ClientState { get; } = ClientStateSingleton.Instance;
         public ConnectedClientsSingleton Clients { get; } = ConnectedClientsSingleton.Instance;
@@ -102,6 +105,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
         public DelegateCommand ConnectCommand { get; set; }
 
         public ICommand PreviewCommand { get; set; }
+
+        public ICommand HandheldRadioOverlayCommand { get; set; }
 
         public bool PreviewEnabled => AudioInput.MicrophoneAvailable && !IsConnected;
 
@@ -482,61 +487,62 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             });
         }
 
-        private void ShowOverlay_OnClick(object sender, RoutedEventArgs e)
+        public void HandheldRadioOverlay()
         {
-            ToggleOverlay(true);
+            ToggleHandheldOverlay();
         }
 
-        private void ToggleOverlay(bool uiButton)
+        private void ToggleHandheldOverlay()
         {
-            //debounce show hide (1 tick = 100ns, 6000000 ticks = 600ms debounce)
-            if (DateTime.Now.Ticks - _toggleShowHide > 6000000 || uiButton)
+            if (_radioOverlayWindow == null || !_radioOverlayWindow.IsVisible ||
+                _radioOverlayWindow.WindowState == WindowState.Minimized)
             {
-                _toggleShowHide = DateTime.Now.Ticks;
-                if (_radioOverlayWindow == null || !_radioOverlayWindow.IsVisible ||
-                    _radioOverlayWindow.WindowState == WindowState.Minimized)
-                {
-                    //hide awacs panel
-                    _awacsRadioOverlay?.Close();
-                    _awacsRadioOverlay = null;
+                //hide awacs panel
+                _awacsMultiRadioOverlay?.Close();
+                _awacsMultiRadioOverlay = null;
 
-                    _radioOverlayWindow?.Close();
+                _radioOverlayWindow?.Close();
 
-                    _radioOverlayWindow = new HandheldRadioOverlayWindow.RadioOverlayWindow();
+                _radioOverlayWindow = new HandheldRadioOverlayWindow.RadioOverlayWindow();
 
 
-                    _radioOverlayWindow.ShowInTaskbar =
-                        !_globalSettings.GetClientSettingBool(GlobalSettingsKeys.RadioOverlayTaskbarHide);
-                    _radioOverlayWindow.Show();
-                }
-                else
-                {
-                    _radioOverlayWindow?.Close();
-                    _radioOverlayWindow = null;
-                }
+                _radioOverlayWindow.ShowInTaskbar =
+                    !_globalSettings.GetClientSettingBool(GlobalSettingsKeys.RadioOverlayTaskbarHide);
+                _radioOverlayWindow.Show();
             }
+            else
+            {
+                _radioOverlayWindow?.Close();
+                _radioOverlayWindow = null;
+            }
+            
         }
 
-        private void ShowAwacsOverlay_OnClick(object sender, RoutedEventArgs e)
+        private void MultiRadioOverlay()
         {
-            if (_awacsRadioOverlay == null || !_awacsRadioOverlay.IsVisible ||
-                _awacsRadioOverlay.WindowState == WindowState.Minimized)
+            ToggleMultiRadioOverlay();
+        }
+
+        private void ToggleMultiRadioOverlay()
+        {
+            if (_awacsMultiRadioOverlay == null || !_awacsMultiRadioOverlay.IsVisible ||
+                _awacsMultiRadioOverlay.WindowState == WindowState.Minimized)
             {
                 //close normal overlay
                 _radioOverlayWindow?.Close();
                 _radioOverlayWindow = null;
 
-                _awacsRadioOverlay?.Close();
+                _awacsMultiRadioOverlay?.Close();
 
-                _awacsRadioOverlay = new RadioOverlayWindow();
-                _awacsRadioOverlay.ShowInTaskbar =
+                _awacsMultiRadioOverlay = new MultiRadioOverlayWindow();
+                _awacsMultiRadioOverlay.ShowInTaskbar =
                     !_globalSettings.GetClientSettingBool(GlobalSettingsKeys.RadioOverlayTaskbarHide);
-                _awacsRadioOverlay.Show();
+                _awacsMultiRadioOverlay.Show();
             }
             else
             {
-                _awacsRadioOverlay?.Close();
-                _awacsRadioOverlay = null;
+                _awacsMultiRadioOverlay?.Close();
+                _awacsMultiRadioOverlay = null;
             }
         }
 

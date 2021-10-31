@@ -1,11 +1,14 @@
 ﻿<UserControl x:Class="Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWindow.RadioControlGroup"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:presetChannels="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common.PresetChannels"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:handheldRadioOverlayWindow="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWindow"
              Name="RadioControlContainer"
              Width="170"
-             Height="75">
-
+             Height="75"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+           
+            >
     <TabControl x:Name="TabControl"
                 Background="#444"
                 Style="{x:Null}">
@@ -40,14 +43,14 @@
             </Style>
         </TabControl.Resources>
 
-        <TabItem Name="RadioTab">
+        <TabItem >
             <TabItem.Header>
                 <TextBlock x:Name="RadioLabel"
                            Margin="3,0,3,0"
                            FontSize="10"
                            Foreground="#E7E7E7"
                            Padding="0"
-                           Text="Radio" />
+                           Text="{Binding Path=Name }" />
             </TabItem.Header>
             <StackPanel Orientation="Vertical">
                 <!--    -->
@@ -60,9 +63,8 @@
                             Height="10"
                             Margin="20,0,0,0"
                             HorizontalAlignment="Center"
-                            Click="Up10_Click"
-                            Content=""
-                            IsEnabled="False"
+                            Command="{Binding Path=UP10}"
+                            IsEnabled="{Binding Path=IsAvailable}"
                             Style="{StaticResource DarkStyle-Button}"
                             ToolTip="+10MHz" />
                     <Button x:Name="Up1"
@@ -70,9 +72,8 @@
                             Height="10"
                             Margin="5,0,0,0"
                             HorizontalAlignment="Center"
-                            Click="Up1_Click"
-                            Content=""
-                            IsEnabled="False"
+                            Command="{Binding Path=UP1}"
+                            IsEnabled="{Binding Path=IsAvailable}"
                             Style="{StaticResource DarkStyle-Button}"
                             ToolTip="+1MHZ" />
                     <Button x:Name="Up01"
@@ -80,9 +81,8 @@
                             Height="10"
                             Margin="5,0,0,0"
                             HorizontalAlignment="Center"
-                            Click="Up01_Click"
-                            Content=""
-                            IsEnabled="False"
+                            Command="{Binding Path=UP01}"
+                            IsEnabled="{Binding Path=IsAvailable}"
                             Style="{StaticResource DarkStyle-Button}"
                             ToolTip="+0.1MHz" />
                     <Button x:Name="Up001"
@@ -90,9 +90,8 @@
                             Height="10"
                             Margin="5,0,0,0"
                             HorizontalAlignment="Center"
-                            Click="Up001_Click"
-                            Content=""
-                            IsEnabled="False"
+                            Command="{Binding Path=UP001}"
+                            IsEnabled="{Binding Path=IsAvailable}"
                             Style="{StaticResource DarkStyle-Button}"
                             ToolTip="+0.01MHz" />
                     <Button x:Name="Up0001"
@@ -100,9 +99,8 @@
                             Height="10"
                             Margin="5,0,0,0"
                             HorizontalAlignment="Center"
-                            Click="Up0001_Click"
-                            Content=""
-                            IsEnabled="False"
+                            Command="{Binding Path=UP0001}"
+                            IsEnabled="{Binding Path=IsAvailable}"
                             Style="{StaticResource DarkStyle-Button}"
                             ToolTip="+0.001MHz" />
                 </StackPanel>
@@ -113,12 +111,20 @@
                                VerticalAlignment="Center"
                                Background="Black"
                                Foreground="#00FF00"
-                               MouseDown="RadioFrequencyText_Click"
-                               MouseRightButtonDown="RadioFrequencyText_RightClick"
+                             
                                Style="{x:Null}"
-                               Text="000.00AM"
+                               Text="{Binding Frequency}"
                                TextAlignment="Center"
-                               TextWrapping="NoWrap" />
+                               TextWrapping="NoWrap" >
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseLeftButtonDown" >
+                                <i:InvokeCommandAction Command="{Binding RadioSelect}" />
+                            </i:EventTrigger>
+                            <i:EventTrigger EventName="MouseRightButtonDown" >
+                                <i:InvokeCommandAction Command="{Binding ToggleGuard}" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </TextBlock>
 
                     <Ellipse x:Name="RadioActive"
                              Width="12"
@@ -126,11 +132,17 @@
                              Margin="2"
                              HorizontalAlignment="Right"
                              VerticalAlignment="Center"
-                             Fill="#FF9900"
-                             MouseDown="RadioSelectSwitch"
+                             Fill="{Binding RadioActiveFill}"
+                           
                              Stroke="Black"
                              Style="{x:Null}"
-                             ToolTip="Selected Radio" />
+                             ToolTip="Selected Radio" >
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseDown" >
+                                <i:InvokeCommandAction Command="{Binding RadioSelect}" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </Ellipse>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <Button x:Name="Down10"
@@ -138,9 +150,8 @@
                             Height="10"
                             Margin="20,0,0,0"
                             HorizontalAlignment="Center"
-                            Click="Down10_Click"
-                            Content=""
-                            IsEnabled="False"
+                            Command="{Binding Path=DOWN10}"
+                            IsEnabled="{Binding Path=IsAvailable}"
                             Style="{StaticResource DarkStyle-Button}"
                             ToolTip="-10MHZ" />
                     <Button x:Name="Down1"
@@ -148,9 +159,8 @@
                             Height="10"
                             Margin="5,0,0,0"
                             HorizontalAlignment="Center"
-                            Click="Down1_Click"
-                            Content=""
-                            IsEnabled="False"
+                            Command="{Binding Path=DOWN1}"
+                            IsEnabled="{Binding Path=IsAvailable}"
                             Style="{StaticResource DarkStyle-Button}"
                             ToolTip="-1MHz" />
                     <Button x:Name="Down01"
@@ -158,9 +168,8 @@
                             Height="10"
                             Margin="5,0,0,0"
                             HorizontalAlignment="Center"
-                            Click="Down01_Click"
-                            Content=""
-                            IsEnabled="False"
+                            Command="{Binding Path=DOWN01}"
+                            IsEnabled="{Binding Path=IsAvailable}"
                             Style="{StaticResource DarkStyle-Button}"
                             ToolTip="-0.1MHz" />
                     <Button x:Name="Down001"
@@ -168,9 +177,8 @@
                             Height="10"
                             Margin="5,0,0,0"
                             HorizontalAlignment="Center"
-                            Click="Down001_Click"
-                            Content=""
-                            IsEnabled="False"
+                            Command="{Binding Path=DOWN001}"
+                            IsEnabled="{Binding Path=IsAvailable}"
                             Style="{StaticResource DarkStyle-Button}"
                             ToolTip="-0.01MHz" />
                     <Button x:Name="Down0001"
@@ -178,35 +186,22 @@
                             Height="10"
                             Margin="5,0,0,0"
                             HorizontalAlignment="Center"
-                            Click="Down0001_Click"
-                            Content=""
-                            IsEnabled="False"
+                            Command="{Binding Path=DOWN0001}"
+                            IsEnabled="{Binding Path=IsAvailable}"
                             Style="{StaticResource DarkStyle-Button}"
                             ToolTip="-0.001MHz" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
 
-
-                    <TextBlock x:Name="TunedClients"
-                               Width="35"
-                               Height="15"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               Foreground="White"
-                               Text="👤 30"
-                               TextAlignment="Center"
-                               TextWrapping="Wrap" />
-
                     <Slider x:Name="RadioVolume"
                             Width="100"
                             Height="15"
                             Margin="0,1,0,0"
-                            IsEnabled="False"
+                            IsEnabled="{Binding VolumeEnabled}"
                             Maximum="100"
                             Style="{x:Null}"
-                            Thumb.DragCompleted="RadioVolume_DragCompleted"
-                            Thumb.DragStarted="RadioVolume_DragStarted" />
+                            Value="{Binding Volume, Mode=TwoWay}" />
 
                 </StackPanel>
             </StackPanel>
@@ -218,14 +213,37 @@
                            FontSize="10"
                            Foreground="#E7E7E7"
                            Padding="0"
-                           Text="Ch." />
+                           Text="Channels" />
             </TabItem.Header>
 
-            <presetChannels:PresetChannelsView x:Name="PresetChannelsView"
-                                               HorizontalAlignment="Center"
-                                               Background="#444"
-                                               DataContext="{Binding ChannelViewModel,
-                                                                      Mode=TwoWay}" />
+            <StackPanel HorizontalAlignment="Center"
+                        Background="#444"
+                        Orientation="Vertical">
+                <ComboBox x:Name="FrequencyDropDown"
+                          Width="135"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Top"
+              
+                          ItemsSource="{Binding Path=Channels}"
+                          SelectedItem="{Binding Mode=TwoWay, Path=SelectedPresetChannel}" >
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="DropDownClosed" >
+                            <i:InvokeCommandAction Command="{Binding DropDownClosedCommand}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+
+                </ComboBox>
+
+                <Button Name="ReloadButton"
+                        Width="50"
+                        Height="20"
+                        Margin="0,2,0,0"
+                        HorizontalAlignment="Center"
+                        Command="{Binding Path=ReloadCommand}"
+                        Content="Reload"
+                />
+
+            </StackPanel>
 
         </TabItem>
     </TabControl>

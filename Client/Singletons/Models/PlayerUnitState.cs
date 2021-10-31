@@ -3,20 +3,25 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Annotations;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.SRS.Common.Helpers;
+using Ciribob.SRS.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Singletons;
 using Newtonsoft.Json;
+using NLog;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
 {
 
     public class PlayerUnitState : PropertyChangedBase
     {
+        private  static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private static readonly string HANDHELD_RADIO_JSON = "handheld-radio.json";
+        private static readonly string MULTI_RADIO_JSON = "multi-radio.json";
 
         //HOTAS or IN COCKPIT controls
         public enum RadioSwitchControls
@@ -64,10 +69,24 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
             //initialise with 11 things
             //10 radios +1 intercom (the first one is intercom)
             //try the handheld radios first
-            foreach (var radio in RadioHelper.LoadRadioConfig(HANDHELD_RADIO_JSON))
-                Radios.Add(radio);
-
+            Radios = new ObservableCollection<Radio>(Radio.LoadRadioConfig(HANDHELD_RADIO_JSON));
             SelectedRadio = 1;
+        }
+
+        public void LoadMultiRadio()
+        {
+            Radios = new ObservableCollection<Radio>(Radio.LoadRadioConfig(MULTI_RADIO_JSON));
+            SelectedRadio = 1;
+            
+            EventBus.Instance.PublishOnBackgroundThreadAsync(new UnitUpdateMessage() { FullUpdate = true, UnitUpdate = ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase });
+        }
+
+        public void LoadHandHeldRadio()
+        {
+            Radios = new ObservableCollection<Radio>(Radio.LoadRadioConfig(HANDHELD_RADIO_JSON));
+            SelectedRadio = 1;
+
+            EventBus.Instance.PublishOnBackgroundThreadAsync(new UnitUpdateMessage() { FullUpdate = true, UnitUpdate = ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase });
         }
 
         public int Seat { get; set; }

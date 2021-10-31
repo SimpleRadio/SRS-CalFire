@@ -32,9 +32,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWind
 
         public RadioOverlayWindow()
         {
-            ClientStateSingleton.Instance.PlayerUnitState.SelectedRadio = 1;
-            //load opacity before the intialising as the slider changed
-            //method fires after initialisation
+            ClientStateSingleton.Instance.PlayerUnitState.LoadHandHeldRadio();
+            
             InitializeComponent();
 
             WindowStartupLocation = WindowStartupLocation.Manual;
@@ -64,9 +63,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWind
             RadioRefresh(null, null);
 
             //init radio refresh
-            _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(80) };
-            _updateTimer.Tick += RadioRefresh;
-            _updateTimer.Start();
+            // _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(80) };
+            // _updateTimer.Tick += RadioRefresh;
+            // _updateTimer.Start();
 
 
             //TODO on loading the overlay
@@ -75,27 +74,22 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWind
             //send the new radio channel config (use the singleton to co-ordinate)
             //on closing the overlay, set all the radios to disabled
 
+            var vm =  new HandheldRadioOverlayViewModel(1);
+
+            Radio1.DataContext = vm;
+
+            vm.Start();
 
         }
-        private void Location_Changed(object sender, EventArgs e)
-        {
-        }
+      
 
         private void RadioRefresh(object sender, EventArgs eventArgs)
         {
-            var dcsPlayerRadioInfo = _clientStateSingleton.PlayerUnitState;
-
-            radio.RepaintRadioStatus();
-            radio.RepaintRadioReceive();
-
-            if (dcsPlayerRadioInfo != null)
+  
+            if (MinHeight != _originalMinHeight)
             {
-                var availableRadios = 0;
-                if (MinHeight != _originalMinHeight)
-                {
-                    MinHeight = _originalMinHeight;
-                    Recalculate();
-                }
+                MinHeight = _originalMinHeight;
+                Recalculate();
             }
         }
 
@@ -120,7 +114,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWind
             _globalSettings.SetPositionSetting(GlobalSettingsKeys.RadioY, Top);
             base.OnClosing(e);
 
-            _updateTimer.Stop();
+            var vm = (HandheldRadioOverlayViewModel)Radio1.DataContext;
+            vm.Stop();
+
         }
 
         private void Button_Minimise(object sender, RoutedEventArgs e)

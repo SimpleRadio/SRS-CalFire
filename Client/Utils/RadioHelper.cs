@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings.RadioChannels;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models;
+using Ciribob.SRS.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Models;
+using Ciribob.SRS.Common.Network.Singletons;
 using Newtonsoft.Json;
 using NLog;
 
@@ -22,10 +25,19 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                 if (radio.Config.FrequencyControl == RadioConfig.FreqMode.OVERLAY ||
                     radio.Config.GuardFrequencyControl == RadioConfig.FreqMode.OVERLAY)
                 {
-                    if (radio.SecFreq > 0)
-                        radio.SecFreq = 0; // 0 indicates we want it overridden + disabled
-                    else
-                        radio.SecFreq = 1; //indicates we want it back
+                    if (radio.Config.GuardFrequency >0)
+                    {
+                        if (radio.SecFreq > 0)
+                        {
+                            radio.SecFreq = 0;
+                        }
+                        else
+                        {
+                            radio.SecFreq = radio.Config.GuardFrequency;
+                        }
+
+                        EventBus.Instance.PublishOnBackgroundThreadAsync(new UnitUpdateMessage() { FullUpdate = true, UnitUpdate = ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase });
+                    }
                 }
         }
 
@@ -38,12 +50,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                     radio.Config.GuardFrequencyControl == RadioConfig.FreqMode.OVERLAY)
                 {
                     if (!enabled)
-                        radio.SecFreq = 0; // 0 indicates we want it overridden + disabled
+                        radio.SecFreq = 0;
                     else
-                        radio.SecFreq = 1; //indicates we want it back
-
-                    //make radio data stale to force resysnc
-                    //  ClientStateSingleton.Instance.LastSent = 0;
+                        radio.SecFreq = radio.Config.GuardFrequency;
                 }
         }
 
@@ -79,10 +88,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                     }
 
                     //set to no channel
-                    radio.CurrentChannel = -1;
+                    radio.CurrentChannel = radio.PresetChannels.First();
 
                     //make radio data stale to force resysnc
                     //ClientStateSingleton.Instance.LastSent = 0;
+                    EventBus.Instance.PublishOnBackgroundThreadAsync(new UnitUpdateMessage(){FullUpdate = true, UnitUpdate = ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase});
                 }
 
             return inLimit;
@@ -179,7 +189,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
             {
                 var radio = GetRadio(radioId);
 
-                if (radio != null) radio.CurrentChannel = selectedPresetChannel.Channel;
+                if (radio != null) radio.CurrentChannel = selectedPresetChannel;
             }
         }
 
@@ -287,56 +297,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
             // ClientStateSingleton.Instance.LastSent = 0;
         }
 
-        public static List<Radio> LoadRadioConfig(string file)
-        {
-            Radio[] handheldRadio;
-            try
-            {
-                var radioJson = File.ReadAllText(file);
-                handheldRadio = JsonConvert.DeserializeObject<Radio[]>(radioJson);
-
-                if (handheldRadio.Length < 2) throw new Exception("Not enough radios configured");
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "Failed to load " + file);
-
-                handheldRadio = new Radio[11];
-                for (var i = 0; i < 11; i++)
-                    handheldRadio[i] = new Radio
-                    {
-                        Config = new RadioConfig
-                        {
-                            MinimumFrequency = 1,
-                            MaxFrequency = 1,
-                            FrequencyControl = RadioConfig.FreqMode.COCKPIT,
-                            VolumeControl = RadioConfig.VolumeMode.COCKPIT
-                        },
-                        Freq = 1,
-                        SecFreq = 0,
-                        Modulation = Modulation.DISABLED,
-                        Name = "Invalid Config"
-                    };
-
-                handheldRadio[1] = new Radio
-                {
-                    Freq = 1.51e+8,
-                    Config = new RadioConfig
-                    {
-                        MinimumFrequency = 1.0e+8,
-                        MaxFrequency = 3.51e+8,
-                        FrequencyControl = RadioConfig.FreqMode.OVERLAY,
-                        VolumeControl = RadioConfig.VolumeMode.OVERLAY
-                    },
-                    SecFreq = 1.215e+8,
-                    Modulation = Modulation.AM,
-                    Name = "BK RADIO"
-                };
-            }
-
-
-
-            return new List<Radio>(handheldRadio);
-        }
+       
     }
 }

@@ -165,13 +165,13 @@
                                 Width="125"
                                 Margin="0,15,20,0"
                                 HorizontalAlignment="Center"
-
+                                Command="{Binding HandheldRadioOverlayCommand}"
                                 Content="toggle single radio" />
                         <Button x:Name="ShowAwacsOverlay"
                                 Width="125"
                                 Margin="0,15,20,0"
                                 HorizontalAlignment="Center"
-
+                                Command="{Binding MultiRadioOverlayCommand}"
                                 Content="toggle multi radio" />
                         <Button x:Name="ShowClientList"
                                 Width="125"

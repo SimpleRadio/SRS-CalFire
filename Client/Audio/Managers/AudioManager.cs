@@ -344,7 +344,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
                             // Console.WriteLine("Sending: " + e.BytesRecorded);
                           
-                            var clientAudio = _udpClientAudioProcessor.Send(encoded, len);
+                            var clientAudio = _udpClientAudioProcessor?.Send(encoded, len);
 
                             // _beforeWaveFile.Write(pcmBytes, 0, pcmBytes.Length);
 

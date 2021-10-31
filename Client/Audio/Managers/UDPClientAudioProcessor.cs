@@ -815,6 +815,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 _stop = true;
                 _stopFlag.Cancel();
                 StopTimer();
+                _clientStateSingleton.RadioSendingState.IsSending = false;
             }
         }
     }

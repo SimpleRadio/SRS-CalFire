@@ -44,5 +44,6 @@
 
         public double MaxFrequency { get; set; } = 1;
         public double MinimumFrequency { get; set; } = 1;
+        public double GuardFrequency { get; set; } = 1;
     }
 }

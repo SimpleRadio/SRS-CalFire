@@ -102,6 +102,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
             }
             else
             {
+                //TODO
                // PlayerUnitState.Reset();
             }
 
