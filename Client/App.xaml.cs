@@ -26,29 +26,28 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
             SentrySdk.Init("https://278831323bbb4efb94e17bc21b5f881d@o414743.ingest.sentry.io/6011780");
             AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
 
-            var location = AppDomain.CurrentDomain.BaseDirectory;
-            //var location = Assembly.GetExecutingAssembly().Location;
-
-            //check for opus.dll
-            if (!File.Exists(location + "\\opus.dll"))
-            {
-                MessageBox.Show(
-                    "You are missing the opus.dll - Reinstall using the Installer and don't move the client from the installation directory!",
-                    "Installation Error!", MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-
-                Environment.Exit(1);
-            }
-
-            if (!File.Exists(location + "\\speexdsp.dll"))
-            {
-                MessageBox.Show(
-                    "You are missing the speexdsp.dll - Reinstall using the Installer and don't move the client from the installation directory!",
-                    "Installation Error!", MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-
-                Environment.Exit(1);
-            }
+            // var location = AppContext.BaseDirectory;
+            //
+            // //check for opus.dll
+            // if (!File.Exists(location + "\\opus.dll"))
+            // {
+            //     MessageBox.Show(
+            //         "You are missing the opus.dll - Reinstall using the Installer and don't move the client from the installation directory!",
+            //         "Installation Error!", MessageBoxButton.OK,
+            //         MessageBoxImage.Error);
+            //
+            //     Environment.Exit(1);
+            // }
+            //
+            // if (!File.Exists(location + "\\speexdsp.dll"))
+            // {
+            //     MessageBox.Show(
+            //         "You are missing the speexdsp.dll - Reinstall using the Installer and don't move the client from the installation directory!",
+            //         "Installation Error!", MessageBoxButton.OK,
+            //         MessageBoxImage.Error);
+            //
+            //     Environment.Exit(1);
+            // }
 
             SetupLogging();
 

@@ -22,7 +22,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AircraftOverlayWindow
 
         private readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private readonly MultiRadioControlGroup[] radioControlGroup = new MultiRadioControlGroup[10];
+        private readonly RadioControlGroup[] radioControlGroup = new RadioControlGroup[10];
 
         private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
 
@@ -71,15 +71,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AircraftOverlayWindow
 
             }
 
-            //allows click and drag anywhere on the window
-            containerPanel.MouseLeftButtonDown += WrapPanel_MouseLeftButtonDown;
-
             CalculateScale();
-        }
 
-        private void WrapPanel_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            DragMove();
+           ((MultiRadioOverlayWindowViewModel) (this.DataContext)).Start();
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -94,6 +88,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AircraftOverlayWindow
                 var dataContext = (HandheldRadioOverlayViewModel) radioControlGroup[i].DataContext;
                 dataContext?.Stop();
             }
+
+            ((MultiRadioOverlayWindowViewModel)(this.DataContext)).Stop();
         }
 
         private void Button_Minimise(object sender, RoutedEventArgs e)
@@ -127,7 +123,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AircraftOverlayWindow
 
         private void CalculateScale()
         {
-            var yScale = ActualHeight / RadioOverlayWin.MinWidth;
+            var yScale = ActualHeight / RadioOverlayWin.MinHeight;
             var xScale = ActualWidth / RadioOverlayWin.MinWidth;
             var value = Math.Max(xScale, yScale);
             ScaleValue = (double)OnCoerceScaleValue(RadioOverlayWin, value);
@@ -185,5 +181,18 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AircraftOverlayWindow
         }
 
         #endregion
+
+        private void AircraftOverlayWindow_OnMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            try
+            {
+                if (e.ChangedButton == MouseButton.Left)
+                    DragMove();
+            }
+            catch (Exception ex)
+            {
+                //can throw an error if its somehow caused when the left mouse button isnt down
+            }
+        }
     }
 }

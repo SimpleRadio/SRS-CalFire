@@ -5,7 +5,7 @@
              xmlns:handheldRadioOverlayWindow="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWindow"
              Name="RadioControlContainer"
              Width="170"
-             Height="75"
+             Height="85"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
            
             >
@@ -196,11 +196,11 @@
 
                     <Slider x:Name="RadioVolume"
                             Width="100"
-                            Height="15"
+                        
                             Margin="0,1,0,0"
                             IsEnabled="{Binding VolumeEnabled}"
                             Maximum="100"
-                            Style="{x:Null}"
+                         
                             Value="{Binding Volume, Mode=TwoWay}" />
 
                 </StackPanel>

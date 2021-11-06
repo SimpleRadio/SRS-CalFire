@@ -70,7 +70,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
         private static string GetCurrentDirectory()
         {
             //To get the location the assembly normally resides on disk or the install directory
-            var currentPath = Assembly.GetExecutingAssembly().CodeBase;
+            var currentPath = AppContext.BaseDirectory;
 
             //once you have the path you get the directory with:
             var currentDirectory = Path.GetDirectoryName(currentPath);

@@ -155,7 +155,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
                         VolumeControl = RadioConfig.VolumeMode.OVERLAY,
                         GuardFrequency = 1.215e+8
                     },
-                    SecFreq = 1.215e+8,
+                    SecFreq = 0,
                     Modulation = Modulation.AM,
                     Name = "BK RADIO"
                 };

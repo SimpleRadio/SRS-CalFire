@@ -22,6 +22,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
         private  static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private static readonly string HANDHELD_RADIO_JSON = "handheld-radio.json";
         private static readonly string MULTI_RADIO_JSON = "multi-radio.json";
+        private static readonly string TYPE_AIRCRAFT = "AIRCRAFT";
+        private static readonly string TYPE_GROUND = "GROUND";
 
         //HOTAS or IN COCKPIT controls
         public enum RadioSwitchControls
@@ -77,7 +79,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
         {
             Radios = new ObservableCollection<Radio>(Radio.LoadRadioConfig(MULTI_RADIO_JSON));
             SelectedRadio = 1;
-            
+            UnitType = TYPE_AIRCRAFT;
             EventBus.Instance.PublishOnBackgroundThreadAsync(new UnitUpdateMessage() { FullUpdate = true, UnitUpdate = ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase });
         }
 
@@ -85,6 +87,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
         {
             Radios = new ObservableCollection<Radio>(Radio.LoadRadioConfig(HANDHELD_RADIO_JSON));
             SelectedRadio = 1;
+            UnitType = TYPE_GROUND;
 
             EventBus.Instance.PublishOnBackgroundThreadAsync(new UnitUpdateMessage() { FullUpdate = true, UnitUpdate = ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase });
         }

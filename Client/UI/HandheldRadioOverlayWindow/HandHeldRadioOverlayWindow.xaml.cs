@@ -151,7 +151,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWind
 
         private void CalculateScale()
         {
-            var yScale = ActualHeight / RadioOverlayWin.MinWidth;
+            var yScale = ActualHeight / RadioOverlayWin.MinHeight;
             var xScale = ActualWidth / RadioOverlayWin.MinWidth;
             var value = Math.Min(xScale, yScale);
             ScaleValue = (double)OnCoerceScaleValue(RadioOverlayWin, value);
