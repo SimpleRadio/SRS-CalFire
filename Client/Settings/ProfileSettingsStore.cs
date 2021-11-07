@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Input;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common;
+using Ciribob.SRS.Common.Network.Singletons;
 using NLog;
 using SharpConfig;
 
@@ -206,7 +208,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             {
                 _settingsCache.Clear();
                 _currentProfileName = value;
-                //TODO trigger from here the change
+                EventBus.Instance.PublishOnUIThreadAsync(new ProfileChangedMessage());
             }
         }
 
@@ -283,7 +285,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             var inputProfile = new Dictionary<InputBinding, InputDevice>();
             InputProfiles[GetProfileName(profileName)] = inputProfile;
 
-            //TODO trigger from here?
         }
 
         private string GetProfileCfgFileName(string prof)

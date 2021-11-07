@@ -198,37 +198,22 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
             var currentRadio = GetRadio(radioId);
 
             if (currentRadio != null)
-                if (currentRadio.Modulation != Modulation.DISABLED
+                if (currentRadio.Modulation != Modulation.DISABLED &&
+                    currentRadio.Modulation != Modulation.INTERCOM
                     && ClientStateSingleton.Instance.PlayerUnitState.control ==
                     PlayerUnitState.RadioSwitchControls.HOTAS)
                 {
-                    //TODO fix
-                    // var fixedChannels = ClientStateSingleton.Instance.FixedChannels;
-                    //
-                    // //now get model
-                    // if (fixedChannels != null && fixedChannels[radioId - 1] != null)
-                    // {
-                    //     var radioChannels = fixedChannels[radioId - 1];
-                    //
-                    //     if (radioChannels.PresetChannels.Count > 0)
-                    //     {
-                    //         var next = currentRadio.CurrentChannel + 1;
-                    //
-                    //         if (radioChannels.PresetChannels.Count < next || currentRadio.CurrentChannel < 1)
-                    //         {
-                    //             //set to first radio
-                    //             SelectRadioChannel(radioChannels.PresetChannels[0], radioId);
-                    //             radioChannels.SelectedPresetChannel = radioChannels.PresetChannels[0];
-                    //         }
-                    //         else
-                    //         {
-                    //             var preset = radioChannels.PresetChannels[next - 1];
-                    //
-                    //             SelectRadioChannel(preset, radioId);
-                    //             radioChannels.SelectedPresetChannel = preset;
-                    //         }
-                    //     }
-                    // }
+                    var currentRadioPresetChannels = currentRadio.PresetChannels;
+                    var currentChannel = currentRadio.CurrentChannel;
+
+                    try
+                    {
+                        var nexPresetChannel = currentRadioPresetChannels[currentChannel.Channel + 1];
+                        currentRadio.SelectRadioChannel(nexPresetChannel);
+                    }
+                    catch
+                    {
+                    }
                 }
         }
 
@@ -237,37 +222,26 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
             var currentRadio = GetRadio(radioId);
 
             if (currentRadio != null)
-                if (currentRadio.Modulation != Modulation.DISABLED
+                if (currentRadio.Modulation != Modulation.DISABLED &&
+                    currentRadio.Modulation != Modulation.INTERCOM
                     && ClientStateSingleton.Instance.PlayerUnitState.control ==
                     PlayerUnitState.RadioSwitchControls.HOTAS)
                 {
-                    //TODO fix
-                    // var fixedChannels = ClientStateSingleton.Instance.FixedChannels;
-                    //
-                    // //now get model
-                    // if (fixedChannels != null && fixedChannels[radioId - 1] != null)
-                    // {
-                    //     var radioChannels = fixedChannels[radioId - 1];
-                    //
-                    //     if (radioChannels.PresetChannels.Count > 0)
-                    //     {
-                    //         var previous = currentRadio.CurrentChannel - 1;
-                    //
-                    //         if (previous < 1)
-                    //         {
-                    //             //set to last radio
-                    //             SelectRadioChannel(radioChannels.PresetChannels.Last(), radioId);
-                    //             radioChannels.SelectedPresetChannel = radioChannels.PresetChannels.Last();
-                    //         }
-                    //         else
-                    //         {
-                    //             var preset = radioChannels.PresetChannels[previous - 1];
-                    //             //set to previous radio
-                    //             SelectRadioChannel(preset, radioId);
-                    //             radioChannels.SelectedPresetChannel = preset;
-                    //         }
-                    //     }
-                    // }
+                    var currentRadioPresetChannels = currentRadio.PresetChannels;
+                    var currentChannel = currentRadio.CurrentChannel;
+
+                    if (currentChannel.Channel > 1)
+                    {
+                        try
+                        {
+                            var prevPresetChannel = currentRadioPresetChannels[currentChannel.Channel - 1];
+                            currentRadio.SelectRadioChannel(prevPresetChannel);
+                        }
+                        catch
+                        {
+                        }
+                    }
+                  
                 }
         }
 

@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.InputSettingsControl
 {
@@ -23,6 +24,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.InputSettin
         public InputSettings()
         {
             InitializeComponent();
+        }
+
+        private void Rescan_OnClick(object sender, RoutedEventArgs e)
+        {
+            InputDeviceManager.Instance.InitDevices();
         }
     }
 }

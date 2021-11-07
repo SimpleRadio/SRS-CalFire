@@ -35,7 +35,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         private ulong _packetNumber = 1;
 
 
-        //TODO move to input handler
         private volatile bool _ptt = false;
         private readonly RadioReceivingState[] _radioReceivingState;
         private bool _stop;
@@ -55,17 +54,20 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
         public void Dispose()
         {
+            _ptt = false;
             _timer?.Dispose();
             _stopFlag?.Dispose();
         }
 
         public void Start()
         {
+            _ptt = false;
             _packetNumber = 1;
             var decoderThread = new Thread(UdpAudioDecode);
             decoderThread.Start();
             StartTimer();
             InputDeviceManager.Instance.StartPTTListening(PTTHandler);
+            
         }
 
 
@@ -770,7 +772,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             _ptt = ptt;
 
             //TEMP TODO
-            _ptt = true;
+            //_ptt = true;
         }
 
         public void StartTimer()

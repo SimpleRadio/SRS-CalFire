@@ -372,7 +372,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
                                                 deviceList[i].Information.ProductName.Trim().Replace("\0", ""),
                                             Button = j,
                                             InstanceGuid = deviceList[i].Information.InstanceGuid,
-                                            ButtonValue = 1
+                                            ButtonValue = 1,
                                         };
 
                                         Application.Current.Dispatcher.Invoke(

@@ -1,35 +1,70 @@
-﻿using System.Windows;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
+using Caliburn.Micro;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common;
+using Ciribob.SRS.Common.Network.Singletons;
+using SharpDX.DirectInput;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.InputSettingsControl
 {
     /// <summary>
     ///     Interaction logic for InputBindingControl.xaml
     /// </summary>
-    public partial class InputBindingControl : UserControl
+    public partial class InputBindingControl : UserControl, IHandle<ProfileChangedMessage>
     {
-        private InputDeviceManager _inputDeviceManager;
+
+        public static readonly DependencyProperty ControlInputDependencyPropertyProperty =
+            DependencyProperty.Register(nameof(ControlInputBinding), typeof(InputBinding), typeof(InputBindingControl),
+                new PropertyMetadata(null)
+            );
+
+        public static readonly DependencyProperty ControlInputNameDependencyPropertyProperty =
+            DependencyProperty.Register(nameof(InputName), typeof(string), typeof(InputBindingControl),
+                new PropertyMetadata("None")
+            );
+
+
 
         public InputBindingControl()
         {
             InitializeComponent();
+
+            Loaded += (sender, args) => LoadInputSettings();
+
+            EventBus.Instance.SubscribeOnUIThread(this);
         }
 
-        public InputDeviceManager InputDeviceManager
+
+        public InputBinding ControlInputBinding
         {
-            get => _inputDeviceManager;
             set
             {
-                _inputDeviceManager = value;
-                LoadInputSettings();
+                SetValue(ControlInputDependencyPropertyProperty, value);
+            }
+            get
+            {
+                var val = (InputBinding)GetValue(ControlInputDependencyPropertyProperty);
+                return val;
             }
         }
 
-        public InputBinding ControlInputBinding { get; set; }
         public InputBinding ModifierBinding { get; set; }
-        public string InputName { get; set; }
+        public string InputName {
+            set
+            {
+                SetValue(ControlInputNameDependencyPropertyProperty, value);
+               
+            }
+            get
+            {
+                var val = (string)GetValue(ControlInputNameDependencyPropertyProperty);
+                return val;
+            }
+        }
 
         public void LoadInputSettings()
         {
@@ -46,7 +81,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.InputSettin
                 {
                     var button = devices[ControlInputBinding].Button;
                     DeviceText.Text =
-                        button < 128 ? (button + 1).ToString() : "POV " + (button - 127); //output POV info
+                        GetDeviceText(button, devices[ControlInputBinding].DeviceName); 
                     Device.Text = devices[ControlInputBinding].DeviceName;
                 }
                 else
@@ -59,7 +94,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.InputSettin
                 {
                     var button = devices[ModifierBinding].Button;
                     ModifierText.Text =
-                        button < 128 ? (button + 1).ToString() : "POV " + (button - 127); //output POV info
+                        GetDeviceText(button, devices[ModifierBinding].DeviceName);
                     ModifierDevice.Text = devices[ModifierBinding].DeviceName;
                 }
                 else
@@ -70,20 +105,33 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.InputSettin
             }
         }
 
+        private string GetDeviceText(int button, string name)
+        {
+            if (name.ToLowerInvariant() == "keyboard")
+            {
+                try
+                {
+                    var key = (Key)button;
+                    return key.ToString();
+                }
+                catch { }
+
+            }
+            return button < 128 ? (button + 1).ToString() : "POV " + (button - 127);
+        }
+
         private void Device_Click(object sender, RoutedEventArgs e)
         {
             DeviceClear.IsEnabled = false;
             DeviceButton.IsEnabled = false;
 
-
-            InputDeviceManager.AssignButton(device =>
+            InputDeviceManager.Instance.AssignButton(device =>
             {
                 DeviceClear.IsEnabled = true;
                 DeviceButton.IsEnabled = true;
 
                 Device.Text = device.DeviceName;
-                DeviceText.Text = device.Button < 128 ? (device.Button + 1).ToString() : "POV " + (device.Button - 127);
-                //output POV info;
+                DeviceText.Text = GetDeviceText(device.Button,device.DeviceName);
 
                 device.InputBind = ControlInputBinding;
 
@@ -105,16 +153,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.InputSettin
             ModifierButtonClear.IsEnabled = false;
             ModifierButton.IsEnabled = false;
 
-            InputDeviceManager.AssignButton(device =>
+            InputDeviceManager.Instance.AssignButton(device =>
             {
                 ModifierButtonClear.IsEnabled = true;
                 ModifierButton.IsEnabled = true;
 
                 ModifierDevice.Text = device.DeviceName;
-                ModifierText.Text =
-                    device.Button < 128 ? (device.Button + 1).ToString() : "POV " + (device.Button - 127);
-                //output POV info;
-
+                ModifierText.Text = GetDeviceText(device.Button, device.DeviceName);
                 device.InputBind = ModifierBinding;
 
                 GlobalSettingsStore.Instance.ProfileSettingsStore.SetControlSetting(device);
@@ -127,6 +172,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.InputSettin
             GlobalSettingsStore.Instance.ProfileSettingsStore.RemoveControlSetting(ModifierBinding);
             ModifierDevice.Text = "None";
             ModifierText.Text = "None";
+        }
+
+        public Task HandleAsync(ProfileChangedMessage message, CancellationToken cancellationToken)
+        {
+            LoadInputSettings();
+
+            return Task.CompletedTask;
         }
     }
 }
