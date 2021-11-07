@@ -38,10 +38,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ServerSetti
             try
             {
                 RealRadio.Content = settings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_TX) ? "ON" : "OFF";
-
-                //TODO
-                // ServerVersion.Content = SRSClientSyncHandler.ServerVersion;
-
+                ServerVersion.Content = SyncedServerSettings.Instance.ServerVersion;
                 NodeLimit.Content = settings.RetransmitNodeLimit;
             }
             catch (IndexOutOfRangeException ex)

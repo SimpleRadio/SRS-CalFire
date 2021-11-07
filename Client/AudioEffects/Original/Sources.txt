@@ -5,3 +5,7 @@ Bimbac (Discord) PTT tones and effects
 Nato Tones: https://github.com/ciribob/DCS-SimpleRadioStandalone/issues/236
 
 Nicholas Landolfi - Have Quick info
+
+ground.wav - https://soundbible.com/1902-Fire-Burning.html
+
+aircraft.wav https://soundbible.com/490-Cargo-Plane-Ambiance.htm

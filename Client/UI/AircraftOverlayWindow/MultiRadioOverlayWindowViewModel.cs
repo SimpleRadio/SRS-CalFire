@@ -2,6 +2,7 @@
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
@@ -16,21 +17,19 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AircraftOverlayWindow
         private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
         private readonly ConnectedClientsSingleton _connectClientsSingleton = ConnectedClientsSingleton.Instance;
         private DispatcherTimer _updateTimer;
+        private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
 
         public ICommand RadioSelect { get; set; }
 
-        public MultiRadioOverlayWindowViewModel()
+        public bool HotIntercomMicToggle
         {
-            //TODO
-            // Add support for intercom
-            // Add support for opacity
-            // Add support for hotkeys
-
-            RadioSelect = new DelegateCommand(() =>
+            get => ClientStateSingleton.Instance.PlayerUnitState.IntercomHotMic;
+            set
             {
-                RadioHelper.SelectRadio(0);
-                NotifyPropertyChanged(nameof(Radio));
-            }, () => IsAvailable);
+                ClientStateSingleton.Instance.PlayerUnitState.IntercomHotMic = value;
+
+                NotifyPropertyChanged();
+            }
         }
 
         public Radio Radio => ClientStateSingleton.Instance.PlayerUnitState.Radios[0];
@@ -79,21 +78,18 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AircraftOverlayWindow
                     return new SolidColorBrush(Colors.Red);
                 }
 
-                if (ClientStateSingleton.Instance.PlayerUnitState.SelectedRadio != 0)
+                if (ClientStateSingleton.Instance.RadioSendingState.IsSending &&
+                    ClientStateSingleton.Instance.RadioSendingState.SendingOn == 0)
+                {
+                    return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#96FF6D"));
+                }
+                else if (ClientStateSingleton.Instance.PlayerUnitState.SelectedRadio != 0)
                 {
                     return new SolidColorBrush(Colors.Orange);
                 }
                 else
                 {
-                    if (ClientStateSingleton.Instance.RadioSendingState.IsSending &&
-                        ClientStateSingleton.Instance.RadioSendingState.SendingOn == 0)
-                    {
-                        return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#96FF6D"));
-                    }
-                    else
-                    {
-                        return new SolidColorBrush(Colors.Green);
-                    }
+                    return new SolidColorBrush(Colors.Green);
                 }
             }
         }
@@ -141,6 +137,20 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AircraftOverlayWindow
                     clientRadio.Volume = value / 100.0f;
                 }
             }
+        }
+
+        public MultiRadioOverlayWindowViewModel()
+        {
+            //TODO
+            // Add support for intercom
+            // Add support for opacity
+            // Add support for hotkeys
+
+            RadioSelect = new DelegateCommand(() =>
+            {
+                RadioHelper.SelectRadio(0);
+                NotifyPropertyChanged(nameof(Radio));
+            }, () => IsAvailable);
         }
 
         ~MultiRadioOverlayWindowViewModel()

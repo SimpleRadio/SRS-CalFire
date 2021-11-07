@@ -14,7 +14,7 @@
                         <ColumnDefinition Width="5*" />
                         <ColumnDefinition Width="1*" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="{Binding Name}" />
+                    <TextBlock Text="{Binding UnitState.Name}" />
                 </Grid>
             </DataTemplate>
         </ListBox.ItemTemplate>

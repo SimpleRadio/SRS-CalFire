@@ -2,6 +2,7 @@
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models;
 using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Models;
 using FragLabs.Audio.Codecs;
@@ -61,6 +62,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
         private double uhfVol;
         private int vhfNoisePosition;
         private double vhfVol;
+
+        private int groundNoisePosition;
+        private double groundNoiseVol;
+
+        private int aircraftNoisePosition;
+        private double aircraftNoiseVol;
 
         public ClientAudioProvider(bool passThrough = false)
         {
@@ -148,14 +155,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
                 hfVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.HFNoiseVolume);
                 uhfVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.UHFNoiseVolume);
                 vhfVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.VHFNoiseVolume);
+
+                groundNoiseVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.GroundNoiseVolume);
+                aircraftNoiseVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.AircraftNoiseVolume);
             }
 
 
             //adjust for LOS + Distance + Volume
             AdjustVolumeForLoss(audio);
 
-            if (audio.ReceivedRadio == 0
-                || audio.Modulation == (short)Modulation.MIDS)
+            if (audio.Modulation == (short)Modulation.INTERCOM)
             {
                 if (profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects))
                     AddRadioEffectIntercom(audio);
@@ -394,6 +403,30 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
                         fmNoisePosition++;
 
                         if (fmNoisePosition == noise.Length) fmNoisePosition = 0;
+                    }
+                }
+
+
+                if (clientAudio.UnitType == PlayerUnitState.TYPE_AIRCRAFT)
+                {
+                    if (effectProvider.AircraftNoise.Loaded)
+                    {
+                        var noise = effectProvider.AircraftNoise.AudioEffectDouble;
+                        audio += noise[aircraftNoisePosition] * aircraftNoiseVol;
+                        aircraftNoisePosition++;
+
+                        if (aircraftNoisePosition == noise.Length) aircraftNoisePosition = 0;
+                    }
+                }
+                else if(clientAudio.UnitType == PlayerUnitState.TYPE_GROUND)
+                {
+                    if (effectProvider.GroundNoise.Loaded)
+                    {
+                        var noise = effectProvider.GroundNoise.AudioEffectDouble;
+                        audio += noise[groundNoisePosition] * groundNoiseVol;
+                        groundNoisePosition++;
+
+                        if (groundNoisePosition == noise.Length) groundNoisePosition = 0;
                     }
                 }
             }

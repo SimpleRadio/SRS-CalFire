@@ -110,8 +110,7 @@
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Background="Black"
-                               Foreground="#00FF00"
-                             
+                               Foreground="{Binding Path=FrequencyTextColour}"
                                Style="{x:Null}"
                                Text="{Binding Frequency}"
                                TextAlignment="Center"

@@ -39,6 +39,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             UHFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.UHF_NOISE);
             HFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.HF_NOISE);
 
+            AircraftNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.AIRCRAFT_NOISE);
+            GroundNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.GROUND_NOISE);
+
             //sort out volume (if needed)
             CreateAudioEffectDouble(HAVEQUICKTone);
             CreateAudioEffectDouble(NATOTone);
@@ -46,7 +49,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             CreateAudioEffectDouble(UHFNoise);
             CreateAudioEffectDouble(VHFNoise);
             CreateAudioEffectDouble(HFNoise);
+            CreateAudioEffectDouble(AircraftNoise);
+            CreateAudioEffectDouble(GroundNoise);
         }
+
+      
 
         public List<CachedAudioEffect> RadioTransmissionStart { get; }
         public List<CachedAudioEffect> RadioTransmissionEnd { get; }
@@ -105,6 +112,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         public CachedAudioEffect UHFNoise { get; }
         public CachedAudioEffect VHFNoise { get; }
         public CachedAudioEffect HFNoise { get; }
+        public CachedAudioEffect GroundNoise { get; }
+        public CachedAudioEffect AircraftNoise { get; }
 
         private void CreateAudioEffectDouble(CachedAudioEffect effect)
         {

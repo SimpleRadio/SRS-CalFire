@@ -36,7 +36,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
 
         //TODO move to input handler
-        private volatile bool _ptt = true;
+        private volatile bool _ptt = false;
         private readonly RadioReceivingState[] _radioReceivingState;
         private bool _stop;
         private Timer _timer;
@@ -277,23 +277,23 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         private List<Radio> PTTPressed(out int sendingOn)
         {
             sendingOn = -1;
-
+            var transmittingRadios = new List<Radio>();
             var radioInfo = _clientStateSingleton.PlayerUnitState;
             //If its a hot intercom and thats not the currently selected radio
             //this is special logic currently for the gazelle as it has a hot mic, but no way of knowing if you're transmitting from the module itself
             //so we have to figure out what you're transmitting on in SRS
             if (radioInfo.IntercomHotMic
-                && radioInfo.control == PlayerUnitState.RadioSwitchControls.IN_COCKPIT
-                && radioInfo.SelectedRadio != 0 && !_ptt)
+                && radioInfo.SelectedRadio != 0)
                 if (radioInfo.Radios[0].Modulation == Modulation.INTERCOM)
                 {
-                    var intercom = new List<Radio>();
-                    intercom.Add(radioInfo.Radios[0]);
+                    //TODO check this
+                    // var intercom = new List<Radio>();
+                    transmittingRadios.Add(radioInfo.Radios[0]);
                     sendingOn = 0;
-                    return intercom;
+                   // return intercom;
                 }
 
-            var transmittingRadios = new List<Radio>();
+           
             if (_ptt)
             {
                 // Always add currently selected radio (if valid)
@@ -572,6 +572,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                                             var isSimultaneousTransmission =
                                                 radioReceivingPriorities.Count > 1 && i > 0;
 
+                                            SRClientBase transmittingClient;
+                                            _clients.TryGetValue(udpVoicePacket.Guid,
+                                                out transmittingClient);
+
                                             var audio = new ClientAudio
                                             {
                                                 ClientGuid = udpVoicePacket.Guid,
@@ -592,7 +596,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                                                     destinationRadio
                                                         .LineOfSightLoss, // Loss of 1.0 or greater is total loss
                                                 PacketNumber = udpVoicePacket.PacketNumber,
-                                                OriginalClientGuid = udpVoicePacket.OriginalClientGuid
+                                                OriginalClientGuid = udpVoicePacket.OriginalClientGuid,
+                                                UnitType = transmittingClient?.UnitState?.UnitType
                                             };
 
 
@@ -611,15 +616,18 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                                                     .SHOW_TRANSMITTER_NAME)
                                                 && _globalSettings.GetClientSettingBool(GlobalSettingsKeys
                                                     .ShowTransmitterName)
-                                                && _clients.TryGetValue(udpVoicePacket.Guid,
-                                                    out var transmittingClient))
-                                                transmitterName = transmittingClient.UnitState.Name;
+                                                )
+                                            {
+                                                //got it
+                                                transmitterName = transmittingClient?.UnitState?.Name;
+                                            }
+                                             
 
                                             var newRadioReceivingState = new RadioReceivingState
                                             {
                                                 IsSecondary = destinationRadio.ReceivingState.IsSecondary,
                                                 IsSimultaneous = isSimultaneousTransmission,
-                                                LastReceviedAt = DateTime.Now.Ticks,
+                                                LastRecievedAt = DateTime.Now.Ticks,
                                                 PlayedEndOfTransmission = false,
                                                 ReceivedOn = destinationRadio.ReceivingState.ReceivedOn,
                                                 SentBy = transmitterName

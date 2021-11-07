@@ -61,7 +61,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         HFNoiseVolume,
 
         PTTStartDelay,
-        HotIntercomMic
+        GroundNoiseVolume,
+        AircraftNoiseVolume
     }
 
     public class ProfileSettingsStore
@@ -101,7 +102,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                 { ProfileSettingsKeys.RadioSwitchIsPTT.ToString(), "false" },
                 { ProfileSettingsKeys.RadioSwitchIsPTTOnlyWhenValid.ToString(), "false" },
                 { ProfileSettingsKeys.AlwaysAllowTransponderOverlay.ToString(), "false" },
-                { ProfileSettingsKeys.HotIntercomMic.ToString(), "false" },
 
                 { ProfileSettingsKeys.PTTReleaseDelay.ToString(), "0" },
                 { ProfileSettingsKeys.PTTStartDelay.ToString(), "0" },
@@ -114,7 +114,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
                 { ProfileSettingsKeys.VHFNoiseVolume.ToString(), "0.15" },
                 { ProfileSettingsKeys.HFNoiseVolume.ToString(), "0.15" },
                 { ProfileSettingsKeys.UHFNoiseVolume.ToString(), "0.15" },
-                { ProfileSettingsKeys.FMNoiseVolume.ToString(), "0.4" }
+                { ProfileSettingsKeys.FMNoiseVolume.ToString(), "0.4" },
+
+                { ProfileSettingsKeys.GroundNoiseVolume.ToString(), "0.5" },
+                { ProfileSettingsKeys.AircraftNoiseVolume.ToString(), "0.5" },
             };
 
         private readonly GlobalSettingsStore _globalSettings;

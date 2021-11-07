@@ -22,7 +22,6 @@ namespace Ciribob.SRS.Common.Network.Client
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public static string ServerVersion = "Unknown";
 
         private static readonly int MAX_DECODE_ERRORS = 5;
         private readonly ConnectedClientsSingleton _clients = ConnectedClientsSingleton.Instance;
@@ -251,7 +250,7 @@ namespace Ciribob.SRS.Common.Network.Client
                                         var serverVersion = Version.Parse(serverMessage.Version);
                                         var protocolVersion = Version.Parse(UpdaterChecker.MINIMUM_PROTOCOL_VERSION);
 
-                                        ServerVersion = serverMessage.Version;
+                                        SyncedServerSettings.Instance.ServerVersion = serverMessage.Version;
 
                                         if (serverVersion < protocolVersion)
                                         {
@@ -286,7 +285,7 @@ namespace Ciribob.SRS.Common.Network.Client
                                     case NetworkMessage.MessageType.SERVER_SETTINGS:
 
                                         _serverSettings.Decode(serverMessage.ServerSettings);
-                                        ServerVersion = serverMessage.Version;
+                                        SyncedServerSettings.Instance.ServerVersion = serverMessage.Version;
 
                                         break;
                                     case NetworkMessage.MessageType.CLIENT_DISCONNECT:
@@ -346,10 +345,11 @@ namespace Ciribob.SRS.Common.Network.Client
         private void HandlePartialUpdate(NetworkMessage networkMessage, SRClientBase client)
         {
           
-            client.UnitState.Transponder = client.UnitState.Transponder;
-            client.UnitState.Coalition = client.UnitState.Coalition;
-            client.UnitState.LatLng = client.UnitState.LatLng;
-            client.UnitState.Name = client.UnitState.Name;
+            client.UnitState.Transponder = networkMessage.Client.UnitState.Transponder;
+            client.UnitState.Coalition = networkMessage.Client.UnitState.Coalition;
+            client.UnitState.LatLng = networkMessage.Client.UnitState.LatLng;
+            client.UnitState.Name = networkMessage.Client.UnitState.Name;
+            client.UnitState.UnitId = networkMessage.Client.UnitState.UnitId;
         }
 
         private void HandleFullUpdate(NetworkMessage networkMessage, SRClientBase client)

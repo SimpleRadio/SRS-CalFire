@@ -37,12 +37,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
         private readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         private AudioPreview _audioPreview;
-        private MultiRadioOverlayWindow _awacsMultiRadioOverlay;
+        private MultiRadioOverlayWindow _aircraftMultiRadioOverlay;
         private TCPClientHandler _client;
 
         private ClientListWindow _clientListWindow;
 
-        private HandheldRadioOverlayWindow.RadioOverlayWindow _radioOverlayWindow;
+        private HandheldRadioOverlayWindow.RadioOverlayWindow _singleRadioOverlay;
 
         private ServerSettingsWindow.ServerSettingsWindow _serverSettingsWindow;
 
@@ -73,7 +73,15 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             ClientStateSingleton.Instance.PlayerUnitState.Name = Name;
 
             EventBus.Instance.SubscribeOnUIThread(this);
+
+            ServerSettingsCommand = new DelegateCommand(ToggleServerSettings);
+
+            ClientListCommand = new DelegateCommand(ToggleClientList);
         }
+
+        public ICommand ClientListCommand { get; set; }
+
+        public ICommand ServerSettingsCommand { get; set; }
 
         public DelegateCommand MultiRadioOverlayCommand { get; set; }
 
@@ -184,7 +192,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
         {
             get
             {
-                var name = _globalSettings.GetClientSetting(GlobalSettingsKeys.LastSeenName);
+                var name = _globalSettings.GetClientSetting(GlobalSettingsKeys.LastUsedName);
 
                 if (name == null || name.RawValue == "")
                     return "FS3D Client";
@@ -194,7 +202,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             {
                 if (value != null)
                 {
-                    _globalSettings.SetClientSetting(GlobalSettingsKeys.LastSeenName, value);
+                    _globalSettings.SetClientSetting(GlobalSettingsKeys.LastUsedName, value);
                     NotifyPropertyChanged();
                 }
             }
@@ -494,26 +502,26 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
 
         private void ToggleHandheldOverlay()
         {
-            if (_radioOverlayWindow == null || !_radioOverlayWindow.IsVisible ||
-                _radioOverlayWindow.WindowState == WindowState.Minimized)
+            if (_singleRadioOverlay == null || !_singleRadioOverlay.IsVisible ||
+                _singleRadioOverlay.WindowState == WindowState.Minimized)
             {
                 //hide awacs panel
-                _awacsMultiRadioOverlay?.Close();
-                _awacsMultiRadioOverlay = null;
+                _aircraftMultiRadioOverlay?.Close();
+                _aircraftMultiRadioOverlay = null;
 
-                _radioOverlayWindow?.Close();
+                _singleRadioOverlay?.Close();
 
-                _radioOverlayWindow = new HandheldRadioOverlayWindow.RadioOverlayWindow();
+                _singleRadioOverlay = new HandheldRadioOverlayWindow.RadioOverlayWindow();
 
 
-                _radioOverlayWindow.ShowInTaskbar =
+                _singleRadioOverlay.ShowInTaskbar =
                     !_globalSettings.GetClientSettingBool(GlobalSettingsKeys.RadioOverlayTaskbarHide);
-                _radioOverlayWindow.Show();
+                _singleRadioOverlay.Show();
             }
             else
             {
-                _radioOverlayWindow?.Close();
-                _radioOverlayWindow = null;
+                _singleRadioOverlay?.Close();
+                _singleRadioOverlay = null;
             }
             
         }
@@ -525,28 +533,28 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
 
         private void ToggleMultiRadioOverlay()
         {
-            if (_awacsMultiRadioOverlay == null || !_awacsMultiRadioOverlay.IsVisible ||
-                _awacsMultiRadioOverlay.WindowState == WindowState.Minimized)
+            if (_aircraftMultiRadioOverlay == null || !_aircraftMultiRadioOverlay.IsVisible ||
+                _aircraftMultiRadioOverlay.WindowState == WindowState.Minimized)
             {
                 //close normal overlay
-                _radioOverlayWindow?.Close();
-                _radioOverlayWindow = null;
+                _singleRadioOverlay?.Close();
+                _singleRadioOverlay = null;
 
-                _awacsMultiRadioOverlay?.Close();
+                _aircraftMultiRadioOverlay?.Close();
 
-                _awacsMultiRadioOverlay = new MultiRadioOverlayWindow();
-                _awacsMultiRadioOverlay.ShowInTaskbar =
+                _aircraftMultiRadioOverlay = new MultiRadioOverlayWindow();
+                _aircraftMultiRadioOverlay.ShowInTaskbar =
                     !_globalSettings.GetClientSettingBool(GlobalSettingsKeys.RadioOverlayTaskbarHide);
-                _awacsMultiRadioOverlay.Show();
+                _aircraftMultiRadioOverlay.Show();
             }
             else
             {
-                _awacsMultiRadioOverlay?.Close();
-                _awacsMultiRadioOverlay = null;
+                _aircraftMultiRadioOverlay?.Close();
+                _aircraftMultiRadioOverlay = null;
             }
         }
 
-        private void ToggleServerSettings_OnClick(object sender, RoutedEventArgs e)
+        private void ToggleServerSettings()
         {
             if (_serverSettingsWindow == null || !_serverSettingsWindow.IsVisible ||
                 _serverSettingsWindow.WindowState == WindowState.Minimized)
@@ -565,7 +573,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             }
         }
 
-        private void ShowClientList_OnClick(object sender, RoutedEventArgs e)
+        private void ToggleClientList()
         {
             if (_clientListWindow == null || !_clientListWindow.IsVisible ||
                 _clientListWindow.WindowState == WindowState.Minimized)
@@ -593,16 +601,22 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             _client?.Disconnect();
             _client = null;
 
-            // Stop();
-            //
-            // _audioPreview?.StopEncoding();
-            // _audioPreview = null;
-            //
-            // _radioOverlayWindow?.Close();
-            // _radioOverlayWindow = null;
-            //
-            // _awacsRadioOverlay?.Close();
-            // _awacsRadioOverlay = null;
+            Stop();
+            
+            _audioPreview?.StopEncoding();
+            _audioPreview = null;
+            
+            _singleRadioOverlay?.Close();
+            _singleRadioOverlay = null;
+            
+            _aircraftMultiRadioOverlay?.Close();
+            _aircraftMultiRadioOverlay = null;
+
+            _clientListWindow?.Close();
+            _clientListWindow = null;
+
+            _serverSettingsWindow?.Close();
+            _serverSettingsWindow = null;
         }
     }
 }

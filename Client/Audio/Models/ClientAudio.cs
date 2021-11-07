@@ -18,5 +18,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models
         public float LineOfSightLoss { get; set; }
         public ulong PacketNumber { get; set; }
         public string OriginalClientGuid { get; internal set; }
+        public string UnitType { get; set; }
     }
 }

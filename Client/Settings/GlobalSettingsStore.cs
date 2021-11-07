@@ -46,7 +46,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         Denoise,
         DenoiseAttenuation,
 
-        LastSeenName,
+        LastUsedName,
 
         CheckForBetaUpdates,
 
@@ -66,7 +66,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         ShowTransmitterName,
 
         IdleTimeOut,
-        AutoConnect
+        AutoConnect,
+        LastUsedID
     }
 
     public enum InputBinding
@@ -237,7 +238,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             { GlobalSettingsKeys.Denoise.ToString(), "true" },
             { GlobalSettingsKeys.DenoiseAttenuation.ToString(), "-30" },
 
-            { GlobalSettingsKeys.LastSeenName.ToString(), "" },
+            { GlobalSettingsKeys.LastUsedName.ToString(), "FS3D Client" },
+            { GlobalSettingsKeys.LastUsedID.ToString(), "1" },
 
             { GlobalSettingsKeys.CheckForBetaUpdates.ToString(), "false" },
 
@@ -398,6 +400,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         public void SetPositionSetting(GlobalSettingsKeys key, double value)
         {
             SetSetting("Position Settings", key.ToString(), value.ToString(CultureInfo.InvariantCulture));
+        }
+
+        public void SetUnitID(uint value)
+        {
+            SetSetting("Client Settings",GlobalSettingsKeys.LastUsedID.ToString(), value.ToString(CultureInfo.InvariantCulture));
+        }
+
+        public uint GetUnitId()
+        {
+             return uint.Parse(GetSetting("Client Settings", GlobalSettingsKeys.LastUsedID.ToString()).RawValue);
         }
 
         public bool GetClientSettingBool(GlobalSettingsKeys key)

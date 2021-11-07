@@ -6,10 +6,12 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Annotations;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Models;
+using Ciribob.SRS.Common.Network.Models.EventMessages;
 using Ciribob.SRS.Common.Network.Singletons;
 using Newtonsoft.Json;
 using NLog;
@@ -22,8 +24,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
         private  static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private static readonly string HANDHELD_RADIO_JSON = "handheld-radio.json";
         private static readonly string MULTI_RADIO_JSON = "multi-radio.json";
-        private static readonly string TYPE_AIRCRAFT = "AIRCRAFT";
-        private static readonly string TYPE_GROUND = "GROUND";
+        public static readonly string TYPE_AIRCRAFT = "AIRCRAFT";
+        public static readonly string TYPE_GROUND = "GROUND";
 
         //HOTAS or IN COCKPIT controls
         public enum RadioSwitchControls
@@ -53,11 +55,38 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
 
         public Transponder Transponder { get; set; } = new();
 
-        public string UnitType { get; set; } = "";
+        public string UnitType
+        {
+            get => _unitType;
+            set
+            {
+                _unitType = value;
 
-        public string Name { get; set; } = "";
+                EventBus.Instance.PublishOnBackgroundThreadAsync(new UnitUpdateMessage() { FullUpdate = false, UnitUpdate = ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase });
+            }
+        }
 
-        public uint UnitId { get; set; }
+        public string Name
+        {
+            get => GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.LastUsedName).RawValue;
+            set
+            {
+                GlobalSettingsStore.Instance.SetClientSetting(GlobalSettingsKeys.LastUsedName, value);
+                EventBus.Instance.PublishOnBackgroundThreadAsync(new UnitUpdateMessage() { FullUpdate = false, UnitUpdate = ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase });
+            }
+        }
+
+        public uint UnitId
+        {
+            get => GlobalSettingsStore.Instance.GetUnitId();
+            set
+            {
+                _unitId = value;
+
+                GlobalSettingsStore.Instance.SetUnitID(value);
+                EventBus.Instance.PublishOnBackgroundThreadAsync(new UnitUpdateMessage() { FullUpdate = false, UnitUpdate = ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase });
+            }
+        }
 
 
         public bool
@@ -65,6 +94,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
 
         public SimultaneousTransmissionControl simultaneousTransmissionControl =
             SimultaneousTransmissionControl.ENABLED_INTERNAL_SRS_CONTROLS;
+
+        private string _unitType = "";
+        private uint _unitId;
 
         public PlayerUnitState()
         {
@@ -80,6 +112,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
             Radios = new ObservableCollection<Radio>(Radio.LoadRadioConfig(MULTI_RADIO_JSON));
             SelectedRadio = 1;
             UnitType = TYPE_AIRCRAFT;
+            IntercomHotMic = true;
             EventBus.Instance.PublishOnBackgroundThreadAsync(new UnitUpdateMessage() { FullUpdate = true, UnitUpdate = ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase });
         }
 
@@ -88,7 +121,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
             Radios = new ObservableCollection<Radio>(Radio.LoadRadioConfig(HANDHELD_RADIO_JSON));
             SelectedRadio = 1;
             UnitType = TYPE_GROUND;
-
+            IntercomHotMic = false;
             EventBus.Instance.PublishOnBackgroundThreadAsync(new UnitUpdateMessage() { FullUpdate = true, UnitUpdate = ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase });
         }
 
@@ -96,7 +129,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
 
         public short SelectedRadio { get; set; } 
 
-        public bool IntercomHotMic { get; set; } = false;
+        public bool IntercomHotMic { get; set; } = true;
 
         public ObservableCollection<Radio> Radios { get; private set; } = new();
 

@@ -68,7 +68,7 @@ namespace Ciribob.SRS.Common.Network.Models
                             receivingState = new RadioReceivingState
                             {
                                 IsSecondary = false,
-                                LastReceviedAt = DateTime.Now.Ticks,
+                                LastRecievedAt = DateTime.Now.Ticks,
                                 ReceivedOn = i
                             };
                             decryptable = true;
@@ -92,7 +92,7 @@ namespace Ciribob.SRS.Common.Network.Models
                             receivingState = new RadioReceivingState
                             {
                                 IsSecondary = false,
-                                LastReceviedAt = DateTime.Now.Ticks,
+                                LastRecievedAt = DateTime.Now.Ticks,
                                 ReceivedOn = i
                             };
                             decryptable = true;
@@ -103,7 +103,7 @@ namespace Ciribob.SRS.Common.Network.Models
                         bestMatchingRadioState = new RadioReceivingState
                         {
                             IsSecondary = false,
-                            LastReceviedAt = DateTime.Now.Ticks,
+                            LastRecievedAt = DateTime.Now.Ticks,
                             ReceivedOn = i
                         };
                         bestMatchingDecryptable = isDecryptable;
@@ -119,7 +119,7 @@ namespace Ciribob.SRS.Common.Network.Models
                             receivingState = new RadioReceivingState
                             {
                                 IsSecondary = true,
-                                LastReceviedAt = DateTime.Now.Ticks,
+                                LastRecievedAt = DateTime.Now.Ticks,
                                 ReceivedOn = i
                             };
                             decryptable = true;
@@ -130,7 +130,7 @@ namespace Ciribob.SRS.Common.Network.Models
                         bestMatchingRadioState = new RadioReceivingState
                         {
                             IsSecondary = true,
-                            LastReceviedAt = DateTime.Now.Ticks,
+                            LastRecievedAt = DateTime.Now.Ticks,
                             ReceivedOn = i
                         };
                     }

@@ -4,7 +4,7 @@ namespace Ciribob.SRS.Common.Network.Models
 {
     public class RadioReceivingState
     {
-        public long LastReceviedAt { get; set; }
+        public long LastRecievedAt { get; set; }
 
         public bool IsSecondary { get; set; }
         public bool IsSimultaneous { get; set; }
@@ -14,6 +14,6 @@ namespace Ciribob.SRS.Common.Network.Models
 
         public string SentBy { get; set; }
 
-        public bool IsReceiving => DateTime.Now.Ticks - LastReceviedAt < 3500000;
+        public bool IsReceiving => DateTime.Now.Ticks - LastRecievedAt < 3500000;
     }
 }

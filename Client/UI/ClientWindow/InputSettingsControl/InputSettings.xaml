@@ -1,0 +1,172 @@
+﻿<UserControl x:Class="Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.InputSettingsControl.InputSettings"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.InputSettingsControl"
+             xmlns:settings="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Visible">
+        <StackPanel Orientation="Vertical">
+            <Button Width="150px" Content="Rescan Input Devices" />
+            <Label x:Name="DeviceLabel"
+                                
+                   HorizontalContentAlignment="Center"
+                   VerticalContentAlignment="Center"
+                   Content="Device" />
+                <Label x:Name="ButtonLabel"
+                             
+                                   HorizontalContentAlignment="Center"
+                                   VerticalContentAlignment="Center"
+                                   Content="Button" />
+
+                <local:InputBindingControl x:Name="Radio1"
+                                                       
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Switch1}"
+                                                       InputName="Radio 1" />
+                <local:InputBindingControl x:Name="Radio2"
+                                                      
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Switch2}"
+                                                       InputName="Radio 2" />
+                <local:InputBindingControl x:Name="Radio3"
+                                           ControlInputBinding="{x:Static settings:InputBinding.Switch3}"
+                                                       InputName="Radio 3" />
+                <local:InputBindingControl x:Name="PTT"
+                                           ControlInputBinding="{x:Static settings:InputBinding.Ptt}"
+                                                       InputName="Common PTT" />
+                <local:InputBindingControl x:Name="Intercom"
+
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Intercom}"
+                                                       InputName="Intercom Select" />
+
+                <local:InputBindingControl x:Name="RadioOverlay"
+
+                                                       ControlInputBinding="{x:Static settings:InputBinding.OverlayToggle}"
+                                                       InputName="Overlay Toggle" />
+
+                <local:InputBindingControl x:Name="Radio4"
+
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Switch4}"
+                                                       InputName="Radio 4" />
+                <local:InputBindingControl x:Name="Radio5"
+
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Switch5}"
+                                                       InputName="Radio 5" />
+                <local:InputBindingControl x:Name="Radio6"
+
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Switch6}"
+                                                       InputName="Radio 6" />
+
+                <local:InputBindingControl x:Name="Radio7"
+
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Switch7}"
+                                                       InputName="Radio 7" />
+
+                <local:InputBindingControl x:Name="Radio8"
+
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Switch8}"
+                                                       InputName="Radio 8" />
+
+                <local:InputBindingControl x:Name="Radio9"
+
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Switch9}"
+                                                       InputName="Radio 9" />
+
+                <local:InputBindingControl x:Name="Radio10"
+
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Switch10}"
+                                                       InputName="Radio 10" />
+
+
+                <local:InputBindingControl x:Name="Up100"
+
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Up100}"
+                                                       InputName="Up 100MHz" />
+
+                <local:InputBindingControl x:Name="Up10"
+                                                      
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Up10}"
+                                                       InputName="Up 10MHz" />
+
+                <local:InputBindingControl x:Name="Up1"
+                                                     
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Up1}"
+                                                       InputName="Up 1MHz" />
+
+                <local:InputBindingControl x:Name="Up01"
+                                                     
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Up01}"
+                                                       InputName="Up 0.1MHz" />
+
+                <local:InputBindingControl x:Name="Up001"
+                                                    
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Up001}"
+                                                       InputName="Up 0.01MHz" />
+
+                <local:InputBindingControl x:Name="Up0001"
+                                                    
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Up0001}"
+                                                       InputName="Up 0.001MHz" />
+
+
+                <local:InputBindingControl x:Name="Down100"
+                                                      
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Down100}"
+                                                       InputName="Down 100MHz" />
+
+                <local:InputBindingControl x:Name="Down10"
+                                                    
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Down10}"
+                                                       InputName="Down 10MHz" />
+
+                <local:InputBindingControl x:Name="Down1"
+                                                     
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Down1}"
+                                                       InputName="Down 1MHz" />
+
+                <local:InputBindingControl x:Name="Down01"
+                                                      
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Down01}"
+                                                       InputName="Down 0.1MHz" />
+
+                <local:InputBindingControl x:Name="Down001"
+                                                     
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Down001}"
+                                                       InputName="Down 0.01MHz" />
+
+                <local:InputBindingControl x:Name="Down0001"
+                                                     
+                                                       ControlInputBinding="{x:Static settings:InputBinding.Down0001}"
+                                                       InputName="Down 0.001MHz" />
+
+                <local:InputBindingControl x:Name="ToggleGuard"
+                                                      
+                                                       ControlInputBinding="{x:Static settings:InputBinding.ToggleGuard}"
+                                                       InputName="Toggle Guard" />
+
+                <local:InputBindingControl x:Name="NextRadio"
+                                                      
+                                                       ControlInputBinding="{x:Static settings:InputBinding.NextRadio}"
+                                                       InputName="Next Radio" />
+
+
+                <local:InputBindingControl x:Name="PreviousRadio"
+                                                      
+                                                       ControlInputBinding="{x:Static settings:InputBinding.PreviousRadio}"
+                                                       InputName="Previous Radio" />
+
+
+                <local:InputBindingControl x:Name="RadioChannelUp"
+
+                                                       ControlInputBinding="{x:Static settings:InputBinding.RadioChannelUp}"
+                                                       InputName="Radio Channel Up" />
+
+                <local:InputBindingControl x:Name="RadioChannelDown"
+                                           ControlInputBinding="{x:Static settings:InputBinding.RadioChannelDown}"
+                                                       InputName="Radio Channel Down" />
+
+               
+            </StackPanel>
+        </ScrollViewer>
+</UserControl>

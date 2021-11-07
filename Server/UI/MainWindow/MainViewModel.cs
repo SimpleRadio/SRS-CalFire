@@ -96,11 +96,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
             }
         }
 
-        public string TunedCountText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.SHOW_TUNED_COUNT).BoolValue
-                ? "ON"
-                : "OFF";
-
         public string ListeningPort
             => ServerSettingsStore.Instance.GetServerSetting(ServerSettingsKeys.SERVER_PORT).StringValue;
 
@@ -183,13 +178,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
         }
 
 
-        public void TunedCountToggle()
-        {
-            var newSetting = TunedCountText != "ON";
-            ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.SHOW_TUNED_COUNT, newSetting);
-            NotifyOfPropertyChange(() => TunedCountText);
-
-            _eventAggregator.PublishOnBackgroundThreadAsync(new ServerSettingsChangedMessage());
-        }
+       
     }
 }

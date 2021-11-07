@@ -21,7 +21,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models
             VHF_NOISE = 8,
             HF_NOISE = 9,
             UHF_NOISE = 10,
-            FM_NOISE = 11
+            FM_NOISE = 11,
+            AIRCRAFT_NOISE = 12,
+            GROUND_NOISE = 13
         }
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();

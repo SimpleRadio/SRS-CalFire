@@ -121,6 +121,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
                 handheldRadio = JsonConvert.DeserializeObject<Radio[]>(radioJson);
 
                 if (handheldRadio.Length < 2) throw new Exception("Not enough radios configured");
+
+                foreach (var radio in handheldRadio)
+                {
+                    if (radio.PresetChannels.Count >= 2)
+                    {
+                        //select first channel (0 is no channel)
+                        radio.CurrentChannel = radio.PresetChannels[1];
+                    }
+                }
+
             }
             catch (Exception ex)
             {

@@ -39,6 +39,12 @@
     <WarningsAsErrors />
   </PropertyGroup>
   <ItemGroup>
+    <None Update="AudioEffects\AIRCRAFT.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="AudioEffects\AIRCRAFT_NOISE.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="AudioEffects\beep-connected.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -47,6 +53,12 @@
     </None>
     <None Update="AudioEffects\FM_NOISE.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AudioEffects\GROUND.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="AudioEffects\GROUND_NOISE.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="AudioEffects\HAVEQUICK_TONE.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -179,8 +191,5 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="UI\Common\" />
   </ItemGroup>
 </Project>

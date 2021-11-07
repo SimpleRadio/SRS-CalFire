@@ -39,6 +39,8 @@ namespace Ciribob.SRS.Common.Network.Singletons
             }
         }
 
+        public  string ServerVersion { get; set; }
+
         public string GetSetting(ServerSettingsKeys key)
         {
             var setting = key.ToString();

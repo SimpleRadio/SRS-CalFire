@@ -52,48 +52,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
                 return _instance;
             }
         }
-
-        //Load Radio Channels
-        //Reload function to attempt to load 
-
-
-        public int ClientsOnFreq(double freq, Modulation modulation)
-        {
-            if (!SyncedServerSettings.Instance.GetSettingAsBool(ServerSettingsKeys.SHOW_TUNED_COUNT))
-                //TODO make this client side controlled
-                return 0;
-
-            var currentUnitId = Instance.PlayerUnitState.UnitId;
-
-            var count = 0;
-
-            foreach (var client in ConnectedClientsSingleton.Instance.Clients)
-                if (!client.Key.Equals(GUID))
-                {
-                    var radioInfo = client.Value.UnitState;
-
-                    if (radioInfo != null)
-                    {
-                        RadioReceivingState radioReceivingState = null;
-                        bool decryptable;
-                        var receivingRadio = RadioBase.CanHearTransmission(freq,
-                            modulation,
-                            0,
-                            currentUnitId,
-                            new List<int>(),
-                            radioInfo.Radios,
-                            radioInfo.UnitId,
-                            out radioReceivingState,
-                            out decryptable);
-
-                        //only send if we can hear!
-                        if (receivingRadio != null) count++;
-                    }
-                }
-
-            return count;
-        }
-
         public Task HandleAsync(TCPClientStatusMessage message, CancellationToken cancellationToken)
         {
             if (message.Connected)

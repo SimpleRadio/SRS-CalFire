@@ -144,6 +144,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWind
         {
             NotifyPropertyChanged(nameof(RadioActiveFill));
             NotifyPropertyChanged(nameof(Frequency));
+            NotifyPropertyChanged(nameof(FrequencyTextColour));
         }
 
         public string Name => Radio.Name;
@@ -206,6 +207,41 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWind
                         return new SolidColorBrush(Colors.Green);
                     }
                 }
+            }
+        }
+
+        public SolidColorBrush FrequencyTextColour
+        {
+            get
+            {
+                if (Radio == null || !IsAvailable)
+                {
+                    return new SolidColorBrush(Colors.Red);
+                }
+
+                try
+                {
+                    var receivingState = ClientStateSingleton.Instance.RadioReceivingState[RadioId];
+
+                    if (receivingState.IsReceiving && receivingState.IsSecondary)
+                    {
+                        return new SolidColorBrush(Colors.Red);
+                    }
+                    else if(receivingState.IsReceiving)
+                    {
+                        return new SolidColorBrush(Colors.White);
+                    }
+                    else
+                    {
+                        return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00FF00"));
+                    }
+                }
+                catch
+                {
+
+                }
+                return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00FF00"));
+
             }
         }
 
@@ -297,22 +333,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWind
             }
         }
 
-        // public string TunedClients
-        // {
-        //     get
-        //     {
-        //         var count = ClientStateSingleton.Instance.ClientsOnFreq(Radio.Freq, Radio.Modulation);
-        //
-        //         if (count == 0)
-        //         {
-        //             return "";
-        //         }
-        //         else
-        //         {
-        //             return "👤 " + ClientStateSingleton.Instance.ClientsOnFreq(Radio.Freq, Radio.Modulation);
-        //         }
-        //     }
-        // }
 
         /**
          * PRESETS
