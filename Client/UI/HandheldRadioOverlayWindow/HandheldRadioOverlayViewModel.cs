@@ -145,6 +145,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.HandheldRadioOverlayWind
             NotifyPropertyChanged(nameof(RadioActiveFill));
             NotifyPropertyChanged(nameof(Frequency));
             NotifyPropertyChanged(nameof(FrequencyTextColour));
+            NotifyPropertyChanged(nameof(Volume));
         }
 
         public string Name => Radio.Name;

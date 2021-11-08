@@ -11,9 +11,7 @@ using Google.Cloud.TextToSpeech.V1;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NAudio.Wave.WaveFormats;
-using NAudio.Wave.WaveOutputs;
-using NAudio.Wave.WaveStreams;
-using NLog; // using NVorbis;
+using NLog;
 
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Audio
@@ -257,14 +255,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Audio
                 Logger.Info("Reading MP3 it looks like a file");
                 resampledBytes = GetMP3Bytes();
             }
-            else if (opts.File != null && opts.File.ToLowerInvariant().EndsWith(".ogg"))
-            {
-                Logger.Info("Reading OGG it looks like a file");
-                resampledBytes = GetOggBytes();
-            }
             else
             {
-                Logger.Info("Doing Text To Speech as its not an MP3/Ogg path");
+                Logger.Info("Doing Text To Speech as its not an MP3 path");
 
                 var msg = opts.Text;
                 if (opts.TextFile != null)
@@ -331,27 +324,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Audio
             return opusBytes;
         }
 
-        private byte[] GetOggBytes()
-        {
-            var resampledBytesList = new List<byte>();
-            var waveProvider = GetOggWaveProvider();
-
-            Logger.Info($"Convert to Mono 16bit PCM 16000KHz from {waveProvider.WaveFormat}");
-            //loop thorough in up to 1 second chunks
-            var resample = new EventDrivenResampler(waveProvider.WaveFormat, new WaveFormat(INPUT_SAMPLE_RATE, 1));
-
-            var buffer = new byte[waveProvider.WaveFormat.AverageBytesPerSecond * 2];
-
-            var read = 0;
-            while ((read = waveProvider.Read(buffer, 0, waveProvider.WaveFormat.AverageBytesPerSecond)) > 0)
-                //resample as we go
-                resampledBytesList.AddRange(resample.ResampleBytes(buffer, read));
-
-            Logger.Info($"Converted to Mono 16bit PCM 16000KHz from {waveProvider.WaveFormat}");
-
-            return resampledBytesList.ToArray();
-        }
-
+       
         private IWaveProvider GetOggWaveProvider()
         {
             Logger.Info($"Reading Ogg @ {opts.File}");

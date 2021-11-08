@@ -259,6 +259,38 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
                 currentRadio.Volume = volume;
         }
 
+        public static void VolumeUp( int radioId)
+        {
+            var currentRadio = GetRadio(radioId);
+
+            if (currentRadio != null
+                && currentRadio.Modulation != Modulation.DISABLED
+                && currentRadio.Config.VolumeControl == RadioConfig.VolumeMode.OVERLAY)
+            {
+                currentRadio.Volume = currentRadio.Volume+0.05f;
+
+                if (currentRadio.Volume > 1.0)
+                    currentRadio.Volume = 1.0f;
+                else if (currentRadio.Volume < 0) currentRadio.Volume = 0;
+            }
+        }
+
+        public static void VolumeDown(int radioId)
+        {
+            var currentRadio = GetRadio(radioId);
+
+            if (currentRadio != null
+                && currentRadio.Modulation != Modulation.DISABLED
+                && currentRadio.Config.VolumeControl == RadioConfig.VolumeMode.OVERLAY)
+            {
+                currentRadio.Volume = currentRadio.Volume - 0.05f;
+
+                if (currentRadio.Volume > 1.0f)
+                    currentRadio.Volume = 1.0f;
+                else if (currentRadio.Volume < 0f) currentRadio.Volume = 0f;
+            }
+        }
+
         public static void ToggleRetransmit(int radioId)
         {
             var radio = GetRadio(radioId);
@@ -271,6 +303,17 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils
             // ClientStateSingleton.Instance.LastSent = 0;
         }
 
-       
+
+        public static void ToggleHotMic(short radioId)
+        { 
+            var radio = GetRadio(radioId);
+
+            if (radio != null)
+                if (radio.Modulation == Modulation.INTERCOM)
+                {
+                    ClientStateSingleton.Instance.PlayerUnitState.IntercomHotMic =
+                        !ClientStateSingleton.Instance.PlayerUnitState.IntercomHotMic;
+                }
+        }
     }
 }

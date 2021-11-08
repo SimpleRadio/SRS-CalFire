@@ -52,6 +52,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AircraftOverlayWindow
         private void RefreshView(object? sender, EventArgs e)
         {
             NotifyPropertyChanged(nameof(RadioActiveFill));
+            NotifyPropertyChanged(nameof(Volume));
+            NotifyPropertyChanged(nameof(HotIntercomMicToggle));
         }
 
         public bool IsAvailable

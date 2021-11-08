@@ -172,7 +172,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         ModifierRadioChannelDown = 232,
 
         TransponderIDENT = 133,
-        ModifierTransponderIDENT = 233
+        ModifierTransponderIDENT = 233,
+
+        VolumeUp = 134,
+        ModifierVolumeUp = 234,
+
+        VolumeDown = 135,
+        ModifierVolumeDown = 235,
+
+        ToggleHotMic = 136,
+        ModifierToggleHotMic = 236
     }
 
 

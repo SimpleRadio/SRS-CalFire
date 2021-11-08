@@ -344,7 +344,6 @@ namespace Ciribob.SRS.Common.Network.Client
 
         private void HandlePartialUpdate(NetworkMessage networkMessage, SRClientBase client)
         {
-          
             client.UnitState.Transponder = networkMessage.Client.UnitState.Transponder;
             client.UnitState.Coalition = networkMessage.Client.UnitState.Coalition;
             client.UnitState.LatLng = networkMessage.Client.UnitState.LatLng;

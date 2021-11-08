@@ -505,20 +505,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
                             }
                     }
 
-                    callback(bindStates);
+                    callback?.Invoke(bindStates);
+
                     //handle overlay
 
                     foreach (var bindState in bindStates)
-                        if (bindState.IsActive && bindState.MainDevice.InputBind == InputBinding.OverlayToggle)
-                        {
-                            //run on main
-                            //TODO fix this
-                            // Application.Current.Dispatcher.Invoke(
-                            //     () => { _toggleOverlayCallback(false); });
-                            break;
-                        }
-                        else if ((int)bindState.MainDevice.InputBind >= (int)InputBinding.Up100 &&
-                                 (int)bindState.MainDevice.InputBind <= (int)InputBinding.TransponderIDENT)
+                        if ((int)bindState.MainDevice.InputBind >= (int)InputBinding.Up100 &&
+                                 (int)bindState.MainDevice.InputBind <= (int)InputBinding.ToggleHotMic)
                         {
                             if (bindState.MainDevice.InputBind == _lastActiveBinding && !bindState.IsActive)
                                 //Assign to a totally different binding to mark as unassign
@@ -575,7 +568,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
                                             RadioHelper.ToggleGuard(playerRadioInfo.SelectedRadio);
                                             break;
                                         case InputBinding.ToggleEncryption:
-
                                             break;
                                         case InputBinding.NextRadio:
                                             RadioHelper.SelectNextRadio();
@@ -584,10 +576,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
                                             RadioHelper.SelectPreviousRadio();
                                             break;
                                         case InputBinding.EncryptionKeyIncrease:
-
                                             break;
                                         case InputBinding.EncryptionKeyDecrease:
-
                                             break;
                                         case InputBinding.RadioChannelUp:
                                             RadioHelper.RadioChannelUp(playerRadioInfo.SelectedRadio);
@@ -596,7 +586,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
                                             RadioHelper.RadioChannelDown(playerRadioInfo.SelectedRadio);
                                             break;
                                         case InputBinding.TransponderIDENT:
-                                            TransponderHelper.ToggleIdent();
+                                            //TransponderHelper.ToggleIdent();
+                                            break;
+                                        case InputBinding.VolumeUp:
+                                            RadioHelper.VolumeUp(playerRadioInfo.SelectedRadio);
+                                            break;
+                                        case InputBinding.VolumeDown:
+                                            RadioHelper.VolumeDown(playerRadioInfo.SelectedRadio);
+                                            break;
+                                        case InputBinding.ToggleHotMic:
+                                            RadioHelper.ToggleHotMic(0);
                                             break;
                                     }
 
@@ -691,7 +690,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons
 
             //REMEMBER TO UPDATE THIS WHEN NEW BINDINGS ARE ADDED
             //MIN + MAX bind numbers
-            for (var i = (int)InputBinding.Intercom; i <= (int)InputBinding.TransponderIDENT; i++)
+            for (var i = (int)InputBinding.Intercom; i <= (int)InputBinding.ToggleHotMic; i++)
             {
                 if (!currentInputProfile.ContainsKey((InputBinding)i)) continue;
 
