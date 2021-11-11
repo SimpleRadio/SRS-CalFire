@@ -1,19 +1,28 @@
 ﻿[
   {
-    "enc": false,
-    "encKey": 1,
-    "freqMax": 400000000.0,
-    "freqMin": 1000000.0,
-    "freq": 251000000.0,
-    "modulation": 0,
-    "name": "FM Radio",
-    "secFreq": 243000000.0,
-    "volume": 1.0,
-    "freqMode": 1,
-    "volMode": 1,
-    "expansion": false,
-    "channel": -1,
-    "simul": false,
-    "rtMode": 1
+    "Config": {
+      "MinimumFrequency": 10000,
+      "MaxFrequency": 10002,
+      "FrequencyControl": 0,
+      "VolumeControl": 1,
+      "GuardFrequency": 0
+    },
+    "Freq": 10001,
+    "SecFreq": 0,
+    "Modulation": 3,
+    "Name": "Intercom"
+  },
+  {
+    "Config": {
+      "MinimumFrequency": 1.0e+8,
+      "MaxFrequency": 2e+8,
+      "FrequencyControl": 1,
+      "VolumeControl": 1,
+      "GuardFrequency": 1.215e+8
+    },
+    "Freq": 1.51e+8,
+    "SecFreq": 0,
+    "Modulation": 0,
+    "Name": "BK Radio"
   }
 ]

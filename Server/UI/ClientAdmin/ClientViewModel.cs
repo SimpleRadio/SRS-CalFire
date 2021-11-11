@@ -29,29 +29,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.ClientAdmin
 
         public bool ClientMuted => Client.Muted;
 
-        public SolidColorBrush ClientCoalitionColour
-        {
-            get
-            {
-                switch (Client?.UnitState.Coalition)
-                {
-                    case 0:
-                        return new SolidColorBrush(Colors.White);
-                    case 1:
-                        return new SolidColorBrush(Colors.Red);
-                    case 2:
-                        return new SolidColorBrush(Colors.Blue);
-                    default:
-                        return new SolidColorBrush(Colors.White);
-                }
-            }
-        }
 
         private void ClientOnPropertyChanged(object sender, PropertyChangedEventArgs propertyChangedEventArgs)
         {
-            if (propertyChangedEventArgs.PropertyName == "Coalition")
-                NotifyOfPropertyChange(() => ClientCoalitionColour);
-            else if (propertyChangedEventArgs.PropertyName == "TransmittingFrequency")
+            if (propertyChangedEventArgs.PropertyName == "TransmittingFrequency")
                 NotifyOfPropertyChange(() => TransmittingFrequency);
         }
 

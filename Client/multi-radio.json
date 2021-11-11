@@ -21,7 +21,7 @@
       "GuardFrequency": 1.215e+8
     },
     "Freq": 1.51e+8,
-    "SecFreq": 1.215e+8,
+    "SecFreq": 0,
     "Modulation": 0,
     "Name": "BK Radio"
   },
@@ -34,7 +34,7 @@
       "GuardFrequency": 1.215e+8
     },
     "Freq": 1.51e+8,
-    "SecFreq": 1.215e+8,
+    "SecFreq": 0,
     "Modulation": 0,
     "Name": "BK Radio"
   },
@@ -47,7 +47,7 @@
       "GuardFrequency": 1.215e+8
     },
     "Freq": 1.51e+8,
-    "SecFreq": 1.215e+8,
+    "SecFreq": 0,
     "Modulation": 0,
     "Name": "BK Radio"
   },
@@ -60,7 +60,7 @@
       "GuardFrequency": 1.215e+8
     },
     "Freq": 1.51e+8,
-    "SecFreq": 1.215e+8,
+    "SecFreq": 0,
     "Modulation": 0,
     "Name": "BK Radio"
   },
@@ -73,7 +73,7 @@
       "GuardFrequency": 1.215e+8
     },
     "Freq": 1.51e+8,
-    "SecFreq": 1.215e+8,
+    "SecFreq": 0,
     "Modulation": 0,
     "Name": "BK Radio"
   },
@@ -86,7 +86,7 @@
       "GuardFrequency": 1.215e+8
     },
     "Freq": 1.51e+8,
-    "SecFreq": 1.215e+8,
+    "SecFreq": 0,
     "Modulation": 0,
     "Name": "BK Radio"
   },
@@ -99,7 +99,7 @@
       "GuardFrequency": 1.215e+8
     },
     "Freq": 1.51e+8,
-    "SecFreq": 1.215e+8,
+    "SecFreq": 0,
     "Modulation": 0,
     "Name": "BK Radio"
   },
@@ -112,7 +112,7 @@
       "GuardFrequency": 1.215e+8
     },
     "Freq": 1.51e+8,
-    "SecFreq": 1.215e+8,
+    "SecFreq": 0,
     "Modulation": 0,
     "Name": "BK Radio"
   },
@@ -125,7 +125,7 @@
       "GuardFrequency": 1.215e+8
     },
     "Freq": 1.51e+8,
-    "SecFreq": 1.215e+8,
+    "SecFreq": 0,
     "Modulation": 0,
     "Name": "BK Radio"
   },
@@ -138,7 +138,7 @@
       "GuardFrequency": 1.215e+8
     },
     "Freq": 1.51e+8,
-    "SecFreq": 1.215e+8,
+    "SecFreq": 0,
     "Modulation": 0,
     "Name": "BK Radio"
   }

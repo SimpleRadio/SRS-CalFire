@@ -114,15 +114,39 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
 
         public static List<Radio> LoadRadioConfig(string file)
         {
-            Radio[] handheldRadio;
+            Radio[] loadedConfig = new Radio[11];
+
+            for (var i = 0; i < 11; i++)
+                loadedConfig[i] = new Radio
+                {
+                    Config = new RadioConfig
+                    {
+                        MinimumFrequency = 1,
+                        MaxFrequency = 1,
+                        FrequencyControl = RadioConfig.FreqMode.COCKPIT,
+                        VolumeControl = RadioConfig.VolumeMode.COCKPIT,
+                        GuardFrequency = 0,
+                    },
+                    Freq = 1,
+                    SecFreq = 0,
+                    Modulation = Modulation.DISABLED,
+                    Name = "Invalid Config"
+                };
+
             try
             {
                 var radioJson = File.ReadAllText(file);
-                handheldRadio = JsonConvert.DeserializeObject<Radio[]>(radioJson);
+                var loadedList  = JsonConvert.DeserializeObject<Radio[]>(radioJson);
 
-                if (handheldRadio.Length < 2) throw new Exception("Not enough radios configured");
+          //      if (loadedList.Length < 2) throw new Exception("Not enough radios configured");
 
-                foreach (var radio in handheldRadio)
+                for (var i = 0; i < loadedList.Length; i++)
+                {
+                    //copy the valid ones
+                    loadedConfig[i] = loadedList[i];
+                }
+
+                foreach (var radio in loadedConfig)
                 {
                     if (radio.PresetChannels.Count >= 2)
                     {
@@ -136,9 +160,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
             {
                 Logger.Error(ex, "Failed to load " + file);
 
-                handheldRadio = new Radio[11];
+                loadedConfig = new Radio[11];
                 for (var i = 0; i < 11; i++)
-                    handheldRadio[i] = new Radio
+                    loadedConfig[i] = new Radio
                     {
                         Config = new RadioConfig
                         {
@@ -154,7 +178,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
                         Name = "Invalid Config"
                     };
 
-                handheldRadio[1] = new Radio
+                loadedConfig[1] = new Radio
                 {
                     Freq = 1.51e+8,
                     Config = new RadioConfig
@@ -171,9 +195,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models
                 };
             }
 
-
-
-            return new List<Radio>(handheldRadio);
+            return new List<Radio>(loadedConfig);
         }
         public RadioBase RadioBase =>
             new RadioBase()

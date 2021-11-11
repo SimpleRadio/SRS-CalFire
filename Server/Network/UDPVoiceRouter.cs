@@ -206,21 +206,33 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                                         {
                                             //Add to the processing queue
                                             _outGoing.Add(outgoingVoice);
+                                        }
 
-                                            //mark as transmitting for the UI
-                                            var mainFrequency = udpVoicePacket.Frequencies.FirstOrDefault();
-                                            // Only trigger transmitting frequency update for "proper" packets (excluding invalid frequencies and magic ping packets with modulation 4)
-                                            if (mainFrequency > 0)
+
+                                        //mark as transmitting for the UI
+                                        var mainFrequency = udpVoicePacket.Frequencies.FirstOrDefault();
+                                        // Only trigger transmitting frequency update for "proper" packets (excluding invalid frequencies and magic ping packets with modulation 4)
+                                        if (mainFrequency > 0)
+                                        {
+                                            var str = "";
+
+                                            for (int i = 0; i < udpVoicePacket.Frequencies.Length; i++)
                                             {
-                                                var mainModulation = (Modulation)udpVoicePacket.Modulations[0];
-                                                if (mainModulation == Modulation.INTERCOM)
-                                                    client.TransmittingFrequency = "INTERCOM";
-                                                else
-                                                    client.TransmittingFrequency =
-                                                        $"{(mainFrequency / 1000000).ToString("0.000", CultureInfo.InvariantCulture)} {mainModulation}";
+                                                var mainModulation = (Modulation)udpVoicePacket.Modulations[i];
 
-                                                client.LastTransmissionReceived = DateTime.Now;
+                                                if (mainModulation == Modulation.INTERCOM)
+                                                {
+                                                    str += " INTERCOM";
+                                                }
+                                                else
+                                                {
+                                                    str += $" {(udpVoicePacket.Frequencies[i] / 1000000).ToString("0.000", CultureInfo.InvariantCulture)} {mainModulation}";
+                                                }
+
                                             }
+
+                                            client.TransmittingFrequency = str;
+                                            client.LastTransmissionReceived = DateTime.Now;
                                         }
                                     }
                                 }
@@ -309,7 +321,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                         {
                             var radioInfo = client.Value.UnitState;
 
-                            if (radioInfo != null)
+                            if (radioInfo != null && radioInfo.Radios!=null)
                                 for (var i = 0; i < udpVoice.Frequencies.Length; i++)
                                 {
                                     RadioReceivingState radioReceivingState = null;

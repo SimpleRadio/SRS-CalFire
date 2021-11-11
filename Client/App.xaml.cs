@@ -74,14 +74,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client
 
 
         private bool IsClientRunning()
-        {
-            var currentProcess = Process.GetCurrentProcess();
-            var currentProcessName = currentProcess.ProcessName.ToLower().Trim();
-
-            foreach (var clsProcess in Process.GetProcesses())
-                if (clsProcess.Id != currentProcess.Id &&
-                    clsProcess.ProcessName.ToLower().Trim() == currentProcessName)
-                    return true;
+         {
+        //     var currentProcess = Process.GetCurrentProcess();
+        //     var currentProcessName = currentProcess.ProcessName.ToLower().Trim();
+        //
+        //     foreach (var clsProcess in Process.GetProcesses())
+        //         if (clsProcess.Id != currentProcess.Id &&
+        //             clsProcess.ProcessName.ToLower().Trim() == currentProcessName)
+        //             return true;
 
             return false;
         }
