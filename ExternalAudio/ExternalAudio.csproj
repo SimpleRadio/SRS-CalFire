@@ -9,7 +9,7 @@
     <UseWPF>true</UseWPF>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <PlatformTarget>x64</PlatformTarget>
-    <PublishSingleFile>true</PublishSingleFile>
+    <PublishSingleFile>false</PublishSingleFile>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
@@ -52,8 +52,5 @@
     <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.3.246501">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Network\" />
   </ItemGroup>
 </Project>

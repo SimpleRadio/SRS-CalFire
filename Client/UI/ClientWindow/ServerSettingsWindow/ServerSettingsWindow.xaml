@@ -25,7 +25,7 @@
                Grid.Column="0"
                HorizontalContentAlignment="Center"
                VerticalContentAlignment="Center"
-               Content="IRL Radio Tx Behaviour" />
+               Content="Half Duplex Radios" />
 
         <Label Name="RealRadio"
                Grid.Row="0"
@@ -47,18 +47,6 @@
                VerticalContentAlignment="Center"
                Content="Unknown" />
 
-        <Label Grid.Row="2"
-               Grid.Column="0"
-               HorizontalContentAlignment="Center"
-               VerticalContentAlignment="Center"
-               Content="Retransmit Node Limit" />
-
-        <Label Name="NodeLimit"
-               Grid.Row="2"
-               Grid.Column="1"
-               HorizontalContentAlignment="Center"
-               VerticalContentAlignment="Center"
-               Content="0" />
 
         <Button Grid.Row="3"
                 Grid.Column="0"

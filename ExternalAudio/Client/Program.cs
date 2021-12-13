@@ -86,13 +86,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
         {
             Console.WriteLine("");
             Console.WriteLine(
-                "Example:\n --file=\"C:\\FULL\\PATH\\TO\\File.mp3\" --freqs=251.0 --modulations=AM --coalition=1 --port=5002 --name=\"ciribob-robot\" --volume=0.5");
+                "Example:\n --file=\"C:\\FULL\\PATH\\TO\\File.mp3\" --freqs=251.0 --modulations=AM --port=5002 --name=\"FS3D-robot\" --volume=0.5");
             Console.WriteLine(
-                "Example:\n --file=\"C:\\FULL\\PATH\\TO\\File.mp3\" --freqs=251.0 --modulations=AM --coalition=1 --port=5002 --name=\"ciribob-robot\" --volume=0.5 --latitude=50.82653 --longitude=-0.15210 --altitude=20");
+                "Example:\n --text=\"I want this read out over this frequency - hello world! \" --freqs=251.0 --modulations=AM --port=5002 --name=\"FS3D-robot\" --volume=0.5");
             Console.WriteLine(
-                "Example:\n --text=\"I want this read out over this frequency - hello world! \" --freqs=251.0 --modulations=AM --coalition=1 --port=5002 --name=\"ciribob-robot\" --volume=0.5");
-            Console.WriteLine(
-                "Example:\n --text=\"I want this read out over TWO frequencies - hello world! \" --freqs=251.0,252.0 --modulations=AM,AM --coalition=1 --port=5002 --name=\"ciribob-robot\" --volume=0.5");
+                "Example:\n --text=\"I want this read out over TWO frequencies - hello world! \" --freqs=251.0,252.0 --modulations=AM,AM --port=5002 --name=\"FS3D-robot\" --volume=0.5");
 
             Console.WriteLine("");
             Console.WriteLine("Currently compatible voices on this system: \n");
@@ -106,42 +104,42 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
 
             var first = synthesizer.GetInstalledVoices().First();
             Console.WriteLine(
-                $"Example:\n --text=\"I want a specific voice \" --freqs=251.0 --modulations=AM --coalition=1 --voice=\"{first.VoiceInfo.Name}\"");
+                $"Example:\n --text=\"I want a specific voice \" --freqs=251.0 --modulations=AM  --voice=\"{first.VoiceInfo.Name}\"");
 
             Console.WriteLine(
-                "Example:\n --text=\"I want any female voice \" --freqs=251.0 --modulations=AM --coalition=1 --gender=female");
+                "Example:\n --text=\"I want any female voice \" --freqs=251.0 --modulations=AM  --gender=female");
 
             Console.WriteLine(
-                "Example:\n --text=\"I want any female voice at a location \" --freqs=251.0 --modulations=AM --coalition=1 --gender=female --latitude=50.82653 --longitude=-0.15210 --altitude=20");
+                "Example:\n --text=\"I want any female voice at a location \" --freqs=251.0 --modulations=AM  --gender=female --latitude=50.82653 --longitude=-0.15210 --altitude=20");
 
             Console.WriteLine(
-                "Example:\n --text=\"I want any male voice \" --freqs=251.0 --modulations=AM --coalition=1 --gender=male");
+                "Example:\n --text=\"I want any male voice \" --freqs=251.0 --modulations=AM  --gender=male");
 
             Console.WriteLine("");
             Console.WriteLine(
                 "Google Cloud Text to Speech Examples - see locale and voices https://cloud.google.com/text-to-speech/docs/voices  : \n");
 
             Console.WriteLine(
-                "Example:\n --text=\"Ahoj, jak se máš - Specific Czech voice\" --freqs=251.0 --modulations=AM --coalition=1 --googleCredentials=\"C:\\\\folder\\\\credentials.json\" --voice=\"cs-CZ-Wavenet-A\"");
+                "Example:\n --text=\"Ahoj, jak se máš - Specific Czech voice\" --freqs=251.0 --modulations=AM  --googleCredentials=\"C:\\\\folder\\\\credentials.json\" --voice=\"cs-CZ-Wavenet-A\"");
 
             Console.WriteLine(
-                "Example:\n --text=\"I want any female voice \" --freqs=251.0 --modulations=AM --coalition=1 --gender=female --googleCredentials=\"C:\\\\folder\\\\credentials.json\" ");
+                "Example:\n --text=\"I want any female voice \" --freqs=251.0 --modulations=AM  --gender=female --googleCredentials=\"C:\\\\folder\\\\credentials.json\" ");
 
             Console.WriteLine(
-                "Example:\n --text=\"I want any male voice \" --freqs=251.0 --modulations=AM --coalition=1 --gender=male --googleCredentials=\"C:\\\\folder\\\\credentials.json\" ");
+                "Example:\n --text=\"I want any male voice \" --freqs=251.0 --modulations=AM  --gender=male --googleCredentials=\"C:\\\\folder\\\\credentials.json\" ");
 
             Console.WriteLine(
-                "Example:\n --text=\"I want any male voice with a French accent \" --freqs=251.0 --modulations=AM --coalition=1 --gender=male --locale=fr-FR --googleCredentials=\"C:\\\\folder\\\\credentials.json\" ");
+                "Example:\n --text=\"I want any male voice with a French accent \" --freqs=251.0 --modulations=AM  --gender=male --locale=fr-FR --googleCredentials=\"C:\\\\folder\\\\credentials.json\" ");
 
             Console.WriteLine(
-                "Example:\n --text=\"I want any female voice with a German accent \" --freqs=251.0 --modulations=AM --coalition=1 --gender=male --locale=de-DE --googleCredentials=\"C:\\\\folder\\\\credentials.json\" ");
+                "Example:\n --text=\"I want any female voice with a German accent \" --freqs=251.0 --modulations=AM  --gender=male --locale=de-DE --googleCredentials=\"C:\\\\folder\\\\credentials.json\" ");
         }
 
         public class Options
         {
             [Option('i', "file",
                 SetName = "file",
-                HelpText = "Full path to MP3 or Ogg - File must end .mp3 or .ogg",
+                HelpText = "Full path to MP3 - File must end .mp3",
                 Required = true)]
             public string File { get; set; }
 
@@ -175,11 +173,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
                 Required = true)]
             public string Modulations { get; set; }
 
-
-            [Option('c', "coalition",
-                HelpText = "Coalition - 0 is Spectator, 1 is Red, 2 is Blue",
-                Required = true)]
-            public int Coalition { get; set; }
 
             [Option('s', "speed",
                 Default = 1,
@@ -235,20 +228,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
                 Required = false)]
             public string GoogleCredentials { get; set; }
 
-            [Option('L', "latitude",
-                HelpText = "Latitude of transmission",
-                Required = false, Default = 0.0)]
-            public double Latitude { get; set; }
+            [Option('S', "server",
+                HelpText =
+                    "Address of the server - if not supplied localhost is assumed",
+                Default = "127.0.0.1",
+                Required = false)]
+            public string Server { get; set; }
 
-            [Option('O', "longitude",
-                HelpText = "Longitude of transmission",
-                Required = false, Default = 0.0)]
-            public double Longitude { get; set; }
-
-            [Option('A', "altitude",
-                HelpText = "Altitude of transmission in meters above sea level",
-                Required = false, Default = 0.0)]
-            public double Altitude { get; set; }
         }
     }
 }

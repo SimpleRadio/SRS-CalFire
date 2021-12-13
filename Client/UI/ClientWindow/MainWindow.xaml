@@ -184,10 +184,7 @@
                                 IsEnabled="{Binding IsConnected}" />
                     </StackPanel>
 
-                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,0,0,0">
-                        <Label Content="Current Profile:" />
-                        <Label Name="CurrentProfile" Content="None" />
-                    </StackPanel>
+                  
                     <StackPanel Margin="0"
                                 HorizontalAlignment="Center"
                                 Orientation="Horizontal">

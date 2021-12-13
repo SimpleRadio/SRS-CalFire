@@ -58,21 +58,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
 
         public int ClientsCount { get; private set; }
 
-        public string LOSText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.LOS_ENABLED).BoolValue ? "ON" : "OFF";
-
-        public string DistanceLimitText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.DISTANCE_ENABLED).BoolValue
-                ? "ON"
-                : "OFF";
-
         public string RealRadioText
             => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.IRL_RADIO_TX).BoolValue ? "ON" : "OFF";
-
-        public string IRLRadioRxText
-            => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE).BoolValue
-                ? "ON"
-                : "OFF";
 
         public string TestFrequencies
         {
@@ -126,24 +113,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
         }
 
 
-        public void LOSToggle()
-        {
-            var newSetting = LOSText != "ON";
-            ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.LOS_ENABLED, newSetting);
-            NotifyOfPropertyChange(() => LOSText);
-
-            _eventAggregator.PublishOnBackgroundThreadAsync(new ServerSettingsChangedMessage());
-        }
-
-        public void DistanceLimitToggle()
-        {
-            var newSetting = DistanceLimitText != "ON";
-            ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.DISTANCE_ENABLED, newSetting);
-            NotifyOfPropertyChange(() => DistanceLimitText);
-
-            _eventAggregator.PublishOnBackgroundThreadAsync(new ServerSettingsChangedMessage());
-        }
-
         public void RealRadioToggle()
         {
             var newSetting = RealRadioText != "ON";
@@ -152,16 +121,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
 
             _eventAggregator.PublishOnBackgroundThreadAsync(new ServerSettingsChangedMessage());
         }
-
-        public void IRLRadioRxBehaviourToggle()
-        {
-            var newSetting = IRLRadioRxText != "ON";
-            ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE, newSetting);
-            NotifyOfPropertyChange(() => IRLRadioRxText);
-
-            _eventAggregator.PublishOnBackgroundThreadAsync(new ServerSettingsChangedMessage());
-        }
-
 
         private void TestFrequenciesDebounceTimerTick(object sender, EventArgs e)
         {

@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Caliburn.Micro;
@@ -29,6 +32,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
         private readonly Program.Options opts;
         private UDPVoiceHandler udpVoiceHandler;
         private readonly byte[] encryptionBytes;
+        private IPEndPoint endPoint;
 
         public ExternalAudioClient(double[] freq, Modulation[] modulation, Program.Options opts)
         {
@@ -40,29 +44,42 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
 
             encryptionBytes = new byte[modulation.Length];
             for (var i = 0; i < encryptionBytes.Length; i++) encryptionBytes[i] = (byte)0;
+
+            EventBus.Instance.SubscribeOnUIThread(this);
+
+            var resolvedAddresses = Dns.GetHostAddresses(opts.Server);
+            var ip = resolvedAddresses.FirstOrDefault(xa =>
+                xa.AddressFamily ==
+                AddressFamily
+                    .InterNetwork); // Ensure we get an IPv4 address in case the host resolves to both IPv6 and IPv4
+
+            endPoint = new IPEndPoint(ip,opts.Port);
         }
 
         public void Start()
         {
             
-
             gameState = new PlayerUnitStateBase();
-            gameState.Radios[1].Modulation = modulation[0];
-            gameState.Radios[1].Freq = freq[0]; // get into Hz
+            gameState.Name = opts.Name;
+            gameState.UnitId = 100000000;
+            gameState.Radios = new List<RadioBase>();
+            gameState.Radios.Add(new RadioBase(){
+                Modulation= Modulation.DISABLED
+
+            });
+            gameState.Radios.Add(new RadioBase()
+            {
+                Modulation = modulation[0],
+                Freq = freq[0]
+            });
 
             Logger.Info("Starting with params:");
             for (var i = 0; i < freq.Length; i++) Logger.Info($"Frequency: {freq[i]} Hz - {modulation[i]} ");
 
-            var position = new LatLngPosition
-            {
-                Alt = opts.Altitude,
-                Lat = opts.Latitude,
-                Lng = opts.Longitude
-            };
 
             var srsClientSyncHandler = new TCPClientHandler(Guid, gameState);
 
-            srsClientSyncHandler.TryConnect(new IPEndPoint(IPAddress.Loopback, opts.Port));
+            srsClientSyncHandler.TryConnect(endPoint);
 
             //wait for it to end
             finished.Token.WaitHandle.WaitOne();
@@ -76,8 +93,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
         {
             if (udpVoiceHandler == null)
             {
-                Logger.Info("Connecting UDP VoIP");
-                udpVoiceHandler = new UDPVoiceHandler(Guid, new IPEndPoint(IPAddress.Loopback, opts.Port));
+                Logger.Info($"Connecting UDP VoIP {endPoint}");
+                udpVoiceHandler = new UDPVoiceHandler(Guid, endPoint);
                 udpVoiceHandler.Connect();
                 new Thread(SendAudio).Start();
             }
