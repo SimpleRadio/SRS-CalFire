@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Input;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Network;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models;
@@ -39,8 +40,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         private readonly RadioReceivingState[] _radioReceivingState;
         private bool _stop;
         private Timer _timer;
-
-
+        private UDPCommandListener _udpCommandListener;
+        private UDPStateSender _udpStateSender;
         private readonly object lockObj = new();
 
         public UDPClientAudioProcessor(UDPVoiceHandler udpClient, AudioManager audioManager, string guid)
@@ -57,6 +58,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             _ptt = false;
             _timer?.Dispose();
             _stopFlag?.Dispose();
+            _udpCommandListener?.Stop();
         }
 
         public void Start()
@@ -67,7 +69,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             decoderThread.Start();
             StartTimer();
             InputDeviceManager.Instance.StartPTTListening(PTTHandler);
-            
+            _udpCommandListener = new UDPCommandListener();
+            _udpCommandListener.Start();
+            _udpStateSender = new UDPStateSender();
+            _udpStateSender.Start();
         }
 
 
@@ -296,7 +301,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 }
 
            
-            if (_ptt)
+            if (_ptt || _udpCommandListener?.PTT == true)
             {
                 // Always add currently selected radio (if valid)
                 var currentSelected = _clientStateSingleton.PlayerUnitState.SelectedRadio;
@@ -826,6 +831,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 _stopFlag.Cancel();
                 StopTimer();
                 _clientStateSingleton.RadioSendingState.IsSending = false;
+                _udpCommandListener?.Stop();
+                _udpCommandListener = null;
+                _udpStateSender?.Stop();
+                _udpStateSender = null;
             }
         }
     }

@@ -77,7 +77,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             ServerSettingsCommand = new DelegateCommand(ToggleServerSettings);
 
             ClientListCommand = new DelegateCommand(ToggleClientList);
+
+           
         }
+
 
         public ICommand ClientListCommand { get; set; }
 
@@ -277,7 +280,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             ConnectedClientsSingleton.Instance.NotifyAll();
         }
 
-        private void Connect()
+        public void Connect()
         {
             if (IsConnected)
             {

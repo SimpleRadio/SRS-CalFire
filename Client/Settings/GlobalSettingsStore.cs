@@ -67,7 +67,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         IdleTimeOut,
         AutoConnect,
-        LastUsedID
+        LastUsedID,
+        UDPCommandListenerPort,
+        UDPExternalSenderPort
     }
 
     public enum InputBinding
@@ -263,7 +265,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
             { GlobalSettingsKeys.ShowTransmitterName.ToString(), "true" },
 
-            { GlobalSettingsKeys.IdleTimeOut.ToString(), "600" } // 10 mins
+            { GlobalSettingsKeys.IdleTimeOut.ToString(), "600" }, // 10 mins
+
+            { GlobalSettingsKeys.UDPCommandListenerPort.ToString(), "8050" },
+
+            { GlobalSettingsKeys.UDPExternalSenderPort.ToString(), "8051" },
         };
 
         private readonly Logger Logger = LogManager.GetCurrentClassLogger();

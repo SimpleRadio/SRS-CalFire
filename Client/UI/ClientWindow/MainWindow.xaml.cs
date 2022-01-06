@@ -48,6 +48,18 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
             }
 
             DataContext = new MainWindowViewModel();
+
+            string[] args = Environment.GetCommandLineArgs();
+
+            foreach (string arg in args)
+            {
+                if (arg.StartsWith("--server="))
+                {
+                    var address = arg.Replace("--server=", "");
+                    ((MainWindowViewModel)DataContext).ServerAddress = address;
+                    ((MainWindowViewModel)DataContext).Connect();
+                }
+            }
         }
 
         protected override void OnClosing(CancelEventArgs e)
