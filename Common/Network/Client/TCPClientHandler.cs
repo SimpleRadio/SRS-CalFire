@@ -359,12 +359,14 @@ namespace Ciribob.SRS.Common.Network.Client
 
         private void ShowVersionMistmatchWarning(string serverVersion)
         {
+            /*
             MessageBox.Show($"The SRS server you're connecting to is incompatible with this Client. " +
                             $"\n\nMake sure to always run the latest version of the SRS Server & Client" +
                             $"\nClient Version: {UpdaterChecker.VERSION}",
                             "SRS Server Incompatible",
                             MessageBoxButton.OK,
                             MessageBoxImage.Error);
+            */
         }
 
         private void SendToServer(NetworkMessage message)
