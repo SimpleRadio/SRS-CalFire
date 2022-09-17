@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Windows.Threading;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Models.EventMessages;
 using Ciribob.SRS.Common.Network.Singletons;
@@ -24,7 +23,7 @@ namespace Ciribob.SRS.Common.Network.Client
         private readonly byte[] _guidAsciiBytes;
         private readonly CancellationTokenSource _pingStop = new();
         private readonly IPEndPoint _serverEndpoint;
-        private readonly DispatcherTimer _updateTimer;
+        private readonly System.Timers.Timer _updateTimer;
 
         private UdpClient _listener;
 
@@ -38,8 +37,8 @@ namespace Ciribob.SRS.Common.Network.Client
 
             _serverEndpoint = endPoint;
 
-            _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-            _updateTimer.Tick += UpdateVOIPStatus;
+            _updateTimer = new System.Timers.Timer { Interval = 5000 };
+            _updateTimer.Elapsed += UpdateVOIPStatus;
             _updateTimer.Start();
         }
 

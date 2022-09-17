@@ -42,7 +42,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings
                 _configuration = new Configuration();
                 _configuration.Add(new Section("General Settings"));
                 _configuration.Add(new Section("Server Settings"));
-                _configuration.Add(new Section("External AWACS Mode Settings"));
 
                 Save();
             }
@@ -50,12 +49,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings
             {
                 _logger.Error(ex,
                     "Failed to parse server config, potentially corrupted. Creating backing and re-initialising with default config");
-
-                MessageBox.Show("Failed to read server config, it might have become corrupted.\n" +
-                                "SRS will create a backup of your current config file (server.cfg.bak) and initialise using default settings.",
-                    "Config error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
 
                 try
                 {
@@ -115,16 +108,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings
         public void SetServerSetting(ServerSettingsKeys key, bool value)
         {
             SetSetting("Server Settings", key.ToString(), value.ToString(CultureInfo.InvariantCulture));
-        }
-
-        public Setting GetExternalAWACSModeSetting(ServerSettingsKeys key)
-        {
-            return GetSetting("External AWACS Mode Settings", key.ToString());
-        }
-
-        public void SetExternalAWACSModeSetting(ServerSettingsKeys key, string value)
-        {
-            SetSetting("External AWACS Mode Settings", key.ToString(), value);
         }
 
         private Setting GetSetting(string section, string setting)

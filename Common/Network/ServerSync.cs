@@ -74,10 +74,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
             {
                 Logger.Error(ex, "Unable to start the SRS Server");
 
-                MessageBox.Show(
-                    $"Unable to start the SRS Server\n\nPort {_serverSettings.GetServerPort()} in use\n\nChange the port by editing the .cfg",
-                    "Port in use",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+              
                 Environment.Exit(0);
             }
         }

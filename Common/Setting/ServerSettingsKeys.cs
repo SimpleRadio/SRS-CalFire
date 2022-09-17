@@ -21,9 +21,9 @@ namespace Ciribob.SRS.Common.Setting
         public static readonly Dictionary<string, string> Defaults = new Dictionary<string, string>()
         {
             { ServerSettingsKeys.DISTANCE_ENABLED.ToString(), "false" },
-            { ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE.ToString(), "false" },
-            { ServerSettingsKeys.IRL_RADIO_STATIC.ToString(), "false" },
-            { ServerSettingsKeys.IRL_RADIO_TX.ToString(), "false" },
+            { ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE.ToString(), "true" },
+            { ServerSettingsKeys.IRL_RADIO_STATIC.ToString(), "true" },
+            { ServerSettingsKeys.IRL_RADIO_TX.ToString(), "true" },
             { ServerSettingsKeys.LOS_ENABLED.ToString(), "false" },
             { ServerSettingsKeys.SERVER_PORT.ToString(), "5002" },
             { ServerSettingsKeys.TEST_FREQUENCIES.ToString(), "247.2,120.3" },
