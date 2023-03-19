@@ -10,7 +10,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers
 {
     public class JitterBufferProviderInterface : IWaveProvider
     {
-        public static readonly int MAXIMUM_BUFFER_SIZE_MS = 2500;
+        public static readonly int MAXIMUM_BUFFER_SIZE_MS = 600;
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 

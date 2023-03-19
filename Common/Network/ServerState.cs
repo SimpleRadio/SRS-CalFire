@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Caliburn.Micro;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models;
 using Ciribob.SRS.Common.Network.Models;
+using Ciribob.SRS.Common.Setting;
 using NLog;
 using LogManager = NLog.LogManager;
 
@@ -31,10 +32,15 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
         private ServerSync _serverSync;
         private volatile bool _stop = true;
 
-        public ServerState(IEventAggregator eventAggregator)
+        public ServerState(IEventAggregator eventAggregator, int port = 5002, bool portSet = false)
         {
             _eventAggregator = eventAggregator;
             _eventAggregator.Subscribe(this);
+
+            if (portSet)
+            {
+                Settings.ServerSettingsStore.Instance.SetServerSetting(ServerSettingsKeys.SERVER_PORT, port);
+            }
 
             StartServer();
         }

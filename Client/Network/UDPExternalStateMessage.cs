@@ -14,5 +14,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Network
 
         public string Name { get; set; }
 
+        public int SelectedRadio { get; set; }
+
     }
 }

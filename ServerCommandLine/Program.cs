@@ -17,25 +17,51 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
         private EventAggregator _eventAggregator = new EventAggregator();
         static void Main(string[] args)
         {
+            int port = 5002;
+            foreach (var arg in args)
+            {
+                if (arg.Trim().StartsWith("--port="))
+                {
+                    string temp = arg.Trim().Replace("--port=", "");
+                    
+                    port = int.Parse(temp.Trim());
+                }
+            }
+
+            Console.WriteLine($"Using Port {port}");
+            
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
             Program p = new Program();
             new Thread(() =>
             {
-                p.StartServer();
+                p.StartServer(port);
             }).Start();
 
 
-            while (true)
+            var waitForProcessShutdownStart = new ManualResetEventSlim();
+            var waitForMainExit = new ManualResetEventSlim();
+
+            AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
             {
-                System.Console.WriteLine("Server Running.... Type quit to terminate");
-                var line = System.Console.ReadLine();
-                if (line != null && line.Trim().ToLowerInvariant() == "quit")
-                {
-                    p.StopServer();
-                    System.Console.WriteLine("Closing...");
-                    return;
-                }
-            }
+                // We got a SIGTERM, signal that graceful shutdown has started
+                waitForProcessShutdownStart.Set();
+
+                Console.WriteLine("Shutting down gracefully...");
+                // Don't unwind until main exists
+                waitForMainExit.Wait();
+            };
+
+            Console.WriteLine("Waiting for shutdown SIGTERM");
+            // Wait for shutdown to start
+            waitForProcessShutdownStart.Wait();
+
+            // This is where the application performs graceful shutdown
+            p.StopServer();
+
+            Console.WriteLine("Shutdown complete");
+            // Now we're done with main, tell the shutdown handler
+            waitForMainExit.Set();
+
         }
 
         private void StopServer()
@@ -50,9 +76,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
         }
 
 
-        public void StartServer()
+        public void StartServer(int port)
         {
-            _serverState = new ServerState(_eventAggregator);
+            _serverState = new ServerState(_eventAggregator, port,true);
         }
 
         private void SetupLogging()

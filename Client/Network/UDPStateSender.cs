@@ -113,7 +113,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Network
             {
                 Radios = radios,
                 Name = ClientStateSingleton.Instance.PlayerUnitState.Name,
-                UnitId = ClientStateSingleton.Instance.PlayerUnitState.UnitId
+                UnitId = ClientStateSingleton.Instance.PlayerUnitState.UnitId,
+                SelectedRadio = ClientStateSingleton.Instance.PlayerUnitState.SelectedRadio
             };
         }
 

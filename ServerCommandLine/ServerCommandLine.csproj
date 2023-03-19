@@ -8,10 +8,12 @@
     <StartupObject>Ciribob.FS3D.SimpleRadio.Standalone.Server.Program</StartupObject>
 	  <PlatformTarget>x64</PlatformTarget>
 	  <PublishSingleFile>false</PublishSingleFile>
-	  <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
 	  <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 	  <AssemblyName>SRS-Server-Commandline</AssemblyName>
 	  <RootNamespace>Ciribob.FS3D.SimpleRadio.Standalone.Server</RootNamespace>
+	  <Version>1.0.0.4</Version>
+	  <AssemblyVersion>1.0.0.4</AssemblyVersion>
+	  <FileVersion>1.0.0.4</FileVersion>
   </PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Common\Common.csproj" />
