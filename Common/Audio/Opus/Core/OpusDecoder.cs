@@ -166,7 +166,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Core
                 }
                 else
                     length = API.opus_decode_float(_decoder, null, 0, decodedPtr, FrameCount(dataLength), 0);
-                }
+            }
             decodedLength = length * 4;
             if (length < 0)
                 throw new Exception("Decoding failed - " + (Errors)length);

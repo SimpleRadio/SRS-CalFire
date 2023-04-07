@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Client;
 
 

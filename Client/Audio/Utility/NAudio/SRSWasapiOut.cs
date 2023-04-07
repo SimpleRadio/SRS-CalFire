@@ -11,7 +11,7 @@ namespace NAudio.Wave
     /// <summary>
     /// Support for playback using Wasapi
     /// </summary>
-    public class WasapiOut : IWavePlayer, IWavePosition
+    public class SRSWasapiOut : IWavePlayer, IWavePosition
     {
         private AudioClient audioClient;
         private readonly MMDevice mmDevice;
@@ -39,7 +39,7 @@ namespace NAudio.Wave
         /// <summary>
         /// WASAPI Out shared mode, defauult
         /// </summary>
-        public WasapiOut() :
+        public SRSWasapiOut() :
             this(GetDefaultAudioEndpoint(), AudioClientShareMode.Shared, true, 200)
         {
 
@@ -50,7 +50,7 @@ namespace NAudio.Wave
         /// </summary>
         /// <param name="shareMode">ShareMode - shared or exclusive</param>
         /// <param name="latency">Desired latency in milliseconds</param>
-        public WasapiOut(AudioClientShareMode shareMode, int latency) :
+        public SRSWasapiOut(AudioClientShareMode shareMode, int latency) :
             this(GetDefaultAudioEndpoint(), shareMode, true, latency)
         {
 
@@ -62,7 +62,7 @@ namespace NAudio.Wave
         /// <param name="shareMode">ShareMode - shared or exclusive</param>
         /// <param name="useEventSync">true if sync is done with event. false use sleep.</param>
         /// <param name="latency">Desired latency in milliseconds</param>
-        public WasapiOut(AudioClientShareMode shareMode, bool useEventSync, int latency) :
+        public SRSWasapiOut(AudioClientShareMode shareMode, bool useEventSync, int latency) :
             this(GetDefaultAudioEndpoint(), shareMode, useEventSync, latency)
         {
 
@@ -75,7 +75,7 @@ namespace NAudio.Wave
         /// <param name="shareMode"></param>
         /// <param name="useEventSync">true if sync is done with event. false use sleep.</param>
         /// <param name="latency">Desired latency in milliseconds</param>
-        public WasapiOut(MMDevice device, AudioClientShareMode shareMode, bool useEventSync, int latency)
+        public SRSWasapiOut(MMDevice device, AudioClientShareMode shareMode, bool useEventSync, int latency)
         {
             audioClient = device.AudioClient;
             mmDevice = device;
@@ -86,7 +86,7 @@ namespace NAudio.Wave
             outputFormat = audioClient.MixFormat; // allow the user to query the default format for shared mode streams
         }
 
-        public WasapiOut(MMDevice device, AudioClientShareMode shareMode, bool useEventSync, int latency, bool windowsN) : this(device, shareMode, useEventSync, latency)
+        public SRSWasapiOut(MMDevice device, AudioClientShareMode shareMode, bool useEventSync, int latency, bool windowsN) : this(device, shareMode, useEventSync, latency)
         {
             this.windowsN = windowsN;
         }

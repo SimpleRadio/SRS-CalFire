@@ -14,6 +14,7 @@ using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Core;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording;
 using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Models;
@@ -27,7 +28,7 @@ using NLog;
 using WebRtcVadSharp;
 using WPFCustomMessageBox;
 using Application = Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Application;
-using ClientAudio = Ciribob.SRS.Common.Network.Client.ClientAudio;
+using ClientAudio = Ciribob.FS3D.SimpleRadio.Standalone.Common.Network.Client.ClientAudio;
 using LogManager = NLog.LogManager;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
@@ -63,13 +64,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         
         private readonly bool windowsN;
 
-        private SRSMixingSampleProvider _clientAudioMixer;
-
         private OpusEncoder _encoder;
 
         private int _errorCount;
 
-        private WasapiOut _micWaveOut;
+        private SRSWasapiOut _micWaveOut;
         private BufferedWaveProvider _micWaveOutBuffer;
 
         private ClientAudioProvider _passThroughAudioProvider;
@@ -86,7 +85,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
         private WasapiCapture _wasapiCapture;
 
-        private WasapiOut _waveOut;
+        private SRSWasapiOut _waveOut;
         //Stopwatch _stopwatch = new Stopwatch();
 
         private readonly object lockObj = new();
@@ -129,14 +128,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         {
             MMDevice speakers = null;
             if (_audioOutputSingleton.SelectedAudioOutput.Value == null)
-                speakers = WasapiOut.GetDefaultAudioEndpoint();
+                speakers = SRSWasapiOut.GetDefaultAudioEndpoint();
             else
                 speakers = (MMDevice)_audioOutputSingleton.SelectedAudioOutput.Value;
 
-            _waveOut = new WasapiOut(speakers, AudioClientShareMode.Shared, true, 40, windowsN);
+            _waveOut = new SRSWasapiOut(speakers, AudioClientShareMode.Shared, true, 40, windowsN);
 
             //add final volume boost to all mixed audio
-            _volumeSampleProvider = new VolumeSampleProviderWithPeak(_clientAudioMixer,
+            _volumeSampleProvider = new VolumeSampleProviderWithPeak(_finalMixdown,
                 peak => SpeakerMax = (float)VolumeConversionHelper.ConvertFloatToDB(peak));
             _volumeSampleProvider.Volume = SpeakerBoost;
 
@@ -168,9 +167,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 micOutput = (MMDevice)_audioOutputSingleton.SelectedMicAudioOutput.Value;
 
                 _passThroughAudioProvider = new ClientAudioProvider(true);
-                _micWaveOut = new WasapiOut(micOutput, AudioClientShareMode.Shared, true, 40, windowsN);
+                _micWaveOut = new SRSWasapiOut(micOutput, AudioClientShareMode.Shared, true, 40, windowsN);
 
-                _micWaveOutBuffer = new BufferedWaveProvider(new WaveFormat(Constants.OUTPUT_SAMPLE_RATE, 16, 1));
+                _micWaveOutBuffer = new BufferedWaveProvider(WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1));
                 _micWaveOutBuffer.ReadFully = true;
                 _micWaveOutBuffer.DiscardOnBufferOverflow = true;
 
@@ -385,14 +384,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                                         PCMAudioLength = jitterBufferAudio.Audio.Length,
                                         Modulation = jitterBufferAudio.Modulation,
                                         Volume = jitterBufferAudio.Volume,
-                                        Decryptable = true,
                                         Frequency = jitterBufferAudio.Frequency,
                                         IsSecondary = jitterBufferAudio.IsSecondary,
-                                        NoAudioEffects = jitterBufferAudio.NoAudioEffects,
                                         ReceivedRadio = jitterBufferAudio.ReceivedRadio,
                                         PCMMonoAudio = jitterBufferAudio.Audio,
                                         Guid = _guid,
-                                        OriginalClientGuid = _guid
+                                        OriginalClientGuid = _guid,
+                                        UnitType = jitterBufferAudio.UnitType
                                     };
 
                                     //process audio

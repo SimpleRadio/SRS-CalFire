@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Client;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Audio.Recording

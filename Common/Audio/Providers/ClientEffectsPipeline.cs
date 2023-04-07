@@ -130,7 +130,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
             // take info account server setting AND volume of this radio AND if its AM or FM
             // FOR HAVEQUICK - only if its MORE THAN TWO
             if (lastTransmission.ReceivedRadio != 0
-                && !lastTransmission.NoAudioEffects
                 && (lastTransmission.Modulation == Modulation.AM
                     || lastTransmission.Modulation == Modulation.FM
                     || lastTransmission.Modulation == Modulation.HAVEQUICK)
@@ -188,26 +187,23 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
 
         public float[] ProcessClientAudioSamples(float[] buffer, int count, int offset, DeJitteredTransmission transmission)
         {
-            if (!transmission.NoAudioEffects)
+            if (transmission.Modulation == Modulation.MIDS
+                || transmission.Modulation == Modulation.SATCOM
+                || transmission.Modulation == Modulation.INTERCOM)
             {
-                if (transmission.Modulation == Modulation.MIDS
-                    || transmission.Modulation == Modulation.SATCOM
-                    || transmission.Modulation == Modulation.INTERCOM)
+                if (radioEffects)
                 {
-                    if (radioEffects)
-                    {
-                        AddRadioEffectIntercom(buffer, count, offset, transmission.Modulation);
-                    }
-                }
-                else
-                {
-                    AddRadioEffect(buffer, count, offset, transmission.Modulation, transmission.Frequency);
+                    AddRadioEffectIntercom(buffer, count, offset, transmission.Modulation);
                 }
             }
-
+            else
+            {
+                AddRadioEffect(buffer, count, offset, transmission.Modulation, transmission.Frequency);
+            }
+            
             //final adjust
             AdjustVolume(buffer, count, offset, transmission.Volume);
-
+            
             return buffer;
         }
 
@@ -287,6 +283,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
                         audio *= RadioFilter.BOOST;
                     }
                 }
+                
+                //TODO add the fire effect / plane noise here
+                //Same way as the NATO Tone on FM transmissions
 
                 if (modulation == Modulation.FM
                     && effectProvider.NATOTone.Loaded

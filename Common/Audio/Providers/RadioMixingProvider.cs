@@ -134,8 +134,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
             ClearArray(mixBuffer);
             ClearArray(secondaryMixBuffer);
 
-            bool ky58Tone = false;
-
             lock (sources)
             {
                 int index = sources.Count - 1;
@@ -155,11 +153,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
                         else
                         {
                             _mainAudio.Add(transmission);
-                        }
-
-                        if (transmission.Decryptable && transmission.Encryption > 0)
-                        {
-                            ky58Tone = true;
                         }
 
                         lastModulation = transmission.Modulation;
@@ -197,7 +190,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
 
             //Now mix in start and end tones, Beeps etc
             mixBuffer = HandleStartEndTones(mixBuffer, count / 2, _mainAudio.Count > 0 || _secondaryAudio.Count > 0,
-                lastModulation, ky58Tone, out int effectOutputSamples); //divide by 2 as we're not yet in stereo
+                lastModulation, out int effectOutputSamples); //divide by 2 as we're not yet in stereo
 
             //now clip post all mixing
             mixBuffer = AudioManipulationHelper.ClipArray(mixBuffer, count/2);
@@ -214,7 +207,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
         }
 
         private float[] HandleStartEndTones(float[] mixBuffer, int count, bool transmisson,
-          Modulation modulation, bool encryption, out int outputSamples)
+          Modulation modulation, out int outputSamples)
         {
             //enqueue
             if (transmisson && !hasPlayedTransmissionStart)
@@ -222,7 +215,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
                 hasPlayedTransmissionStart = true;
                 hasPlayedTransmissionEnd = false;
 
-                PlaySoundEffectStartReceive(encryption, modulation);
+                PlaySoundEffectStartReceive(modulation);
             }
             else if (!transmisson && !hasPlayedTransmissionEnd && IsEndOfTransmission)
             {
@@ -294,7 +287,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
             }
         }
 
-        public void PlaySoundEffectStartReceive(bool encrypted, Modulation modulation)
+        public void PlaySoundEffectStartReceive(Modulation modulation)
         {
             if (!profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_Start))
             {
@@ -313,16 +306,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
             if (radioId == 0)
             {
                 var effect = _cachedAudioEffectsProvider.SelectedIntercomTransmissionStartEffect;
-                if (effect.Loaded)
-                {
-                    effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
-                }
-            }
-            else if (encrypted &&
-                     profileSettings.GetClientSettingBool(ProfileSettingsKeys
-                         .RadioEncryptionEffects))
-            {
-                var effect = _cachedAudioEffectsProvider.KY58EncryptionEndTone;
                 if (effect.Loaded)
                 {
                     effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);

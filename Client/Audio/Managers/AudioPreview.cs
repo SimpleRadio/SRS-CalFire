@@ -21,7 +21,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         private BufferedWaveProvider _playBuffer;
             
         private WasapiCapture _wasapiCapture;
-        private WasapiOut _waveOut;
+        private SRSWasapiOut _waveOut;
         private EventDrivenResampler _resampler;
         //private readonly CircularBuffer _circularBuffer = new CircularBuffer();
 
@@ -69,11 +69,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             {
                 MMDevice speakers = null;
                 if (_audioOutputSingleton.SelectedAudioOutput.Value == null)
-                    speakers = WasapiOut.GetDefaultAudioEndpoint();
+                    speakers = SRSWasapiOut.GetDefaultAudioEndpoint();
                 else
                     speakers = (MMDevice)_audioOutputSingleton.SelectedAudioOutput.Value;
 
-                _waveOut = new WasapiOut(speakers, AudioClientShareMode.Shared, true, 80, windowsN);
+                _waveOut = new SRSWasapiOut(speakers, AudioClientShareMode.Shared, true, 80, windowsN);
 
                 _buffBufferedWaveProvider =
                     new BufferedWaveProvider(new WaveFormat(Constants.OUTPUT_SAMPLE_RATE, 16, 1));
@@ -263,6 +263,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                             //now decode
                             var decodedBytes = _decoder.Decode(encoded, len, out decodedLength);
 
+                            
+                            
                             _buffBufferedWaveProvider.AddSamples(decodedBytes, 0, decodedLength);
 
                             //            Logger.Info($"Time: {_stopwatch.ElapsedMilliseconds} - Added samples");

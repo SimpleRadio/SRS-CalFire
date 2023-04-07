@@ -12,7 +12,7 @@ using NLog;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording
 {
-    class AudioRecordingManager
+    public class AudioRecordingManager
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private static volatile AudioRecordingManager _instance = new AudioRecordingManager();

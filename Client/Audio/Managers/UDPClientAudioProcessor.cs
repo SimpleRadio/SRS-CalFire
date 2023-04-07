@@ -8,6 +8,7 @@ using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Network.Client;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Input;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
@@ -434,9 +435,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                             Modulation = modulations[0],
                             EncodedAudio = bytes,
                             Volume = 1,
-                            LineOfSightLoss = 0,
-                            RecevingPower = 0,
-                            ReceivedRadio = 1
+                            ReceivedRadio = 1,
+                            ReceiveTime = DateTime.Now.Ticks,
+                            IsSecondary = false,
+                            UnitType = _clientStateSingleton.PlayerUnitState.UnitType,
+                            OriginalClientGuid = _guid,
+                            ClientGuid = _guid,
+                            UnitId = _clientStateSingleton.PlayerUnitState.UnitId,
                         };
                         return send;
                     }
@@ -595,12 +600,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                                                 UnitId = udpVoicePacket.UnitId,
                                                 // mark if we can decrypt it
                                                 RadioReceivingState = destinationRadio.ReceivingState,
-                                                RecevingPower =
-                                                    destinationRadio
-                                                        .ReceivingPowerLossPercent, //loss of 1.0 or greater is total loss
-                                                LineOfSightLoss =
-                                                    destinationRadio
-                                                        .LineOfSightLoss, // Loss of 1.0 or greater is total loss
                                                 PacketNumber = udpVoicePacket.PacketNumber,
                                                 OriginalClientGuid = udpVoicePacket.OriginalClientGuid,
                                                 UnitType = transmittingClient?.UnitState?.UnitType
