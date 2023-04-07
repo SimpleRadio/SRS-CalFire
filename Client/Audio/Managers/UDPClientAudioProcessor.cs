@@ -2,19 +2,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Ciribob.FS3D.SimpleRadio.Standalone.Audio;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Input;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Network;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Singletons;
 using Ciribob.SRS.Common.Setting;
 using NLog;
-using ClientAudio = Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models.ClientAudio;
 using Timer = Ciribob.SRS.Common.Timers.Timer;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
@@ -785,7 +786,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             StopTimer();
 
             // _jitterBuffer.Clear();
-            _timer = new Timer(AudioEffectCheckTick, TimeSpan.FromMilliseconds(AudioManager.JITTER_BUFFER));
+            _timer = new Timer(AudioEffectCheckTick, TimeSpan.FromMilliseconds(Constants.JITTER_BUFFER));
             _timer.Start();
         }
 

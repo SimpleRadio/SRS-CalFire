@@ -2,16 +2,13 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Input;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Models;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.SRS.Common.Helpers;
-using Ciribob.SRS.Common.Network.Models.EventMessages;
-using Ciribob.SRS.Common.Network.Singletons;
 using NLog;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSettingsControl

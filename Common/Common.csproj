@@ -2,12 +2,13 @@
   <PropertyGroup>
 	<TargetFramework>net6.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <RootNamespace>Ciribob.SRS.Common</RootNamespace>
+    <RootNamespace>Ciribob.FS3D.SimpleRadio.Standalone.Common</RootNamespace>
     <AssemblyName>SRS-Common</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <UseWindowsForms>false</UseWindowsForms>
     <UseWPF>false</UseWPF>
     <ImportWindowsDesktopTargets>false</ImportWindowsDesktopTargets>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
@@ -30,12 +31,22 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Caliburn.Micro.Core" Version="4.0.212" />
+    <PackageReference Include="MathNet.Filtering" Version="0.7.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="6.0.5" />
+    <PackageReference Include="NAudio.Core" Version="2.1.0" />
     <PackageReference Include="NETStandard.Library" Version="2.0.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="NLog" Version="5.0.2" />
     <PackageReference Include="sharpconfig" Version="3.2.9.1" />
     <PackageReference Include="SourceLink.Create.GitHub" Version="2.8.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="opus.so">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="opus.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

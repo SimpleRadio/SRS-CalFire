@@ -9,14 +9,15 @@ namespace Ciribob.SRS.Common.Network.Client
         public string ClientGuid { get; set; }
         public long ReceiveTime { get; set; }
         public int ReceivedRadio { get; set; }
-        public double Frequency { get; internal set; }
-        public short Modulation { get; internal set; }
-        public float Volume { get; internal set; }
+        public double Frequency { get; set; }
+        public short Modulation { get; set; }
+        public float Volume { get; set; }
         public uint UnitId { get; set; }
         public RadioReceivingState RadioReceivingState { get; set; }
         public double RecevingPower { get; set; }
         public float LineOfSightLoss { get; set; }
         public ulong PacketNumber { get; set; }
-        public string OriginalClientGuid { get; internal set; }
+        public string OriginalClientGuid { get; set; }
+        public string UnitType { get; set; } = "";
     }
 }

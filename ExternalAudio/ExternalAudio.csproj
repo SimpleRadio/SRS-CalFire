@@ -32,8 +32,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
-    <ProjectReference Include="..\NAudio\NAudio.csproj" />
-    <ProjectReference Include="..\OpusWrapper\OpusWrapper.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="FodyWeavers.xml">
@@ -52,5 +50,7 @@
     <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.3.246501">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="NAudio" Version="2.1.0" />
+    <PackageReference Include="System.Speech" Version="5.0.0" />
   </ItemGroup>
 </Project>

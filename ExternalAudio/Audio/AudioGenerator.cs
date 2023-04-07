@@ -4,13 +4,12 @@ using System.Globalization;
 using System.IO;
 using System.Speech.AudioFormat;
 using System.Speech.Synthesis;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Core;
 using Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client;
-using FragLabs.Audio.Codecs;
-using FragLabs.Audio.Codecs.Opus;
 using Google.Cloud.TextToSpeech.V1;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
-using NAudio.Wave.WaveFormats;
 using NLog;
 
 

@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpusWrapper", "OpusWrapper\OpusWrapper.csproj", "{838BDB0B-5EB1-4C1E-9026-0A8842AC00C6}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "Client\Client.csproj", "{CFF33E05-1D37-4807-B1F7-5A1488D8EC4F}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DA4F02E3-0B5E-42CD-B8D9-5583FA51D66E} = {DA4F02E3-0B5E-42CD-B8D9-5583FA51D66E}
@@ -17,8 +15,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{68C7B1F8-DF0E-4504-8C7D-6FEF4225466B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{A0245CB5-7C06-4FC7-9477-ECB0D1A88239}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NAudio", "NAudio\NAudio.csproj", "{DA4F02E3-0B5E-42CD-B8D9-5583FA51D66E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExternalAudio", "ExternalAudio\ExternalAudio.csproj", "{669389B5-E810-4689-9838-BA1D6DC3871A}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -40,14 +36,6 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{838BDB0B-5EB1-4C1E-9026-0A8842AC00C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{838BDB0B-5EB1-4C1E-9026-0A8842AC00C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{838BDB0B-5EB1-4C1E-9026-0A8842AC00C6}.Debug|x64.ActiveCfg = Debug|x64
-		{838BDB0B-5EB1-4C1E-9026-0A8842AC00C6}.Debug|x64.Build.0 = Debug|x64
-		{838BDB0B-5EB1-4C1E-9026-0A8842AC00C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{838BDB0B-5EB1-4C1E-9026-0A8842AC00C6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{838BDB0B-5EB1-4C1E-9026-0A8842AC00C6}.Release|x64.ActiveCfg = Release|x64
-		{838BDB0B-5EB1-4C1E-9026-0A8842AC00C6}.Release|x64.Build.0 = Release|x64
 		{CFF33E05-1D37-4807-B1F7-5A1488D8EC4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CFF33E05-1D37-4807-B1F7-5A1488D8EC4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CFF33E05-1D37-4807-B1F7-5A1488D8EC4F}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -80,14 +68,6 @@ Global
 		{A0245CB5-7C06-4FC7-9477-ECB0D1A88239}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A0245CB5-7C06-4FC7-9477-ECB0D1A88239}.Release|x64.ActiveCfg = Release|Any CPU
 		{A0245CB5-7C06-4FC7-9477-ECB0D1A88239}.Release|x64.Build.0 = Release|Any CPU
-		{DA4F02E3-0B5E-42CD-B8D9-5583FA51D66E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DA4F02E3-0B5E-42CD-B8D9-5583FA51D66E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DA4F02E3-0B5E-42CD-B8D9-5583FA51D66E}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{DA4F02E3-0B5E-42CD-B8D9-5583FA51D66E}.Debug|x64.Build.0 = Debug|Any CPU
-		{DA4F02E3-0B5E-42CD-B8D9-5583FA51D66E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DA4F02E3-0B5E-42CD-B8D9-5583FA51D66E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DA4F02E3-0B5E-42CD-B8D9-5583FA51D66E}.Release|x64.ActiveCfg = Release|Any CPU
-		{DA4F02E3-0B5E-42CD-B8D9-5583FA51D66E}.Release|x64.Build.0 = Release|Any CPU
 		{669389B5-E810-4689-9838-BA1D6DC3871A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{669389B5-E810-4689-9838-BA1D6DC3871A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{669389B5-E810-4689-9838-BA1D6DC3871A}.Debug|x64.ActiveCfg = Debug|Any CPU

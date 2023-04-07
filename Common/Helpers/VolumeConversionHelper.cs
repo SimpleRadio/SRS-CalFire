@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 
 namespace Ciribob.SRS.Common.Helpers
 {
+    
     public static class VolumeConversionHelper
     {
+
+
         // 20 / ln( 10 )
         private const double LOG_2_DB = 8.6858896380650365530225783783321;
 
@@ -37,8 +40,10 @@ namespace Ciribob.SRS.Common.Helpers
         public static double ConvertFloatToDB(float linear)
         {
             if (linear == 0)
+            {
                 //basically nothing but not 0 or we'll get -nan
                 linear = 0.0000158f;
+            }
 
             return LinearToDecibels(linear);
         }
@@ -46,8 +51,8 @@ namespace Ciribob.SRS.Common.Helpers
 
         public static string ConvertLinearDiffToDB(float delta)
         {
-            var diff = (float)ConvertFloatToDB((float)delta) -
-                       (float)ConvertFloatToDB((float)1.0);
+            float diff = (float) VolumeConversionHelper.ConvertFloatToDB((float) (delta)) -
+                         (float) VolumeConversionHelper.ConvertFloatToDB((float) (1.0));
 
             return Math.Round(diff) + " dB";
             //convert diff into db
@@ -55,8 +60,67 @@ namespace Ciribob.SRS.Common.Helpers
 
         public static float ConvertVolumeSliderToScale(float volume)
         {
-            var db = -30 + (28 - -30) * volume;
-            return (float)Math.Exp(db / 20 * Math.Log(10));
+            var db = (-30) + (28 - (-30)) * volume;
+            return (float) Math.Exp(db / 20 * Math.Log(10));
+        }
+
+        // https://electronics.stackexchange.com/questions/85435/why-do-16-bit-systems-have-a-minimum-dbfs-of-96
+        //https://stackoverflow.com/questions/4152201/calculate-decibels
+        public static double CalculateRMS(short[] pcmShort, int offset = 0, int limit = 0)
+        {
+            if (limit == 0)
+            {
+                limit = pcmShort.Length;
+            }
+
+            //convert diff into db
+            double sum = 0;
+            for (var i = offset; i < limit+offset; i++ )
+            {
+                if (pcmShort[i] != 0)
+                {
+                    double sample = pcmShort[i] / 32768.0;
+                    sum += (sample * sample);
+                }
+            }
+
+            if (sum == 0)
+            {
+                return -96.6d;
+            }
+            double rms = Math.Sqrt(sum / (limit));
+
+            if (rms == 0)
+            {
+                return 0d;
+            }
+
+            return 20 * Math.Log10(rms);
+        }
+
+        public static double CalculateRMS(float[] buffer, int offset, int sampleCount)
+        {
+            //convert diff into db
+
+            double sum = 0;
+            for (var i = offset; i < sampleCount+offset; i++)
+            {
+                double sample = buffer[i];
+                sum += (sample * sample);
+            }
+
+            if (sum == 0)
+            {
+                return -96.6d;
+            }
+            double rms = Math.Sqrt(sum / (sampleCount));
+
+            if (rms == 0)
+            {
+                return 0d;
+            }
+
+            return 20 * Math.Log10(rms);
         }
     }
 }

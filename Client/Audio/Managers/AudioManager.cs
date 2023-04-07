@@ -7,59 +7,62 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Caliburn.Micro;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Providers;
+using Ciribob.FS3D.SimpleRadio.Standalone.Audio;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Models;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Core;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
 using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Models.EventMessages;
 using Ciribob.SRS.Common.Network.Singletons;
-using FragLabs.Audio.Codecs;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
-using NAudio.Wave.WaveFormats;
 using NLog;
+using WebRtcVadSharp;
 using WPFCustomMessageBox;
-using Application = FragLabs.Audio.Codecs.Opus.Application;
-using ClientAudio = Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Models.ClientAudio;
+using Application = Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Application;
+using ClientAudio = Ciribob.SRS.Common.Network.Client.ClientAudio;
 using LogManager = NLog.LogManager;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 {
     public class AudioManager : IHandle<SRClientUpdateMessage>
     {
-        public static readonly int MIC_SAMPLE_RATE = 16000;
-        public static readonly int MIC_INPUT_AUDIO_LENGTH_MS = 40;
-        public static readonly int MIC_SEGMENT_FRAMES = MIC_SAMPLE_RATE / 1000 * MIC_INPUT_AUDIO_LENGTH_MS;
-        public static readonly int OUTPUT_SAMPLE_RATE = 48000;
-        public static readonly int OUTPUT_AUDIO_LENGTH_MS = 40;
-        public static readonly int OUTPUT_SEGMENT_FRAMES = OUTPUT_SAMPLE_RATE / 1000 * OUTPUT_AUDIO_LENGTH_MS;
-        public static readonly int JITTER_BUFFER = 50; //in milliseconds
-
+        
+        private WebRtcVad _voxDectection;
+      
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly AudioInputSingleton _audioInputSingleton = AudioInputSingleton.Instance;
         private readonly AudioOutputSingleton _audioOutputSingleton = AudioOutputSingleton.Instance;
 
-        private readonly CachedAudioEffectProvider _cachedAudioEffectsProvider;
-
         private readonly ConcurrentDictionary<string, ClientAudioProvider> _clientsBufferedAudio =
-            new();
+            new ConcurrentDictionary<string, ClientAudioProvider>();
+        
+        private List<RadioMixingProvider> _radioMixingProvider;
+        
+        private MixingSampleProvider _finalMixdown;
 
         private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
 
         private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
 
-        private readonly Queue<short> _micInputQueue = new(MIC_SEGMENT_FRAMES * 3);
+        private readonly Queue<short> _micInputQueue = new(Constants.MIC_SEGMENT_FRAMES * 3);
+        
+        
+        //buffers intialised once for use repeatedly
+        short[] _pcmShort = new short[Constants.MIC_SEGMENT_FRAMES];
+        byte[] _pcmBytes = new byte[Constants.MIC_SEGMENT_FRAMES * 2];
+        
+        private byte[] _tempMicOutputBuffer = null;
+        
         private readonly bool windowsN;
 
         private MixingSampleProvider _clientAudioMixer;
-
-        //buffer for effects
-        //plays in parallel with radio output buffer
-        private RadioAudioProvider[] _effectsOutputBuffer;
 
         private OpusEncoder _encoder;
 
@@ -86,13 +89,17 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         //Stopwatch _stopwatch = new Stopwatch();
 
         private readonly object lockObj = new();
+        
+        private ClientEffectsPipeline _clientEffectsPipeline;
 
-
+        private string _guid;
+        
         public AudioManager(bool windowsN)
         {
             this.windowsN = windowsN;
 
-            _cachedAudioEffectsProvider = CachedAudioEffectProvider.Instance;
+            _clientEffectsPipeline = new ClientEffectsPipeline();
+            _guid = ClientStateSingleton.Instance.GUID;
         }
 
         public float MicMax { get; set; } = -100;
@@ -162,7 +169,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 _passThroughAudioProvider = new ClientAudioProvider(true);
                 _micWaveOut = new WasapiOut(micOutput, AudioClientShareMode.Shared, true, 40, windowsN);
 
-                _micWaveOutBuffer = new BufferedWaveProvider(new WaveFormat(OUTPUT_SAMPLE_RATE, 16, 1));
+                _micWaveOutBuffer = new BufferedWaveProvider(new WaveFormat(Constants.OUTPUT_SAMPLE_RATE, 16, 1));
                 _micWaveOutBuffer.ReadFully = true;
                 _micWaveOutBuffer.DiscardOnBufferOverflow = true;
 
@@ -192,11 +199,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         public void InitEncodersSpeex()
         {
             //opus
-            _encoder = OpusEncoder.Create(MIC_SAMPLE_RATE, 1, Application.Voip);
+            _encoder = OpusEncoder.Create(Constants.MIC_SAMPLE_RATE, 1, Application.Voip);
             _encoder.ForwardErrorCorrection = false;
 
             //speex
-            _speex = new Preprocessor(MIC_SEGMENT_FRAMES, MIC_SAMPLE_RATE);
+            _speex = new Preprocessor(Constants.MIC_SEGMENT_FRAMES, Constants.MIC_SAMPLE_RATE);
         }
 
 
@@ -226,9 +233,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 _micInputQueue.Clear();
 
                 InitMixers();
-
-                InitAudioBuffers();
-
+                
                 //Audio manager should start / stop and cleanup based on connection successfull and disconnect
                 //Should use listeners to synchronise all the state
                 InitWaveOut();
@@ -285,57 +290,74 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
         // private WaveFileWriter _beforeWaveFile;
         // private WaveFileWriter _afterFileWriter;
-        private void WasapiCaptureOnDataAvailable(object sender, WaveInEventArgs e)
+         private void WasapiCaptureOnDataAvailable(object sender, WaveInEventArgs e)
         {
             if (_resampler == null)
+            {
                 //create and use in the same thread or COM issues
-                _resampler = new EventDrivenResampler(windowsN, _wasapiCapture.WaveFormat,
-                    new WaveFormat(MIC_SAMPLE_RATE, 16, 1));
-            // _beforeWaveFile = new WaveFileWriter(@"C:\Temp\Test-Preview-Before.wav", new WaveFormat(AudioManager.MIC_SAMPLE_RATE, 16, 1));
-            // _afterFileWriter = new WaveFileWriter(@"C:\Temp\Test-Preview-after.wav", new WaveFormat(AudioManager.OUTPUT_SAMPLE_RATE, 16, 1));
+                _resampler = new EventDrivenResampler(windowsN, _wasapiCapture.WaveFormat, new WaveFormat(Constants.MIC_SAMPLE_RATE, 16, 1));
+                 
+                // _afterFileWriter = new WaveFileWriter(@"C:\Temp\Test-Preview-after.wav", new WaveFormat(AudioManager.OUTPUT_SAMPLE_RATE, 16, 1));
+            }
 
             if (e.BytesRecorded > 0)
             {
                 //Logger.Info($"Time: {_stopwatch.ElapsedMilliseconds} - Bytes: {e.BytesRecorded}");
-                var resampledPCM16Bit = _resampler.Resample(e.Buffer, e.BytesRecorded);
+                short[] resampledPCM16Bit = _resampler.Resample(e.Buffer, e.BytesRecorded);
 
                 // Logger.Info($"Time: {_stopwatch.ElapsedMilliseconds} - Bytes: {resampledPCM16Bit.Length}");
                 //fill sound buffer
-                for (var i = 0; i < resampledPCM16Bit.Length; i++) _micInputQueue.Enqueue(resampledPCM16Bit[i]);
+                for (var i = 0; i < resampledPCM16Bit.Length; i++)
+                {
+                    _micInputQueue.Enqueue(resampledPCM16Bit[i]);
+                }
 
                 //read out the queue
-                while (_micInputQueue.Count >= MIC_SEGMENT_FRAMES)
+                while (_micInputQueue.Count >= Constants.MIC_SEGMENT_FRAMES)
                 {
-                    var pcmShort = new short[MIC_SEGMENT_FRAMES];
 
-                    for (var i = 0; i < MIC_SEGMENT_FRAMES; i++) pcmShort[i] = _micInputQueue.Dequeue();
+                    for (var i = 0; i < Constants.MIC_SEGMENT_FRAMES; i++)
+                    {
+                        _pcmShort[i] = _micInputQueue.Dequeue();
+                    }
 
                     try
                     {
-                        //volume boost pre
-                        for (var i = 0; i < pcmShort.Length; i++)
-                            // n.b. no clipping test going on here
-                            pcmShort[i] = (short)(pcmShort[i] * MicBoost);
+                        //ready for the buffer shortly
+                        
+                        //check for voice before any pre-processing
+                        bool voice = true;
 
+                        if (_globalSettings.GetClientSettingBool(GlobalSettingsKeys.VOX))
+                        {
+                            Buffer.BlockCopy(_pcmShort, 0, _pcmBytes, 0, _pcmBytes.Length);
+                            voice = DoesFrameContainSpeech(_pcmBytes, _pcmShort);
+                        }
+                        
                         //process with Speex
-                        _speex.Process(new ArraySegment<short>(pcmShort));
+                        _speex.Process(new ArraySegment<short>(_pcmShort));
 
                         float max = 0;
-                        for (var i = 0; i < pcmShort.Length; i++)
+                        for (var i = 0; i < _pcmShort.Length; i++)
+                        {
                             //determine peak
-                            if (pcmShort[i] > max)
-                                max = pcmShort[i];
-                        //convert to dB
-                        MicMax = (float)VolumeConversionHelper.ConvertFloatToDB(max / 32768F);
+                            if (_pcmShort[i] > max)
+                            {
+                                max = _pcmShort[i];
+                            }
+                        }
 
-                        var pcmBytes = new byte[pcmShort.Length * 2];
-                        Buffer.BlockCopy(pcmShort, 0, pcmBytes, 0, pcmBytes.Length);
+                        //convert to dB
+                        MicMax = (float)VolumeConversionHelper.CalculateRMS(_pcmShort);
+
+                        //copy and overwrite with new PCM data post processing
+                        Buffer.BlockCopy(_pcmShort, 0, _pcmBytes, 0, _pcmBytes.Length);
 
                         //encode as opus bytes
                         int len;
-                        var buff = _encoder.Encode(pcmBytes, pcmBytes.Length, out len);
+                        var buff = _encoder.Encode(_pcmBytes, _pcmBytes.Length, out len);
 
-                        if (_udpVoiceHandler != null && buff != null && len > 0)
+                        if ((_udpVoiceHandler != null) && (buff != null) && (len > 0))
                         {
                             //create copy with small buffer
                             var encoded = new byte[len];
@@ -343,30 +365,68 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                             Buffer.BlockCopy(buff, 0, encoded, 0, len);
 
                             // Console.WriteLine("Sending: " + e.BytesRecorded);
-                          
-                            var clientAudio = _udpClientAudioProcessor?.Send(encoded, len);
+                            var clientAudio = _udpVoiceHandler.Send(encoded, len, voice);                         
 
                             // _beforeWaveFile.Write(pcmBytes, 0, pcmBytes.Length);
 
-                            if (clientAudio != null && _micWaveOutBuffer != null)
+                            if (clientAudio != null && (_micWaveOutBuffer != null 
+                                                        || GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.RecordAudio)))
                             {
+
                                 //todo see if we can fix the resample / opus decode
                                 //send audio so play over local too
-                                var processedAudioBytes = _passThroughAudioProvider?.AddClientAudioSamples(clientAudio);
+                                var jitterBufferAudio = _passThroughAudioProvider?.AddClientAudioSamples(clientAudio);
                                 
-                                //process bytes and add effects
-                                if (processedAudioBytes?.Length > 0)
+                                // //process bytes and add effects
+                                if (jitterBufferAudio!=null)
                                 {
-                                     // _afterFileWriter.Write(processedAudioBytes, 0, processedAudioBytes.Length);
-                                    _micWaveOutBuffer?.AddSamples(processedAudioBytes, 0, processedAudioBytes.Length);
+                                    DeJitteredTransmission deJittered =  new DeJitteredTransmission()
+                                    {
+                                        PCMAudioLength = jitterBufferAudio.Audio.Length,
+                                        Modulation = jitterBufferAudio.Modulation,
+                                        Volume = jitterBufferAudio.Volume,
+                                        Decryptable = true,
+                                        Frequency = jitterBufferAudio.Frequency,
+                                        IsSecondary = jitterBufferAudio.IsSecondary,
+                                        NoAudioEffects = jitterBufferAudio.NoAudioEffects,
+                                        ReceivedRadio = jitterBufferAudio.ReceivedRadio,
+                                        PCMMonoAudio = jitterBufferAudio.Audio,
+                                        Guid = _guid,
+                                        OriginalClientGuid = _guid
+                                    };
+
+                                    //process audio
+                                    float[] tempFloat = _clientEffectsPipeline.ProcessClientAudioSamples(jitterBufferAudio.Audio,
+                                        jitterBufferAudio.Audio.Length, 0, deJittered);
+
+                                    if (_micWaveOut != null)
+                                    {
+                                       
+                                        //now its a processed Mono audio
+                                        _tempMicOutputBuffer = BufferHelpers.Ensure(_tempMicOutputBuffer, tempFloat.Length * 4);
+                                        Buffer.BlockCopy(tempFloat, 0, _tempMicOutputBuffer, 0, tempFloat.Length * 4);
+
+                                        //_beforeWaveFile?.WriteSamples(jitterBufferAudio.Audio,0,jitterBufferAudio.Audio.Length);
+                                        //_beforeWaveFile?.Write(pcm32, 0, pcm32.Length);
+                                        //_beforeWaveFile?.Flush();
+
+                                        _micWaveOutBuffer.AddSamples(_tempMicOutputBuffer, 0, tempFloat.Length * 4);
+                                    }
+
+                                    if (GlobalSettingsStore.Instance.GetClientSettingBool(
+                                        GlobalSettingsKeys.RecordAudio))
+                                    {
+                                        ///TODO cache this to avoid the contant lookup
+                                        _audioRecordingManager.AppendPlayerAudio(tempFloat, jitterBufferAudio.ReceivedRadio);
+                                    }
+                                   
                                 }
-                                
                             }
+                         
                         }
                         else
                         {
-                            Logger.Error(
-                                $"Invalid Bytes for Encoding - {pcmShort.Length} should be {MIC_SEGMENT_FRAMES} ");
+                            Logger.Error($"Invalid Bytes for Encoding - {_pcmShort.Length} should be {MIC_SEGMENT_FRAMES} ");
                         }
 
                         _errorCount = 0;
@@ -375,8 +435,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                     {
                         _errorCount++;
                         if (_errorCount < 10)
+                        {
                             Logger.Error(ex, "Error encoding Opus! " + ex.Message);
-                        else if (_errorCount == 10) Logger.Error(ex, "Final Log of Error encoding Opus! " + ex.Message);
+                        }
+                        else if (_errorCount == 10)
+                        {
+                            Logger.Error(ex, "Final Log of Error encoding Opus! " + ex.Message);
+                        }
+
                     }
                 }
             }
@@ -426,165 +492,37 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
             if (messageBoxResult == MessageBoxResult.Yes) Process.Start("https://discord.gg/baw7g3t");
         }
+        
 
         private void InitMixers()
         {
-            _clientAudioMixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(OUTPUT_SAMPLE_RATE, 2));
-            _clientAudioMixer.ReadFully = true;
-        }
+            _finalMixdown = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 2));
+            _finalMixdown.ReadFully = true;
 
-        private void InitAudioBuffers()
-        {
-            _effectsOutputBuffer = new RadioAudioProvider[_clientStateSingleton.PlayerUnitState.Radios.Count];
-
-            for (var i = 0; i < _clientStateSingleton.PlayerUnitState.Radios.Count; i++)
+            _radioMixingProvider = new List<RadioMixingProvider>();
+            for (int i = 0; i < _clientStateSingleton.DcsPlayerRadioInfo.radios.Length; i++)
             {
-                _effectsOutputBuffer[i] = new RadioAudioProvider(OUTPUT_SAMPLE_RATE);
-                _clientAudioMixer.AddMixerInput(_effectsOutputBuffer[i].VolumeSampleProvider);
+                var mix = new RadioMixingProvider(WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 2), i);
+                _radioMixingProvider.Add(mix);
+                _finalMixdown.AddMixerInput(mix);
             }
         }
 
-
-        public void PlaySoundEffectStartReceive(int transmitOnRadio, bool encrypted, float volume,
-            Modulation modulation)
+        
+        private void InitVox()
         {
-            if (!_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_Start))
-                return;
-
-            var midsTone =
-                _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
-
-            if (modulation == Modulation.MIDS && midsTone)
-                //no tone for MIDS
-                return;
-
-            var _effectsBuffer = _effectsOutputBuffer[transmitOnRadio];
-
-            if (encrypted &&
-                _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects))
+            if (_voxDectection != null)
             {
-                _effectsBuffer.VolumeSampleProvider.Volume = volume;
-
-                var effect = _cachedAudioEffectsProvider.KY58EncryptionEndTone;
-                if (effect.Loaded)
-                    _effectsBuffer.AddAudioSamples(
-                        effect.AudioEffectBytes,
-                        transmitOnRadio);
+                _voxDectection.Dispose();
+                _voxDectection = null;
             }
-            else
+
+            _voxDectection = new WebRtcVad
             {
-                _effectsBuffer.VolumeSampleProvider.Volume = volume;
-
-                var effect = _cachedAudioEffectsProvider.SelectedRadioTransmissionStartEffect;
-                if (effect.Loaded)
-                    _effectsBuffer.AddAudioSamples(
-                        effect.AudioEffectBytes,
-                        transmitOnRadio);
-            }
-        }
-
-        public void PlaySoundEffectStartTransmit(int transmitOnRadio, bool encrypted, float volume,
-            Modulation modulation)
-        {
-            if (!_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_Start))
-                return;
-
-            var _effectBuffer = _effectsOutputBuffer[transmitOnRadio];
-
-            var midsTone =
-                _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
-
-            if (encrypted &&
-                _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects))
-            {
-                _effectBuffer.VolumeSampleProvider.Volume = volume;
-                var effect = _cachedAudioEffectsProvider.KY58EncryptionTransmitTone;
-                if (effect.Loaded)
-                    _effectBuffer.AddAudioSamples(
-                        effect.AudioEffectBytes,
-                        transmitOnRadio);
-            }
-            else if (modulation == Modulation.MIDS && midsTone)
-            {
-                _effectBuffer.VolumeSampleProvider.Volume = volume;
-                var effect = _cachedAudioEffectsProvider.MIDSTransmitTone;
-                if (effect.Loaded)
-                    _effectBuffer.AddAudioSamples(
-                        effect.AudioEffectBytes,
-                        transmitOnRadio);
-            }
-            else
-            {
-                _effectBuffer.VolumeSampleProvider.Volume = volume;
-                var effect = _cachedAudioEffectsProvider.SelectedRadioTransmissionStartEffect;
-                if (effect.Loaded)
-                    _effectBuffer.AddAudioSamples(
-                        effect.AudioEffectBytes,
-                        transmitOnRadio);
-            }
-        }
-
-
-        public void PlaySoundEffectEndReceive(int transmitOnRadio, float volume, Modulation modulation)
-        {
-            if (!_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_End))
-                return;
-
-            var midsTone =
-                _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
-
-            if (modulation == Modulation.MIDS && midsTone)
-            {
-                //end receive tone for MIDS
-                var effectsBuffer = _effectsOutputBuffer[transmitOnRadio];
-
-                effectsBuffer.VolumeSampleProvider.Volume = volume;
-                var effect = _cachedAudioEffectsProvider.MIDSEndTone;
-                if (effect.Loaded)
-                    effectsBuffer.AddAudioSamples(
-                        effect.AudioEffectBytes,
-                        transmitOnRadio);
-            }
-            else
-            {
-                var effectsBuffer = _effectsOutputBuffer[transmitOnRadio];
-
-                effectsBuffer.VolumeSampleProvider.Volume = volume;
-                var effect = _cachedAudioEffectsProvider.SelectedRadioTransmissionEndEffect;
-                if (effect.Loaded)
-                    effectsBuffer.AddAudioSamples(
-                        effect.AudioEffectBytes,
-                        transmitOnRadio);
-            }
-        }
-
-        public void PlaySoundEffectEndTransmit(int transmitOnRadio, float volume, Modulation modulation)
-        {
-            if (!_globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_End))
-                return;
-
-            var midsTone =
-                _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
-            var _effectBuffer = _effectsOutputBuffer[transmitOnRadio];
-
-            if (modulation == Modulation.MIDS && midsTone)
-            {
-                _effectBuffer.VolumeSampleProvider.Volume = volume;
-                var effect = _cachedAudioEffectsProvider.MIDSEndTone;
-                if (effect.Loaded)
-                    _effectBuffer.AddAudioSamples(
-                        effect.AudioEffectBytes,
-                        transmitOnRadio);
-            }
-            else
-            {
-                _effectBuffer.VolumeSampleProvider.Volume = volume;
-                var effect = _cachedAudioEffectsProvider.SelectedRadioTransmissionEndEffect;
-                if (effect.Loaded)
-                    _effectBuffer.AddAudioSamples(
-                        effect.AudioEffectBytes,
-                        transmitOnRadio);
-            }
+                SampleRate = SampleRate.Is16kHz,
+                FrameLength = FrameLength.Is20ms,
+                OperatingMode = (OperatingMode)_globalSettings.GetClientSettingInt(GlobalSettingsKeys.VOXMode)
+            };
         }
 
         public void StopEncoding()
@@ -599,6 +537,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 _wasapiCapture?.StopRecording();
                 _wasapiCapture?.Dispose();
                 _wasapiCapture = null;
+                
+                _voxDectection?.Dispose();
+                _voxDectection = null;
 
                 _resampler?.Dispose(true);
                 _resampler = null;
@@ -618,8 +559,17 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 _micWaveOut = null;
 
                 _volumeSampleProvider = null;
-                _clientAudioMixer?.RemoveAllMixerInputs();
-                _clientAudioMixer = null;
+
+                if(_radioMixingProvider!=null)
+                    foreach (var mixer in _radioMixingProvider)
+                    {
+                        mixer.RemoveAllMixerInputs();
+                    }
+
+                _radioMixingProvider = new List<RadioMixingProvider>();
+
+                _finalMixdown?.RemoveAllMixerInputs();
+                _finalMixdown = null;
 
                 _clientsBufferedAudio.Clear();
 
@@ -638,7 +588,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 SpeakerMax = -100;
                 MicMax = -100;
 
-                _effectsOutputBuffer = null;
+                //TODO
+               // AudioRecordingManager.Instance.Stop();
+
                 EventBus.Instance.Unsubcribe(this);
             }
         }
@@ -647,7 +599,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         public void AddClientAudio(ClientAudio audio)
         {
             //sort out effects!
-
             //16bit PCM Audio
             //TODO: Clean  - remove if we havent received audio in a while?
             // If we have recieved audio, create a new buffered audio and read it
@@ -661,7 +612,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 client = new ClientAudioProvider();
                 _clientsBufferedAudio[audio.OriginalClientGuid] = client;
 
-                _clientAudioMixer.AddMixerInput(client.SampleProvider);
+                foreach (var mixer in _radioMixingProvider)
+                {
+                    mixer.AddMixerInput(client);
+                }
+               
             }
 
             client.AddClientAudioSamples(audio);
@@ -673,16 +628,65 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             ClientAudioProvider clientAudio = null;
             _clientsBufferedAudio.TryRemove(srClient.ClientGuid, out clientAudio);
 
-            if (clientAudio == null) return;
+            if (clientAudio == null)
+            {
+                return;
+            }
 
             try
             {
-                _clientAudioMixer.RemoveMixerInput(clientAudio.SampleProvider);
+                foreach (var mixer in _radioMixingProvider)
+                {
+                    mixer.RemoveMixerInput(clientAudio);
+                }
             }
             catch (Exception ex)
             {
                 Logger.Error(ex, "Error removing client input");
             }
+        }
+        
+        //MIC SEGMENT FRAMES IS SHORTS not bytes - which is two bytes
+        //however we only want half of a frame IN BYTES not short - so its MIC_SEGMENT_FRAMES *2 (for bytes) then / 2 for bytes again
+        //declare here to save on garbage collection
+        byte[] tempBuffferFirst20ms = new byte[Constants.MIC_SEGMENT_FRAMES];
+        byte[] tempBuffferSecond20ms = new byte[Constants.MIC_SEGMENT_FRAMES];
+        bool DoesFrameContainSpeech(byte[] audioFrame, short[] pcmShort)
+        {
+            Buffer.BlockCopy(audioFrame,0,tempBuffferFirst20ms,0, Constants.MIC_SEGMENT_FRAMES);
+            Buffer.BlockCopy(audioFrame, Constants.MIC_SEGMENT_FRAMES, tempBuffferSecond20ms, 0, Constants.MIC_SEGMENT_FRAMES);
+
+            OperatingMode mode = (OperatingMode)_globalSettings.GetClientSettingInt(GlobalSettingsKeys.VOXMode);
+
+            if (_voxDectection.OperatingMode != mode)
+            {
+                InitVox();
+            }
+
+            //frame size is 40 - this only supports 20
+            bool voice = _voxDectection.HasSpeech(tempBuffferFirst20ms) || _voxDectection.HasSpeech(tempBuffferSecond20ms);
+
+            if (voice)
+            {
+                //calculate the RMS and see if we're over it
+                //voice run first as it ignores background hums very well
+                double rms = VolumeConversionHelper.CalculateRMS(pcmShort);
+                double min = _globalSettings.GetClientSettingDouble(GlobalSettingsKeys.VOXMinimumDB);
+
+                return rms > min;
+            }
+            //no voice so dont bother with RMS
+            return false;
+        }
+
+        public void PlaySoundEffectStartTransmit(int sendingOn, bool enc, float volume, Modulation modulation)
+        {
+            _radioMixingProvider[sendingOn]?.PlaySoundEffectStartTransmit(enc,volume,modulation);
+        }
+
+        public void PlaySoundEffectEndTransmit(int sendingOn, float radioVolume, Modulation radioModulation)
+        {
+            _radioMixingProvider[sendingOn]?.PlaySoundEffectEndTransmit(radioVolume,radioModulation);
         }
     }
 }
