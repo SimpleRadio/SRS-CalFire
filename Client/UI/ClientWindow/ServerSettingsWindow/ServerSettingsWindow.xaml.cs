@@ -3,8 +3,8 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Threading;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
 using Ciribob.SRS.Common.Network.Singletons;
-using Ciribob.SRS.Common.Setting;
 using MahApps.Metro.Controls;
 using NLog;
 

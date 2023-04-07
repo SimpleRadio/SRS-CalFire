@@ -20,6 +20,7 @@ using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Models.EventMessages;
 using Ciribob.SRS.Common.Network.Singletons;
 using NAudio.CoreAudioApi;
+using NAudio.Utils;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using NLog;
@@ -45,7 +46,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         
         private List<RadioMixingProvider> _radioMixingProvider;
         
-        private MixingSampleProvider _finalMixdown;
+        private SRSMixingSampleProvider _finalMixdown;
 
         private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
 
@@ -62,7 +63,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         
         private readonly bool windowsN;
 
-        private MixingSampleProvider _clientAudioMixer;
+        private SRSMixingSampleProvider _clientAudioMixer;
 
         private OpusEncoder _encoder;
 
@@ -365,17 +366,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                             Buffer.BlockCopy(buff, 0, encoded, 0, len);
 
                             // Console.WriteLine("Sending: " + e.BytesRecorded);
-                            var clientAudio = _udpVoiceHandler.Send(encoded, len, voice);                         
+                            var clientAudio = _udpClientAudioProcessor.Send(encoded, len, voice);                         
 
                             // _beforeWaveFile.Write(pcmBytes, 0, pcmBytes.Length);
 
-                            if (clientAudio != null && (_micWaveOutBuffer != null 
-                                                        || GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.RecordAudio)))
+                            if (clientAudio != null && _micWaveOutBuffer != null)
                             {
 
                                 //todo see if we can fix the resample / opus decode
                                 //send audio so play over local too
-                                var jitterBufferAudio = _passThroughAudioProvider?.AddClientAudioSamples(clientAudio);
+                                var jitterBufferAudio = _passThroughAudioProvider?.AddClientAudioSamples(clientAudio,false);
                                 
                                 // //process bytes and add effects
                                 if (jitterBufferAudio!=null)
@@ -412,13 +412,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
                                         _micWaveOutBuffer.AddSamples(_tempMicOutputBuffer, 0, tempFloat.Length * 4);
                                     }
-
-                                    if (GlobalSettingsStore.Instance.GetClientSettingBool(
-                                        GlobalSettingsKeys.RecordAudio))
-                                    {
-                                        ///TODO cache this to avoid the contant lookup
-                                        _audioRecordingManager.AppendPlayerAudio(tempFloat, jitterBufferAudio.ReceivedRadio);
-                                    }
+                                    
                                    
                                 }
                             }
@@ -426,7 +420,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                         }
                         else
                         {
-                            Logger.Error($"Invalid Bytes for Encoding - {_pcmShort.Length} should be {MIC_SEGMENT_FRAMES} ");
+                            Logger.Error($"Invalid Bytes for Encoding - {_pcmShort.Length} should be {Constants.MIC_SEGMENT_FRAMES} ");
                         }
 
                         _errorCount = 0;
@@ -496,11 +490,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
         private void InitMixers()
         {
-            _finalMixdown = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 2));
+            _finalMixdown = new SRSMixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 2));
             _finalMixdown.ReadFully = true;
 
             _radioMixingProvider = new List<RadioMixingProvider>();
-            for (int i = 0; i < _clientStateSingleton.DcsPlayerRadioInfo.radios.Length; i++)
+            for (int i = 0; i < _clientStateSingleton.PlayerUnitState.Radios.Count; i++)
             {
                 var mix = new RadioMixingProvider(WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 2), i);
                 _radioMixingProvider.Add(mix);
@@ -619,7 +613,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                
             }
 
-            client.AddClientAudioSamples(audio);
+            client.AddClientAudioSamples(audio, true);
         }
 
         private void RemoveClientBuffer(SRClientBase srClient)

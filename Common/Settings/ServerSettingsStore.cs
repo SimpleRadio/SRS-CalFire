@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Windows;
-using Ciribob.SRS.Common.Setting;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
 using NLog;
 using SharpConfig;
 

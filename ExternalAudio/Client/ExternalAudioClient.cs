@@ -13,8 +13,7 @@ using Ciribob.SRS.Common.Network.Models.EventMessages;
 using Ciribob.SRS.Common.Network.Singletons;
 using NLog;
 using LogManager = NLog.LogManager;
-using Timer = Ciribob.SRS.Common.Timers.Timer;
-
+using Timer = Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Timers.Timer;
 namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client
 {
     internal class ExternalAudioClient:IHandle<TCPClientStatusMessage>

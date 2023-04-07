@@ -1,4 +1,6 @@
 ﻿using Ciribob.FS3D.SimpleRadio.Standalone.Audio.Utility;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings;
 using NAudio.Wave;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers

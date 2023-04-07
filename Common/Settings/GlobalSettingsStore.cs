@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -75,6 +76,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         VOXMode,
         VOXMinimumTime,
         VOXMinimumDB,
+        
+        RecordAudio,
+        SingleFileMixdown,
     }
 
     public enum InputBinding
@@ -280,9 +284,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
             {GlobalSettingsKeys.VOXMode.ToString(), "3" },
             {GlobalSettingsKeys.VOXMinimumTime.ToString(), "300" },
             {GlobalSettingsKeys.VOXMinimumDB.ToString(), "-59.0" },
+            
+            {GlobalSettingsKeys.RecordAudio.ToString(), "true" },
+            {GlobalSettingsKeys.SingleFileMixdown.ToString(), "false" },
         };
 
         private readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        
+        //cache all the settings in their correct types for speed
+        //fixes issue where we access settings a lot and have issues
+        private ConcurrentDictionary<string, object> _settingsCache = new ConcurrentDictionary<string, object>();
 
         private GlobalSettingsStore()
         {
@@ -416,16 +427,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         {
             SetSetting("Client Settings", key.ToString(), strArray);
         }
-
-        public Setting GetPositionSetting(GlobalSettingsKeys key)
-        {
-            return GetSetting("Position Settings", key.ToString());
-        }
-
-        public void SetPositionSetting(GlobalSettingsKeys key, double value)
-        {
-            SetSetting("Position Settings", key.ToString(), value.ToString(CultureInfo.InvariantCulture));
-        }
+        
 
         public void SetUnitID(uint value)
         {
@@ -436,12 +438,61 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
         {
              return uint.Parse(GetSetting("Client Settings", GlobalSettingsKeys.LastUsedID.ToString()).RawValue);
         }
+         public Setting GetPositionSetting(GlobalSettingsKeys key)
+        {
+            return GetSetting("Position Settings", key.ToString());
+        }
 
+        public void SetPositionSetting(GlobalSettingsKeys key, double value)
+        {
+            _settingsCache.TryRemove(key.ToString(), out _);
+            SetSetting("Position Settings", key.ToString(), value.ToString(CultureInfo.InvariantCulture));
+        }
+
+        public int GetClientSettingInt(GlobalSettingsKeys key)
+        {
+            if (_settingsCache.TryGetValue(key.ToString(), out var val))
+            {
+                return (int)val;
+            }
+
+            var setting = GetSetting("Client Settings", key.ToString());
+            if (setting.RawValue.Length == 0)
+            {
+                return 0;
+            }
+            _settingsCache[key.ToString()] = setting.IntValue;
+            return setting.IntValue;
+        }
+
+        public double GetClientSettingDouble(GlobalSettingsKeys key)
+        {
+            if (_settingsCache.TryGetValue(key.ToString(), out var val))
+            {
+                return (double)val;
+            }
+
+            var setting = GetSetting("Client Settings", key.ToString());
+            if (setting.RawValue.Length == 0)
+            {
+                return 0D;
+            }
+            _settingsCache[key.ToString()] = setting.DoubleValue;
+            return setting.DoubleValue;
+        }
         public bool GetClientSettingBool(GlobalSettingsKeys key)
         {
-            var setting = GetSetting("Client Settings", key.ToString());
-            if (setting.RawValue.Length == 0) return false;
+            if (_settingsCache.TryGetValue(key.ToString(), out var val))
+            {
+                return (bool)val;
+            }
 
+            var setting = GetSetting("Client Settings", key.ToString());
+            if (setting.RawValue.Length == 0)
+            {
+                return false;
+            }
+            _settingsCache[key.ToString()] = setting.BoolValue;
             return setting.BoolValue;
         }
 
@@ -452,13 +503,28 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
         public void SetClientSetting(GlobalSettingsKeys key, string value)
         {
+            _settingsCache.TryRemove(key.ToString(), out _);
             SetSetting("Client Settings", key.ToString(), value);
         }
 
         public void SetClientSetting(GlobalSettingsKeys key, bool value)
         {
+            _settingsCache.TryRemove(key.ToString(), out _);
             SetSetting("Client Settings", key.ToString(), value);
         }
+
+        public void SetClientSetting(GlobalSettingsKeys key, int value)
+        {
+            _settingsCache.TryRemove(key.ToString(), out _);
+            SetSetting("Client Settings", key.ToString(), value);
+        }
+
+        public void SetClientSetting(GlobalSettingsKeys key, double value)
+        {
+            _settingsCache.TryRemove(key.ToString(), out _);
+            SetSetting("Client Settings", key.ToString(), value);
+        }
+
 
         public int GetNetworkSetting(GlobalSettingsKeys key)
         {
@@ -534,6 +600,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings
 
             Save();
         }
+        
 
         private void Save()
         {

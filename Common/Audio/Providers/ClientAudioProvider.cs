@@ -2,6 +2,7 @@
 using Ciribob.FS3D.SimpleRadio.Standalone.Audio;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Core;
+using Ciribob.SRS.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Models;
 using NAudio.Wave;
 using NLog;
@@ -26,7 +27,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
 
             if (!passThrough)
             {
-                var radios = ClientStateSingleton.Instance.DcsPlayerRadioInfo.radios.Length;
+                var radios = Constants.MAX_RADIOS;
                 JitterBufferProviderInterface =
                     new JitterBufferProviderInterface[radios];
 
@@ -67,7 +68,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
             return false;
         }
 
-        public JitterBufferAudio AddClientAudioSamples(ClientAudio audio)
+        public JitterBufferAudio AddClientAudioSamples(ClientAudio audio, bool receivedTransmission)
         {
 
             //sort out volume
@@ -125,7 +126,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
 
             LastUpdate = DateTime.Now.Ticks;
 
-            if (audio.OriginalClientGuid == ClientStateSingleton.Instance.ShortGUID)
+            //todo replace with a flag or other method
+            if (receivedTransmission)
             {
                 // catch own transmissions and prevent them from being added to JitterBuffer unless its passthrough
                 if (passThrough)

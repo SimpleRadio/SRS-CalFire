@@ -3,20 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Ciribob.FS3D.SimpleRadio.Standalone.Audio;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Input;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Network;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Input;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
 using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Singletons;
-using Ciribob.SRS.Common.Setting;
 using NLog;
-using Timer = Ciribob.SRS.Common.Timers.Timer;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 {
@@ -40,7 +39,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         private volatile bool _ptt = false;
         private readonly RadioReceivingState[] _radioReceivingState;
         private bool _stop;
-        private Timer _timer;
         private UDPCommandListener _udpCommandListener;
         private UDPStateSender _udpStateSender;
         private readonly object lockObj = new();
@@ -57,7 +55,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         public void Dispose()
         {
             _ptt = false;
-            _timer?.Dispose();
             _stopFlag?.Dispose();
             _udpCommandListener?.Stop();
         }
@@ -68,7 +65,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             _packetNumber = 1;
             var decoderThread = new Thread(UdpAudioDecode);
             decoderThread.Start();
-            StartTimer();
             InputDeviceManager.Instance.StartPTTListening(PTTHandler);
             _udpCommandListener = new UDPCommandListener();
             _udpCommandListener.Start();
@@ -282,7 +278,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             return yScore - xScore;
         }
 
-        private List<Radio> PTTPressed(out int sendingOn)
+        //TODO add support for HotMic and Intercom PTT
+        //See UDPVoiceHandler in SRS
+        private List<Radio> PTTPressed(out int sendingOn, bool voice )
         {
             sendingOn = -1;
             var transmittingRadios = new List<Radio>();
@@ -358,7 +356,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             return transmittingRadios;
         }
 
-        public ClientAudio Send(byte[] bytes, int len)
+        public ClientAudio Send(byte[] bytes, int len, bool voice)
         {
             // List of radios the transmission is sent to (can me multiple if simultaneous transmission is enabled)
             List<Radio> transmittingRadios;
@@ -366,7 +364,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             var sendingOn = -1;
             if (_udpClient.Ready
                 && bytes != null
-                && (transmittingRadios = PTTPressed(out sendingOn)).Count > 0)
+                && (transmittingRadios = PTTPressed(out sendingOn, voice)).Count > 0)
                 //can only send if DCS is connected
             {
                 try
@@ -608,17 +606,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                                                 UnitType = transmittingClient?.UnitState?.UnitType
                                             };
 
-
-                                            //handle effects
-                                            var radioState = _radioReceivingState[audio.ReceivedRadio];
-
-                                            if (!isSimultaneousTransmission &&
-                                                (radioState == null || radioState.PlayedEndOfTransmission ||
-                                                 !radioState.IsReceiving))
-                                                _audioManager.PlaySoundEffectStartReceive(audio.ReceivedRadio,
-                                                    false,
-                                                    audio.Volume, (Modulation)audio.Modulation);
-
                                             var transmitterName = "";
                                             if (_serverSettings.GetSettingAsBool(ServerSettingsKeys
                                                     .SHOW_TRANSMITTER_NAME)
@@ -642,9 +629,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                                             };
 
                                             _radioReceivingState[audio.ReceivedRadio] = newRadioReceivingState;
-
-                                            // Only play actual audio once
-                                            if (i == 0) _audioManager.AddClientAudio(audio);
+                                            
+                                            //we now WANT to duplicate through multiple pipelines ONLY if AM blocking is on
+                                            //this is a nice optimisation to save duplicated audio on servers without that setting 
+                                            if (i == 0 || _serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE))
+                                            {
+                                                _audioManager.AddClientAudio(audio);
+                                            }
                                         }
 
                                         //handle retransmission
@@ -781,56 +772,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             //_ptt = true;
         }
 
-        public void StartTimer()
-        {
-            StopTimer();
-
-            // _jitterBuffer.Clear();
-            _timer = new Timer(AudioEffectCheckTick, TimeSpan.FromMilliseconds(Constants.JITTER_BUFFER));
-            _timer.Start();
-        }
-
-
-        private void AudioEffectCheckTick()
-        {
-            for (var i = 0; i < _radioReceivingState.Length; i++)
-            {
-                //Nothing on this radio!
-                //play out if nothing after 200ms
-                //and Audio hasn't been played already
-                var radioState = _radioReceivingState[i];
-                if (radioState != null && !radioState.PlayedEndOfTransmission && !radioState.IsReceiving)
-                {
-                    radioState.PlayedEndOfTransmission = true;
-
-                    var radioInfo = _clientStateSingleton.PlayerUnitState;
-
-                    if (!radioState.IsSimultaneous)
-                        _audioManager.PlaySoundEffectEndReceive(i, radioInfo.Radios[i].Volume,
-                            radioInfo.Radios[i].Modulation);
-                }
-            }
-        }
-
-        public void StopTimer()
-        {
-            if (_timer != null)
-            {
-                //    _jitterBuffer.Clear();
-                _timer.Stop();
-                _timer = null;
-            }
-
-            InputDeviceManager.Instance.StopListening();
-        }
-
         public void Stop()
         {
             lock (lockObj)
             {
                 _stop = true;
                 _stopFlag.Cancel();
-                StopTimer();
                 _clientStateSingleton.RadioSendingState.IsSending = false;
                 _udpCommandListener?.Stop();
                 _udpCommandListener = null;

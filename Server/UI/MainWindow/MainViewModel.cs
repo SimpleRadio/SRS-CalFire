@@ -6,10 +6,10 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Caliburn.Micro;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.ClientAdmin;
-using Ciribob.SRS.Common.Setting;
 using NLog;
 using LogManager = NLog.LogManager;
 

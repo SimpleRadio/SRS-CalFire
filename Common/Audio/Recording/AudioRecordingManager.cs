@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Ciribob.FS3D.SimpleRadio.Standalone.Audio;
-using Ciribob.FS3D.SimpleRadio.Standalone.Audio.Recording;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Utility;
@@ -340,39 +340,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording
                 return new List<DeJitteredTransmission>();
             }
 
-            List<DeJitteredTransmission> filteredTransmisions = new List<DeJitteredTransmission>();
-
-            foreach (var transmission in originalTransmissions)
-            {
-                if (_connectedClientsSingleton.TryGetValue(transmission.OriginalClientGuid, out SRClient client))
-                {
-                    if (client.AllowRecord
-                        || transmission.OriginalClientGuid == ClientStateSingleton.Instance.ShortGUID) // Assume that client intends to record their outgoing transmissions
-                    {
-                        filteredTransmisions.Add(transmission);
-                    }
-                    else if (GlobalSettingsStore.Instance.GetClientSettingBool(GlobalSettingsKeys.DisallowedAudioTone))
-                    {
-                        DeJitteredTransmission toneTransmission = new DeJitteredTransmission
-                        {
-                            PCMMonoAudio = AudioManipulationHelper.SineWaveOut(transmission.PCMAudioLength, _sampleRate, 0.25),
-                            ReceivedRadio = transmission.ReceivedRadio,
-                            PCMAudioLength = transmission.PCMAudioLength,
-                            Decryptable = transmission.Decryptable,
-                            Frequency = transmission.Frequency,
-                            Guid = transmission.Guid,
-                            IsSecondary = transmission.IsSecondary,
-                            Modulation = transmission.Modulation,
-                            NoAudioEffects = transmission.NoAudioEffects,
-                            OriginalClientGuid = transmission.OriginalClientGuid,
-                            Volume = transmission.Volume
-                        };
-                        filteredTransmisions.Add(toneTransmission);
-                    }
-                }
-            }
-
-            return filteredTransmisions;
+            return originalTransmissions;
         }
     }
 }

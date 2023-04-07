@@ -43,6 +43,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
         private WaveFileWriter _waveFile;
 
+        public bool IsPreviewing => _waveOut != null;
         public float SpeakerBoost
         {
             get { return _speakerBoost; }

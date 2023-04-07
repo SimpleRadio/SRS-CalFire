@@ -5,7 +5,7 @@ using System.Windows.Controls;
 using Caliburn.Micro;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.SRS.Common.Network.Singletons;
 using SharpDX.DirectInput;
 

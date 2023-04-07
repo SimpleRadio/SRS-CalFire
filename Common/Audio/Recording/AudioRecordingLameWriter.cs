@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using Ciribob.FS3D.SimpleRadio.Standalone.Audio.Recording;
 using NAudio.Wave;
 using NLog;
+using OggVorbisEncoder;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording
 {

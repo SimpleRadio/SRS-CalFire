@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using Ciribob.FS3D.SimpleRadio.Standalone.Audio;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Models;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Singletons;
-using Ciribob.SRS.Common.Setting;
 using MathNet.Filtering;
 using NAudio.Dsp;
 
@@ -60,7 +62,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
 
         public ClientEffectsPipeline()
         {
-            profileSettings = Settings.GlobalSettingsStore.Instance.ProfileSettingsStore;
+            profileSettings = GlobalSettingsStore.Instance.ProfileSettingsStore;
             serverSettings =  SyncedServerSettings.Instance;
 
             _filters = new OnlineFilter[2];

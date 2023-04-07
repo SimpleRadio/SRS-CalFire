@@ -174,7 +174,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
                 else if (jitterBufferAudio.PacketNumber > _lastRead)
                 { 
                     //TODO CHECK THIS
-                    var time = _bufferedAudio.Count * AudioManager.OUTPUT_AUDIO_LENGTH_MS; // this isnt quite true as there can be padding audio but good enough
+                    var time = _bufferedAudio.Count * Constants.OUTPUT_AUDIO_LENGTH_MS; // this isnt quite true as there can be padding audio but good enough
 
                     if (time > MAXIMUM_BUFFER_SIZE_MS)
                     {

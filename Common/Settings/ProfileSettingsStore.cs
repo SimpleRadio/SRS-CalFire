@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Models;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Input;
 using Ciribob.SRS.Common.Network.Singletons;
 using NLog;
 using SharpConfig;
@@ -63,7 +64,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings
 
         PTTStartDelay,
         GroundNoiseVolume,
-        AircraftNoiseVolume
+        AircraftNoiseVolume,
+        IntercomTransmissionStartSelection,
+        IntercomTransmissionEndSelection,
+        AMCollisionVolume,
     }
 
     public class ProfileSettingsStore
@@ -338,10 +342,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings
             //create the sections
             var section = configuration[device.InputBind.ToString()];
 
-            section.Add(new Setting("name", device.DeviceName.Replace("\0", "")));
-            section.Add(new Setting("button", device.Button));
-            section.Add(new Setting("value", device.ButtonValue));
-            section.Add(new Setting("guid", device.InstanceGuid.ToString()));
+            section.Add(new SharpConfig.Setting("name", device.DeviceName.Replace("\0", "")));
+            section.Add(new SharpConfig.Setting("button", device.Button));
+            section.Add(new SharpConfig.Setting("value", device.ButtonValue));
+            section.Add(new SharpConfig.Setting("guid", device.InstanceGuid.ToString()));
 
             var inputDevices = GetCurrentInputProfile();
 
@@ -362,7 +366,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings
             Save();
         }
 
-        private Setting GetSetting(string section, string setting)
+        private SharpConfig.Setting GetSetting(string section, string setting)
         {
             var _configuration = GetCurrentProfile();
 
@@ -374,7 +378,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings
                 {
                     //save
                     _configuration[section]
-                        .Add(new Setting(setting, DefaultSettingsProfileSettings[setting]));
+                        .Add(new SharpConfig.Setting(setting, DefaultSettingsProfileSettings[setting]));
 
                     Save();
                 }
@@ -382,14 +386,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings
                 {
                     //save
                     _configuration[section]
-                        .Add(new Setting(setting, DefaultSettingsProfileSettings[setting]));
+                        .Add(new SharpConfig.Setting(setting, DefaultSettingsProfileSettings[setting]));
 
                     Save();
                 }
                 else
                 {
                     _configuration[section]
-                        .Add(new Setting(setting, ""));
+                        .Add(new SharpConfig.Setting(setting, ""));
                     Save();
                 }
             }
@@ -469,7 +473,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings
 
             if (!_configuration[section].Contains(key))
             {
-                _configuration[section].Add(new Setting(key, setting));
+                _configuration[section].Add(new SharpConfig.Setting(key, setting));
             }
             else
             {

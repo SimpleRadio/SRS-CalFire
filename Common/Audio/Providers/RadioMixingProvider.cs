@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Utility;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.SRS.Common.Network.Models;
 using NAudio.Utils;
 using NAudio.Wave;
@@ -15,15 +17,15 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
         private readonly List<ClientAudioProvider> sources;
 
 
-        private ClientEffectsPipeline pipeline = new ClientEffectsPipeline();
+        private ClientEffectsPipeline pipeline = new();
 
         private readonly Settings.ProfileSettingsStore profileSettings =
-            Settings.GlobalSettingsStore.Instance.ProfileSettingsStore;
+            GlobalSettingsStore.Instance.ProfileSettingsStore;
 
         private float[] mixBuffer;
         private float[] secondaryMixBuffer;
-        private List<DeJitteredTransmission> _mainAudio = new List<DeJitteredTransmission>();
-        private List<DeJitteredTransmission> _secondaryAudio = new List<DeJitteredTransmission>();
+        private List<DeJitteredTransmission> _mainAudio = new();
+        private List<DeJitteredTransmission> _secondaryAudio = new();
 
         private AudioRecordingManager _audioRecordingManager = AudioRecordingManager.Instance;
 
@@ -212,7 +214,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
         }
 
         private float[] HandleStartEndTones(float[] mixBuffer, int count, bool transmisson,
-          RadioInformation.Modulation modulation, bool encryption, out int outputSamples)
+          Modulation modulation, bool encryption, out int outputSamples)
         {
             //enqueue
             if (transmisson && !hasPlayedTransmissionStart)
@@ -301,7 +303,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
 
             bool midsTone = profileSettings.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
 
-            if (modulation == RadioInformation.Modulation.MIDS && midsTone)
+            if (modulation == Modulation.MIDS && midsTone)
             {
                 //no tone for MIDS
                 return;

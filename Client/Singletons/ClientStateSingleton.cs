@@ -8,7 +8,6 @@ using Ciribob.FS3D.SimpleRadio.Standalone.Client.Utils;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Models.EventMessages;
 using Ciribob.SRS.Common.Network.Singletons;
-using Ciribob.SRS.Common.Setting;
 using PropertyChangedBase = Ciribob.SRS.Common.Helpers.PropertyChangedBase;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons

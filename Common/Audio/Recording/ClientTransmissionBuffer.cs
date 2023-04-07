@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ClientAudio = Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Models.ClientAudio;
+using Ciribob.SRS.Common.Network.Client;
+
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording
 {
