@@ -125,6 +125,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
         public CachedAudioEffect HFNoise { get; }
 
         public CachedAudioEffect AMCollision { get; set; }
+        
+        public CachedAudioEffect GroundNoise { get; }
+        
+        public CachedAudioEffect AircraftNoise { get; }
 
         private readonly string sourceFolder;
 
@@ -166,6 +170,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
             // CreateAudioEffectDouble(HFNoise);
 
             AMCollision = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.AM_COLLISION);
+            
+            GroundNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.GROUND_NOISE);
+            
+            AircraftNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.AIRCRAFT_NOISE);
             // CreateAudioEffectDouble(AMCollision);
         }
 

@@ -374,7 +374,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
                                 //todo see if we can fix the resample / opus decode
                                 //send audio so play over local too
-                                var jitterBufferAudio = _passThroughAudioProvider?.AddClientAudioSamples(clientAudio,false);
+                                var jitterBufferAudio = _passThroughAudioProvider?.AddClientAudioSamples(clientAudio);
                                 
                                 // //process bytes and add effects
                                 if (jitterBufferAudio!=null)
@@ -611,7 +611,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                
             }
 
-            client.AddClientAudioSamples(audio, true);
+            client.AddClientAudioSamples(audio);
         }
 
         private void RemoveClientBuffer(SRClientBase srClient)

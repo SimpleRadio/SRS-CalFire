@@ -7,6 +7,8 @@ namespace Ciribob.SRS.Common.Network.Models
 
     public class PlayerUnitStateBase
     {
+        public static readonly string TYPE_AIRCRAFT = "AIRCRAFT";
+        public static readonly string TYPE_GROUND = "GROUND";
         public int Coalition { get; set; }
 
         public LatLngPosition LatLng { get; set; } = new();

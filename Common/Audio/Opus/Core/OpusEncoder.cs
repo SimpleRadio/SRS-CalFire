@@ -11,6 +11,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Core
 
         private bool disposed;
 
+        private byte[] encodingTemporaryBuffer;
+
         private OpusEncoder(IntPtr encoder, int inputSamplingRate, int inputChannels, Application application)
         {
             _encoder = encoder;
@@ -140,6 +142,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Core
             }
             return new OpusEncoder(encoder, inputSamplingRate, inputChannels, application);
         }
+        
+        private void EnsureBuffer(int bytesRequired)
+        {
+            if (encodingTemporaryBuffer == null || encodingTemporaryBuffer.Length < bytesRequired)
+            {
+                encodingTemporaryBuffer = new byte[bytesRequired];
+            }
+        }
 
         /// <summary>
         ///     Produces Opus encoded audio from PCM samples.
@@ -155,7 +165,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Core
 
             var frames = FrameCount(inputPcmSamples);
             IntPtr encodedPtr;
-            var encoded = new byte[MaxDataBytes];
+            
+            EnsureBuffer(MaxDataBytes);
+
+            var encoded = encodingTemporaryBuffer;
+
             var length = 0;
             fixed (byte* benc = encoded)
             {

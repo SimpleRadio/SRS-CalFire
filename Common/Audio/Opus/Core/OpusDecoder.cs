@@ -11,6 +11,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Core
 
         private bool disposed;
 
+        private byte[] tempDecodingBuffer;
+
         private OpusDecoder(IntPtr decoder, int outputSamplingRate, int outputChannels)
         {
             _decoder = decoder;
@@ -80,6 +82,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Core
             }
             return new OpusDecoder(decoder, outputSampleRate, outputChannels);
         }
+        
+        private void EnsureBuffer(int bytesRequired)
+        {
+            if (tempDecodingBuffer == null || tempDecodingBuffer.Length < bytesRequired)
+            {
+                tempDecodingBuffer = new byte[bytesRequired];
+            }
+        }
 
         /// <summary>
         ///     Produces PCM samples from Opus encoded data.
@@ -94,7 +104,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Core
                 throw new ObjectDisposedException("OpusDecoder");
 
             IntPtr decodedPtr;
-            var decoded = new byte[MaxDataBytes];
+            
+            EnsureBuffer(MaxDataBytes);
+            var decoded = tempDecodingBuffer;
 
             var length = 0;
             fixed (byte* bdec = decoded)
@@ -141,7 +153,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Core
                 throw new ObjectDisposedException("OpusDecoder");
 
             IntPtr decodedPtr;
-            var decoded = new byte[MaxDataBytes];
+            EnsureBuffer(MaxDataBytes);
+            var decoded = tempDecodingBuffer;
 
             var length = 0;
             fixed (byte* bdec = decoded)

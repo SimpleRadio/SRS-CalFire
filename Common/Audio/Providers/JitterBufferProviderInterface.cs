@@ -13,7 +13,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
     {
         private readonly CircularFloatBuffer _circularBuffer;
 
-        public static readonly int MAXIMUM_BUFFER_SIZE_MS = 2500;
+        public static readonly int MAXIMUM_BUFFER_SIZE_MS = 600;
 
         private readonly float[] _silence = new float[Constants.OUTPUT_SEGMENT_FRAMES]; 
 

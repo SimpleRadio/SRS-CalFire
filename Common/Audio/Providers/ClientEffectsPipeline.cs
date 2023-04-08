@@ -43,6 +43,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
         private float hfVol;
         private float uhfVol;
         private float vhfVol;
+        
+        private float groundNoiseVol;
+        private float aircraftNoiseVol;
+
+        private int groundNoisePosition = 0;
+        private int aircraftNoisePosition = 0;
 
         private long lastRefresh = 0; //last refresh of settings
 
@@ -106,6 +112,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
                 radioBackgroundNoiseEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioBackgroundNoiseEffect) ;
 
                 irlRadioRXInterference = serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE);
+
+                aircraftNoiseVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.AircraftNoiseVolume);
+                groundNoiseVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.GroundNoiseVolume);
+                
+                
             }
         }
 
@@ -198,7 +209,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
             }
             else
             {
-                AddRadioEffect(buffer, count, offset, transmission.Modulation, transmission.Frequency);
+                AddRadioEffect(buffer, count, offset, transmission.Modulation, transmission.Frequency, transmission.UnitType);
             }
             
             //final adjust
@@ -248,7 +259,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
         }
 
 
-        private void AddRadioEffect(float[] buffer, int count, int offset, Modulation modulation, double freq)
+        private void AddRadioEffect(float[] buffer, int count, int offset, Modulation modulation, double freq,
+            string transmissionUnitType)
         {
             int outputIndex = offset;
              
@@ -283,9 +295,32 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
                         audio *= RadioFilter.BOOST;
                     }
                 }
-                
-                //TODO add the fire effect / plane noise here
-                //Same way as the NATO Tone on FM transmissions
+
+                if (radioBackgroundNoiseEffect)
+                {
+                    if (effectProvider.AircraftNoise.Loaded && transmissionUnitType == PlayerUnitStateBase.TYPE_AIRCRAFT)
+                    {
+                        var noise = effectProvider.AircraftNoise.AudioEffectFloat;
+                        audio += ((noise[aircraftNoisePosition]) * aircraftNoiseVol);
+                        aircraftNoisePosition++;
+
+                        if (aircraftNoisePosition == noise.Length)
+                        {
+                            aircraftNoisePosition = 0;
+                        }
+                    }
+                    else if (effectProvider.GroundNoise.Loaded)
+                    {
+                        var noise = effectProvider.GroundNoise.AudioEffectFloat;
+                        audio += ((noise[groundNoisePosition]) * groundNoiseVol);
+                        groundNoisePosition++;
+
+                        if (groundNoisePosition == noise.Length)
+                        {
+                            groundNoisePosition = 0;
+                        }
+                    }
+                }
 
                 if (modulation == Modulation.FM
                     && effectProvider.NATOTone.Loaded
@@ -397,7 +432,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
                 {
                     if (effectProvider.FMNoise.Loaded)
                     {
-
                         //FM picks up most of the 20-60 ish range + has a different effect
                         //HF!
                         var noise = effectProvider.FMNoise.AudioEffectFloat;

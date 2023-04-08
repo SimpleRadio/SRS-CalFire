@@ -66,7 +66,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
             return false;
         }
 
-        public JitterBufferAudio AddClientAudioSamples(ClientAudio audio, bool receivedTransmission)
+        public JitterBufferAudio AddClientAudioSamples(ClientAudio audio)
         {
 
             //sort out volume
@@ -112,35 +112,25 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
             }
 
             LastUpdate = DateTime.Now.Ticks;
-
-            //todo replace with a flag or other method
-            if (receivedTransmission)
+            
+            if (passThrough)
             {
-                // catch own transmissions and prevent them from being added to JitterBuffer unless its passthrough
-                if (passThrough)
+                //return MONO PCM 16 as bytes
+                return new JitterBufferAudio
                 {
-                    //return MONO PCM 16 as bytes
-                    return new JitterBufferAudio
-                    {
-                        Audio = audio.PcmAudioFloat,
-                        PacketNumber = audio.PacketNumber,
-                        Modulation = (Modulation)audio.Modulation,
-                        ReceivedRadio = audio.ReceivedRadio,
-                        Volume = audio.Volume,
-                        IsSecondary = audio.IsSecondary,
-                        Frequency = audio.Frequency,
-                        Guid = audio.ClientGuid,
-                        OriginalClientGuid = audio.OriginalClientGuid,
-                        UnitType = audio.UnitType
-                    };
-                }
-                else
-                {
-                    return null;
-                }
-
+                    Audio = audio.PcmAudioFloat,
+                    PacketNumber = audio.PacketNumber,
+                    Modulation = (Modulation)audio.Modulation,
+                    ReceivedRadio = audio.ReceivedRadio,
+                    Volume = audio.Volume,
+                    IsSecondary = audio.IsSecondary,
+                    Frequency = audio.Frequency,
+                    Guid = audio.ClientGuid,
+                    OriginalClientGuid = audio.OriginalClientGuid,
+                    UnitType = audio.UnitType
+                };
             }
-            else if (!passThrough)
+            else
             {
                 JitterBufferProviderInterface[audio.ReceivedRadio].AddSamples(new JitterBufferAudio
                 {
@@ -157,23 +147,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
                 });
 
                 return null;
-            }
-            else
-            {
-                //return MONO PCM 32 as bytes
-                return new JitterBufferAudio
-                {
-                    Audio = audio.PcmAudioFloat,
-                    PacketNumber = audio.PacketNumber,
-                    Modulation = (Modulation)audio.Modulation,
-                    ReceivedRadio = audio.ReceivedRadio,
-                    Volume = audio.Volume,
-                    IsSecondary = audio.IsSecondary,
-                    Frequency = audio.Frequency,
-                    Guid = audio.ClientGuid,
-                    OriginalClientGuid = audio.OriginalClientGuid,
-                    UnitType = audio.UnitType
-                };
             }
 
             //timer.Stop();

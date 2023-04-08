@@ -209,55 +209,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             return transmitting;
         }
 
-        private bool HasLineOfSight(UDPVoicePacket udpVoicePacket, out float losLoss)
-        {
-            losLoss = 0; //0 is NO LOSS
-            if (!_serverSettings.GetSettingAsBool(ServerSettingsKeys.LOS_ENABLED)) return true;
-
-            SRClientBase transmittingClient;
-            if (_clients.TryGetValue(udpVoicePacket.Guid, out transmittingClient))
-            {
-                var myLatLng = _clientStateSingleton.PlayerUnitState.LatLng;
-                var clientLatLng = transmittingClient.UnitState.LatLng;
-                if (myLatLng == null || clientLatLng == null || !myLatLng.IsValid() || !clientLatLng.IsValid())
-                    return true;
-
-                losLoss = transmittingClient.LineOfSightLoss;
-                return transmittingClient.LineOfSightLoss < 1.0f; // 1.0 or greater  is TOTAL loss
-            }
-
-            losLoss = 0;
-            return false;
-        }
-
-        private bool InRange(string transmissingClientGuid, double frequency, out double signalStrength)
-        {
-            signalStrength = 0;
-            if (!_serverSettings.GetSettingAsBool(ServerSettingsKeys.DISTANCE_ENABLED)) return true;
-
-            SRClientBase transmittingClient;
-            if (_clients.TryGetValue(transmissingClientGuid, out transmittingClient))
-            {
-                double dist = 0;
-
-                var myLatLng = _clientStateSingleton.PlayerUnitState.LatLng;
-                var clientLatLng = transmittingClient.UnitState.LatLng;
-                //No DCS Position - do we have LotATC Position?
-                if (myLatLng == null || clientLatLng == null || !myLatLng.IsValid() || !clientLatLng.IsValid())
-                    return true;
-                dist = RadioCalculator.CalculateDistanceHaversine(myLatLng, clientLatLng);
-
-                var max = RadioCalculator.FriisMaximumTransmissionRange(frequency);
-                // % loss of signal
-                // 0 is no loss 1.0 is full loss
-                signalStrength = dist / max;
-
-                return max > dist;
-            }
-
-            return false;
-        }
-
         private int SortRadioReceivingPriorities(RadioReceivingPriority x, RadioReceivingPriority y)
         {
             var xScore = 0;
@@ -513,16 +464,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                                     for (var i = 0; i < frequencyCount; i++)
                                     {
                                         RadioReceivingState state = null;
+
                                         bool decryptable;
-
-                                        //Check if Global
-                                        var globalFrequency =
-                                            globalFrequencies.Contains(udpVoicePacket.Frequencies[i]);
-
-                                        if (globalFrequency)
-                                            //remove encryption for global
-                                            udpVoicePacket.Encryptions[i] = 0;
-
                                         var radio = RadioBase.CanHearTransmission(
                                             udpVoicePacket.Frequencies[i],
                                             (Modulation)udpVoicePacket.Modulations[i],
@@ -533,41 +476,26 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                                             _clientStateSingleton.PlayerUnitState.UnitId,
                                             out state,
                                             out decryptable);
+                                        
 
-                                        var losLoss = 0.0f;
-                                        var receivPowerLossPercent = 0.0;
+                                        if (radio != null && state != null 
+                                                          && (radio.Modulation == Modulation.INTERCOM
+                                                                               || !blockedRadios.Contains(state.ReceivedOn)))
+                                        {
+                                            //get the radio
+                                            var receivedRadio =
+                                                _clientStateSingleton.PlayerUnitState.Radios[state.ReceivedOn];
 
-                                        if (radio != null && state != null)
-                                            if (
-                                                radio.Modulation == Modulation.INTERCOM
-                                                || radio.Modulation ==
-                                                Modulation
-                                                    .MIDS // IGNORE LOS and Distance for MIDS - we assume a Link16 Network is in place
-                                                || globalFrequency
-                                                || HasLineOfSight(udpVoicePacket, out losLoss)
-                                                && InRange(udpVoicePacket.Guid, udpVoicePacket.Frequencies[i],
-                                                    out receivPowerLossPercent)
-                                                && !blockedRadios.Contains(state.ReceivedOn)
-                                            )
+                                            radioReceivingPriorities.Add(new RadioReceivingPriority
                                             {
-                                                decryptable =
-                                                    udpVoicePacket.Encryptions[i] == 0 ||
-                                                    udpVoicePacket.Encryptions[i] == radio.EncKey && radio.Encrypted;
-
-                                                //get the radio
-                                                var receivedRadio =
-                                                    _clientStateSingleton.PlayerUnitState.Radios[state.ReceivedOn];
-
-                                                radioReceivingPriorities.Add(new RadioReceivingPriority
-                                                {
-                                                    Frequency = udpVoicePacket.Frequencies[i],
-                                                    LineOfSightLoss = losLoss,
-                                                    Modulation = udpVoicePacket.Modulations[i],
-                                                    ReceivingPowerLossPercent = receivPowerLossPercent,
-                                                    ReceivingRadio = receivedRadio,
-                                                    ReceivingState = state
-                                                });
-                                            }
+                                                Frequency = udpVoicePacket.Frequencies[i],
+                                                LineOfSightLoss = 0,
+                                                Modulation = udpVoicePacket.Modulations[i],
+                                                ReceivingPowerLossPercent = 0,
+                                                ReceivingRadio = receivedRadio,
+                                                ReceivingState = state
+                                            });
+                                        }
                                     }
 
                                     // Sort receiving radios to play audio on correct one
@@ -604,6 +532,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                                                 OriginalClientGuid = udpVoicePacket.OriginalClientGuid,
                                                 UnitType = transmittingClient?.UnitState?.UnitType
                                             };
+
+                                            if (string.IsNullOrEmpty(audio.UnitType))
+                                            {
+                                                audio.UnitType = PlayerUnitStateBase.TYPE_GROUND;
+                                            }
 
                                             var transmitterName = "";
                                             if (_serverSettings.GetSettingAsBool(ServerSettingsKeys
