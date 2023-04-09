@@ -32,7 +32,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
         private ServerSync _serverSync;
         private volatile bool _stop = true;
 
-        public ServerState(IEventAggregator eventAggregator, int port = 5002, bool portSet = false)
+        public ServerState(IEventAggregator eventAggregator, int port = 5002, bool portSet = false, bool recording = false)
         {
             _eventAggregator = eventAggregator;
             _eventAggregator.Subscribe(this);
@@ -40,6 +40,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
             if (portSet)
             {
                 Settings.ServerSettingsStore.Instance.SetServerSetting(ServerSettingsKeys.SERVER_PORT, port);
+                Settings.ServerSettingsStore.Instance.SetServerSetting(ServerSettingsKeys.SERVER_RECORDING, recording);
             }
 
             StartServer();

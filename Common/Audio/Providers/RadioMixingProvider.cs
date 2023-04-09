@@ -27,8 +27,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
         private List<DeJitteredTransmission> _mainAudio = new();
         private List<DeJitteredTransmission> _secondaryAudio = new();
 
-        private AudioRecordingManager _audioRecordingManager = AudioRecordingManager.Instance;
-
         private CircularFloatBuffer effectsBuffer;
 
         private readonly CachedAudioEffectProvider _cachedAudioEffectsProvider;
@@ -169,7 +167,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
             {
                 lastReceivedAt = DateTime.Now.Ticks;
                 hasPlayedTransmissionEnd = false;
-                _audioRecordingManager.AppendClientAudio(_mainAudio, _secondaryAudio, radioId);
             }
 
             if (_mainAudio.Count > 0)

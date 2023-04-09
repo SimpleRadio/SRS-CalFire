@@ -9,7 +9,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Caliburn.Micro;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Network.Client;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
+using Ciribob.FS3D.SimpleRadio.Standalone.Server.Audio;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Settings;
 using Ciribob.SRS.Common.Network.Models;
@@ -167,6 +170,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
 
         private void ProcessPackets()
         {
+            var recordingManager = new AudioRecordingManager();
+            
+            //TODO temp
+            _serverSettings.SetServerSetting(ServerSettingsKeys.SERVER_RECORDING,true);
+            recordingManager.Start();
+
             while (!_stop)
                 try
                 {
@@ -207,7 +216,23 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                                             //Add to the processing queue
                                             _outGoing.Add(outgoingVoice);
                                         }
-
+                                     
+                                        recordingManager.AddClientAudio(new ClientAudio()
+                                        {
+                                            Modulation = udpVoicePacket.Modulations[0],
+                                            Frequency = udpVoicePacket.Frequencies[0],
+                                            ClientGuid = udpVoicePacket.Guid,
+                                            UnitId = udpVoicePacket.UnitId,
+                                            Volume = 1,
+                                            EncodedAudio = udpVoicePacket.AudioPart1Bytes,
+                                            IsSecondary = false,
+                                            PacketNumber = udpVoicePacket.PacketNumber,
+                                            //Handle it as either received on INTERCOM or not
+                                            ReceivedRadio = udpVoicePacket.Modulations[0] == 2? 0:1,
+                                            UnitType = client.UnitState.UnitType,
+                                            OriginalClientGuid = udpVoicePacket.OriginalClientGuid,
+                                            ReceiveTime = DateTime.Now.Ticks
+                                        });
 
                                         //mark as transmitting for the UI
                                         var mainFrequency = udpVoicePacket.Frequencies.FirstOrDefault();
@@ -228,7 +253,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                                                 {
                                                     str += $" {(udpVoicePacket.Frequencies[i] / 1000000).ToString("0.000", CultureInfo.InvariantCulture)} {mainModulation}";
                                                 }
-
                                             }
 
                                             client.TransmittingFrequency = str;
@@ -248,6 +272,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                 {
                     Logger.Info("Failed to Process UDP Packet: " + ex.Message);
                 }
+            
+            recordingManager.Stop();
         }
 
         private

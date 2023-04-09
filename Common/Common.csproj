@@ -49,6 +49,9 @@
     <None Update="opus.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="AudioEffects\AIRCRAFT_NOISE.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <SourceLinkSources Remove="Audio\Recording\OggVorbisEncoder\ArrayExtensions.cs" />
@@ -1419,5 +1422,14 @@
     <SourceLinkSources Remove="OggVorbisEncoder\Setup\Templates\UncoupledXXSetupDataTemplate.cs" />
     <SourceLinkSources Remove="OggVorbisEncoder\StaticCodeBookExtensions.cs" />
     <SourceLinkSources Remove="OggVorbisEncoder\VorbisInfo.cs" />
+    <SourceLinkSources Remove="Audio\Recording\AudioManipulationHelper.cs" />
+    <SourceLinkSources Remove="Audio\Recording\AudioRecordingLameWriter.cs" />
+    <SourceLinkSources Remove="Audio\Recording\AudioRecordingManager.cs" />
+    <SourceLinkSources Remove="Audio\Recording\AudioRecordingSample.cs" />
+    <SourceLinkSources Remove="Audio\Recording\AudioRecordingStream.cs" />
+    <SourceLinkSources Remove="Audio\Recording\AudioRecordingStreamHydrated.cs" />
+    <SourceLinkSources Remove="Audio\Recording\AudioRecordingStreamMixer.cs" />
+    <SourceLinkSources Remove="Audio\Recording\ClientTransmissionBuffer.cs" />
+    <SourceLinkSources Remove="Audio\Recording\TransmissionAssembler.cs" />
   </ItemGroup>
 </Project>

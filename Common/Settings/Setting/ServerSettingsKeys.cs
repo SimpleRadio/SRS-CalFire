@@ -13,7 +13,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting
         TEST_FREQUENCIES = 6,
         SHOW_TUNED_COUNT = 7,
         SHOW_TRANSMITTER_NAME = 8,
-        RETRANSMISSION_NODE_LIMIT = 9
+        RETRANSMISSION_NODE_LIMIT = 9,
+        SERVER_RECORDING = 10
     }
 
     public class DefaultServerSettings
@@ -26,6 +27,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting
             { ServerSettingsKeys.IRL_RADIO_TX.ToString(), "true" },
             { ServerSettingsKeys.LOS_ENABLED.ToString(), "false" },
             { ServerSettingsKeys.SERVER_PORT.ToString(), "5002" },
+            { ServerSettingsKeys.SERVER_RECORDING.ToString(), "false" },
             { ServerSettingsKeys.TEST_FREQUENCIES.ToString(), "247.2,120.3" },
             { ServerSettingsKeys.SHOW_TUNED_COUNT.ToString(), "true" },
             { ServerSettingsKeys.SHOW_TRANSMITTER_NAME.ToString(), "false" },
