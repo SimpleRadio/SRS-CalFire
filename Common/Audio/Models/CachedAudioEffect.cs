@@ -73,35 +73,41 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Models
 
             AudioEffectFloat = null;
 
-            if (File.Exists(file))
+            try
             {
-                using (var reader = new WaveFileReader(file))
+                if (File.Exists(file))
                 {
-                    //    Assert.AreEqual(16, reader.WaveFormat.BitsPerSample, "Only works with 16 bit audio");
-                    if (reader.WaveFormat.BitsPerSample == RequiredFormat.BitsPerSample && reader.WaveFormat.SampleRate == reader.WaveFormat.SampleRate && reader.WaveFormat.Channels == 1)
+                    using (var reader = new WaveFileReader(file))
                     {
-                        var tmpBytes = new byte[reader.Length];
-                        var read = reader.Read(tmpBytes, 0, tmpBytes.Length);
-                        Logger.Info($"Read Effect {audioEffect} from {file} Successfully - Format {reader.WaveFormat}");
+                        //    Assert.AreEqual(16, reader.WaveFormat.BitsPerSample, "Only works with 16 bit audio");
+                        if (reader.WaveFormat.BitsPerSample == RequiredFormat.BitsPerSample && reader.WaveFormat.SampleRate == reader.WaveFormat.SampleRate && reader.WaveFormat.Channels == 1)
+                        {
+                            var tmpBytes = new byte[reader.Length];
+                            var read = reader.Read(tmpBytes, 0, tmpBytes.Length);
+                            Logger.Info($"Read Effect {audioEffect} from {file} Successfully - Format {reader.WaveFormat}");
 
-                        //convert to short  - 16 - then to float 32
-                        var tmpShort = ConversionHelpers.ByteArrayToShortArray(tmpBytes);
+                            //convert to short  - 16 - then to float 32
+                            var tmpShort = ConversionHelpers.ByteArrayToShortArray(tmpBytes);
 
-                        //now to float
-                        AudioEffectFloat = ConversionHelpers.ShortPCM16ArrayToFloat32Array(tmpShort);
+                            //now to float
+                            AudioEffectFloat = ConversionHelpers.ShortPCM16ArrayToFloat32Array(tmpShort);
 
-                        Loaded = true;
+                            Loaded = true;
+                        }
+                        else
+                        {
+                            Logger.Info($"Unable to read Effect {audioEffect} from {file} Successfully - {reader.WaveFormat} is not {RequiredFormat} !");
+                        }
+
                     }
-                    else
-                    {
-                        Logger.Info($"Unable to read Effect {audioEffect} from {file} Successfully - {reader.WaveFormat} is not {RequiredFormat} !");
-                    }
-
                 }
-            }
-            else
-            {
-                Logger.Info($"Unable to find file for effect {audioEffect} in AudioEffects\\{FileName} ");
+                else
+                {
+                    Logger.Info($"Unable to find file for effect {audioEffect} in AudioEffects\\{FileName} ");
+                }
+            } 
+            catch (Exception ex) {
+                Logger.Error($"Unable to find file for effect {audioEffect} in AudioEffects\\{FileName} ", ex);
             }
         }
 

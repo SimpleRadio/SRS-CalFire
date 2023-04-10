@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Ciribob.FS3D.SimpleRadio.Standalone.Audio;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
@@ -35,14 +36,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording
         private bool _processThreadDone;
 
         private ConnectedClientsSingleton _connectedClientsSingleton = ConnectedClientsSingleton.Instance;
-
-        private readonly ConcurrentDictionary<string, ClientRecordedAudioProvider> _clientsBufferedAudio = new();
         
-        private readonly ConcurrentDictionary<string, WaveFileWriter> _clientWriters = new();
+        //per frequency per client list
+        private readonly ConcurrentDictionary<double, AudioRecordingFrequencyGroup> _clientAudioWriters = new();
 
         private string _recordingFolder;
 
-        private byte[] temporaryBuffer = new byte[MAX_BUFFER_SECONDS];
+        private byte[] _temporaryBuffer = new byte[MAX_BUFFER_SECONDS];
 
         public AudioRecordingManager()
         {
@@ -76,12 +76,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording
             _logger.Info("Transmission recording ended, draining audio.");
 
 
-            foreach (var clientWriter in _clientWriters)
+            foreach (var clientWriter in _clientAudioWriters)
             {
-                clientWriter.Value.Close();
+                clientWriter.Value.Stop();
             }
-            
-            
+
+
             Thread.Sleep(500);
 
             _logger.Info("Stop recording thread");
@@ -91,32 +91,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording
 
         private void ProcessClientWriters(long milliseconds)
         {
-            foreach (var clientAudioPair in _clientsBufferedAudio)
+            foreach (var clientAudioPair in _clientAudioWriters)
             {
-                var guid = clientAudioPair.Key;
-                ProcessClientWriter(guid, clientAudioPair.Value, milliseconds);
+                clientAudioPair.Value.ProcessClientAudio(milliseconds);
             }
-        }
-
-        private void ProcessClientWriter(string guid, ClientRecordedAudioProvider clientAudioProvider, long milliseconds)
-        {
-            
-            WaveFileWriter oggWriter;
-            if (!_clientWriters.TryGetValue(guid, out oggWriter))
-            {
-                oggWriter =  new WaveFileWriter(_recordingFolder+"\\"+guid+"-"+ 
-                                                String.Join("-", DateTime.Now.ToLongTimeString().Split(Path.GetInvalidFileNameChars())), 
-                    clientAudioProvider.WaveFormat);
-                _clientWriters[guid] = oggWriter;
-            }
-
-            int samplesRequired = (int) milliseconds * (_sampleRate / 1000);
-
-            //todo cache this
-            //with clear
-            float[] buffer = new float[samplesRequired];
-            int read = clientAudioProvider.Read(buffer, 0, samplesRequired);
-            oggWriter.WriteSamples(buffer,0,samplesRequired);
         }
 
         private string InitFolders()
@@ -127,9 +105,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording
                 Directory.CreateDirectory("Recordings");
             }
             
-            var sessionFolder = $"Session-{DateTime.Today.Year}-{DateTime.Today.Month}-{DateTime.Today.Day}-{DateTime.Today.Hour}-{DateTime.Today.Minute}-{DateTime.Today.Second}-{new Random().NextInt64()}";
+            var sessionFolder = $"Session-{DateTime.Now.ToString("MM-dd-yyyy HH-mm-ss")}-{ShortGuid.NewGuid().ToString()}".Replace(" ","-");
 
-            var directory = $"Recordings/{sessionFolder}";
+            var directory = $"Recordings{Path.DirectorySeparatorChar}{sessionFolder}";
 
             Directory.CreateDirectory(directory);
 
@@ -138,7 +116,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording
             return directory;
         }
         
-        public void Start()
+        public void Start(List<double> recordingFrequencies)
         {
             if (!ServerSettingsStore.Instance.GetServerSetting(ServerSettingsKeys.SERVER_RECORDING).BoolValue)
             {
@@ -147,7 +125,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording
                 return;
             }
 
-            _logger.Info("Transmission recording waiting for audio.");
+            _logger.Info("Transmission recording waiting for audio. Frequencies Recorded: "+string.Join(",", recordingFrequencies.Select(n => n.ToString()).ToArray()));
 
             _stop = false;
             new Thread(ProcessQueues).Start();
@@ -167,9 +145,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording
                     Thread.Sleep(200);
                 }
 
-                foreach (var clientWriter in _clientWriters)
+                foreach (var clientWriter in _clientAudioWriters)
                 {
-                    clientWriter.Value.Close();
+                    clientWriter.Value.Stop();
                 }
                 
                 _logger.Info("Transmission recording stopped.");
@@ -179,44 +157,31 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording
         
         public void AddClientAudio(ClientAudio audio)
         {
-            //sort out effects!
-            //16bit PCM Audio
-            //TODO: Clean  - remove if we havent received audio in a while?
-            // If we have recieved audio, create a new buffered audio and read it
-            ClientRecordedAudioProvider client = null;
-            if (_clientsBufferedAudio.TryGetValue(audio.OriginalClientGuid, out var value))
+            // find correct writer - add to the list
+            if (!_clientAudioWriters.TryGetValue(audio.Frequency, out var audioRecordingFrequencyGroup))
             {
-                client = value;
+                audioRecordingFrequencyGroup =  new AudioRecordingFrequencyGroup(audio.Frequency,
+                    _recordingFolder, WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 1));
+                _clientAudioWriters[audio.Frequency] = audioRecordingFrequencyGroup;
             }
-            else
-            {
-                client = new ClientRecordedAudioProvider(WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE,1),audio.OriginalClientGuid);
-                _clientsBufferedAudio[audio.OriginalClientGuid] = client;
 
-            }
-            
-            //TODO process the audio samples
-            // We have them in a list - and each client will return the requested number of floats - and generate dead air
-            // as appropriate
-            // TODO at recording start - generate a folder (dont generate until the first audio comes in)
-            // Folder - Date-time-random string (to ensure uniqueness)
-            // in folder generate a recording for each client GUID
-            // each file will have date-time-guid.ogg as the name
-            client.AddClientAudioSamples(audio);
+            audioRecordingFrequencyGroup.AddClientAudio(audio);
         }
 
         //TODO use this to remove clients, clear the recording and close down
         public void RemoveClientBuffer(SRClientBase srClient)
         {
-            //TODO test this
-            ClientRecordedAudioProvider clientAudio = null;
-            _clientsBufferedAudio.TryRemove(srClient.ClientGuid, out clientAudio);
-
-
-            if (clientAudio == null)
-            {
-                return;
-            }
+            // TODO 
+            // find correct writer - remove from the list
+            
+            // //TODO test this
+            // ClientRecordedAudioProvider clientAudio = null;
+            // _clientsBufferedAudio.TryRemove(srClient.ClientGuid, out clientAudio);
+            //
+            // if (clientAudio == null)
+            // {
+            //     return;
+            // }
         }
     }
 }

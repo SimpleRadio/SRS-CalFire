@@ -5,6 +5,7 @@ using System.Linq;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings;
+using NLog;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
 {
@@ -179,88 +180,133 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
 
         private void LoadRadioStartAndEndEffects()
         {
-            var audioEffectsList = Directory.EnumerateFiles(sourceFolder);
-
-            //might need to split the path - we'll see
-            foreach (var effectPath in audioEffectsList)
+            if (Directory.Exists(sourceFolder))
             {
-                var effect =  effectPath.Split(Path.DirectorySeparatorChar).Last();
+                var audioEffectsList = Directory.EnumerateFiles(sourceFolder);
 
-                if (effect.ToLowerInvariant().StartsWith(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START
-                    .ToString().ToLowerInvariant()))
+                //might need to split the path - we'll see
+                foreach (var effectPath in audioEffectsList)
                 {
-                    var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START, effect, effectPath);
+                    var effect = effectPath.Split(Path.DirectorySeparatorChar).Last();
 
-                    if (audioEffect.AudioEffectFloat != null)
+                    if (effect.ToLowerInvariant().StartsWith(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START
+                            .ToString().ToLowerInvariant()))
                     {
-                        RadioTransmissionStart.Add(audioEffect);
-                    }
+                        var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START,
+                            effect, effectPath);
 
+                        if (audioEffect.AudioEffectFloat != null)
+                        {
+                            RadioTransmissionStart.Add(audioEffect);
+                        }
+
+                    }
+                    else if (effect.ToLowerInvariant().StartsWith(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END
+                                 .ToString().ToLowerInvariant()))
+                    {
+                        var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END,
+                            effect, effectPath);
+
+                        if (audioEffect.AudioEffectFloat != null)
+                        {
+                            RadioTransmissionEnd.Add(audioEffect);
+                        }
+                    }
                 }
-                else if (effect.ToLowerInvariant().StartsWith(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END
-                    .ToString().ToLowerInvariant()))
+
+                //IF the audio folder is missing - to avoid a crash, init with a blank one
+                if (RadioTransmissionStart.Count == 0)
                 {
-                    var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END, effect,effectPath);
+                    RadioTransmissionStart.Add(
+                        new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START));
+                }
 
-                    if (audioEffect.AudioEffectFloat != null)
-                    {
-                        RadioTransmissionEnd.Add(audioEffect);
-                    }
+                if (RadioTransmissionEnd.Count == 0)
+                {
+                    RadioTransmissionEnd.Add(new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END));
                 }
             }
-
-            //IF the audio folder is missing - to avoid a crash, init with a blank one
-            if (RadioTransmissionStart.Count == 0)
+            else
             {
-                RadioTransmissionStart.Add(new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START));
-            }
-            if (RadioTransmissionEnd.Count == 0)
-            {
-                RadioTransmissionEnd.Add(new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END));
-            }
+                //IF the audio folder is missing - to avoid a crash, init with a blank one
+                if (RadioTransmissionStart.Count == 0)
+                {
+                    RadioTransmissionStart.Add(
+                        new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START));
+                }
 
+                if (RadioTransmissionEnd.Count == 0)
+                {
+                    RadioTransmissionEnd.Add(new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END));
+                }
+            }
         }
 
         private void LoadIntercomStartAndEndEffects()
         {
-            var audioEffectsList = Directory.EnumerateFiles(sourceFolder);
-
-            //might need to split the path - we'll see
-            foreach (var effectPath in audioEffectsList)
+            if (Directory.Exists(sourceFolder))
             {
-                var effect = effectPath.Split(Path.DirectorySeparatorChar).Last();
 
-                if (effect.ToLowerInvariant().StartsWith(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_START
-                    .ToString().ToLowerInvariant()))
+
+                var audioEffectsList = Directory.EnumerateFiles(sourceFolder);
+
+                //might need to split the path - we'll see
+                foreach (var effectPath in audioEffectsList)
                 {
-                    var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_START, effect, effectPath);
+                    var effect = effectPath.Split(Path.DirectorySeparatorChar).Last();
 
-                    if (audioEffect.AudioEffectFloat != null)
+                    if (effect.ToLowerInvariant().StartsWith(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_START
+                            .ToString().ToLowerInvariant()))
                     {
-                        IntercomTransmissionStart.Add(audioEffect);
-                    }
+                        var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_START,
+                            effect, effectPath);
 
+                        if (audioEffect.AudioEffectFloat != null)
+                        {
+                            IntercomTransmissionStart.Add(audioEffect);
+                        }
+
+                    }
+                    else if (effect.ToLowerInvariant().StartsWith(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_END
+                                 .ToString().ToLowerInvariant()))
+                    {
+                        var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_END,
+                            effect, effectPath);
+
+                        if (audioEffect.AudioEffectFloat != null)
+                        {
+                            IntercomTransmissionEnd.Add(audioEffect);
+                        }
+                    }
                 }
-                else if (effect.ToLowerInvariant().StartsWith(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_END
-                    .ToString().ToLowerInvariant()))
-                {
-                    var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_END, effect, effectPath);
 
-                    if (audioEffect.AudioEffectFloat != null)
-                    {
-                        IntercomTransmissionEnd.Add(audioEffect);
-                    }
+                //IF the audio folder is missing - to avoid a crash, init with a blank one
+                if (IntercomTransmissionStart.Count == 0)
+                {
+                    IntercomTransmissionStart.Add(
+                        new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_START));
+                }
+
+                if (IntercomTransmissionEnd.Count == 0)
+                {
+                    IntercomTransmissionEnd.Add(
+                        new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_END));
                 }
             }
+            else
+            {
+                //IF the audio folder is missing - to avoid a crash, init with a blank one
+                if (IntercomTransmissionStart.Count == 0)
+                {
+                    IntercomTransmissionStart.Add(
+                        new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_START));
+                }
 
-            //IF the audio folder is missing - to avoid a crash, init with a blank one
-            if (IntercomTransmissionStart.Count == 0)
-            {
-                IntercomTransmissionStart.Add(new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_START));
-            }
-            if (IntercomTransmissionEnd.Count == 0)
-            {
-                IntercomTransmissionEnd.Add(new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_END));
+                if (IntercomTransmissionEnd.Count == 0)
+                {
+                    IntercomTransmissionEnd.Add(
+                        new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_END));
+                }
             }
 
         }

@@ -57,5 +57,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models
     {
         public string TestFrequencies { get; set; }
         public string GlobalLobbyFrequencies { get; set; }
+        public string ServerRecordingFrequencies { get; set; }
     }
 }

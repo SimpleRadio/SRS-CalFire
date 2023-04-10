@@ -1,23 +1,29 @@
 using System;
 using System.Collections.Generic;
+using Ciribob.FS3D.SimpleRadio.Standalone.Audio;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Utility;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Network.Client;
+using Ciribob.SRS.Common.Network.Models;
 using NAudio.Utils;
 using NAudio.Wave;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Audio;
 
 //mixes down a single clients audio to a single stream for output
-public class ClientRecordedAudioProvider : ClientAudioProvider, ISampleProvider
+public class ClientRecordedAudioProvider : AudioProvider, ISampleProvider
 {
     private ClientEffectsPipeline pipeline = new();
     private List<DeJitteredTransmission> _mainAudio = new();
     private float[] mixBuffer;
 
-    public ClientRecordedAudioProvider(WaveFormat waveFormat, string guid) : base(false)
+    private JitterBufferProviderInterface _jitterBuffer;
+
+    public ClientRecordedAudioProvider(WaveFormat waveFormat) : base(false)
     {
+        _jitterBuffer = new JitterBufferProviderInterface(new WaveFormat(waveFormat.SampleRate, waveFormat.Channels));
+        
         if (waveFormat.Encoding != WaveFormatEncoding.IeeeFloat)
         {
             throw new ArgumentException("Mixer wave format must be IEEE float");
@@ -30,28 +36,18 @@ public class ClientRecordedAudioProvider : ClientAudioProvider, ISampleProvider
     {
         _mainAudio.Clear();
         int primarySamples = 0;
-
-        mixBuffer = BufferHelpers.Ensure(mixBuffer, count);
-        ClearArray(mixBuffer);
-
-        lock (JitterBufferProviderInterface)
-        {
-            
-            int index = JitterBufferProviderInterface.Length - 1;
-            while (index >= 0)
-            {
-                var source = JitterBufferProviderInterface[index];
-                
-                var transmission = source.Read(count);
-
-                if (transmission.PCMAudioLength > 0)
-                {
-                    _mainAudio.Add(transmission);
-                }
-                index--;
-            }
-        }
         
+        var transmission = _jitterBuffer.Read(count);
+
+        if (transmission.PCMAudioLength > 0)
+        {
+            //small optimisation - only do this if we need too
+            mixBuffer = BufferHelpers.Ensure(mixBuffer, count);
+            ClearArray(mixBuffer);
+            
+            _mainAudio.Add(transmission);
+        }
+
         //merge all the audio for the client
         if (_mainAudio.Count > 0)
         {
@@ -101,5 +97,58 @@ public class ClientRecordedAudioProvider : ClientAudioProvider, ISampleProvider
         }
     
         return samplesCount;
+    }
+
+    public override JitterBufferAudio AddClientAudioSamples(ClientAudio audio)
+    {
+        bool newTransmission = LikelyNewTransmission();
+
+        //TODO reduce the size of this buffer
+        var decoded = _decoder.DecodeFloat(audio.EncodedAudio,
+            audio.EncodedAudio.Length, out var decodedLength, newTransmission);
+
+        if (decodedLength <= 0)
+        {
+            Logger.Info("Failed to decode audio from Packet for client");
+            return null;
+        }
+
+        // for some reason if this is removed then it lags?!
+        //guess it makes a giant buffer and only uses a little?
+        //Answer: makes a buffer of 4000 bytes - so throw away most of it
+
+        //TODO reuse this buffer
+        var tmp = new float[decodedLength/4];
+        Buffer.BlockCopy(decoded, 0, tmp, 0, decodedLength);
+
+        audio.PcmAudioFloat = tmp;
+     
+        if (newTransmission)
+        {
+            // System.Diagnostics.Debug.WriteLine(audio.ClientGuid+"ADDED");
+            //append ms of silence - this functions as our jitter buffer??
+            var silencePad = (Constants.OUTPUT_SAMPLE_RATE / 1000) * SILENCE_PAD;
+            var newAudio = new float[audio.PcmAudioFloat.Length + silencePad];
+            Buffer.BlockCopy(audio.PcmAudioFloat, 0, newAudio, silencePad, audio.PcmAudioFloat.Length);
+            audio.PcmAudioFloat = newAudio;
+        }
+
+        LastUpdate = DateTime.Now.Ticks;
+        
+        _jitterBuffer.AddSamples(new JitterBufferAudio
+        {
+            Audio = audio.PcmAudioFloat,
+            PacketNumber = audio.PacketNumber,
+            Modulation = (Modulation) audio.Modulation,
+            ReceivedRadio = audio.ReceivedRadio,
+            Volume = audio.Volume,
+            IsSecondary = audio.IsSecondary,
+            Frequency = audio.Frequency,
+            Guid = audio.ClientGuid,
+            OriginalClientGuid = audio.OriginalClientGuid,
+            UnitType = audio.UnitType
+        });
+
+        return null;
     }
 }

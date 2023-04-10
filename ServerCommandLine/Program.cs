@@ -19,6 +19,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
         {
             int port = 5002;
             bool recording = false;
+            string frequencies = "";
             foreach (var arg in args)
             {
                 if (arg.Trim().StartsWith("--port="))
@@ -34,6 +35,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
                     
                     recording = bool.Parse(temp.Trim());
                 }
+                
+                if (arg.Trim().StartsWith("--recordingFreqs="))
+                {
+                    frequencies = arg.Trim().Replace("--recordingFreqs=", "");
+                }
             }
 
             Console.WriteLine($"Using Port {port} and recording {recording}");
@@ -42,7 +48,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
             Program p = new Program();
             new Thread(() =>
             {
-                p.StartServer(port, recording);
+                p.StartServer(port, recording, frequencies);
             }).Start();
 
 
@@ -84,9 +90,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
         }
 
 
-        public void StartServer(int port, bool recording)
+        public void StartServer(int port, bool recording, string frequencies)
         {
-            _serverState = new ServerState(_eventAggregator, port,true, recording);
+            _serverState = new ServerState(_eventAggregator, port,true, recording, frequencies);
         }
 
         private void SetupLogging()

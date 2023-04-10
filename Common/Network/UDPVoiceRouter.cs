@@ -49,6 +49,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
         private volatile bool _stop;
 
         private List<double> _testFrequencies = new();
+        private List<double> _recordingFrequencies = new();
 
         public UDPVoiceRouter(ConcurrentDictionary<string, SRClientBase> clientsList, IEventAggregator eventAggregator)
         {
@@ -58,11 +59,18 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
 
             var freqString = _serverSettings.GetGeneralSetting(ServerSettingsKeys.TEST_FREQUENCIES).StringValue;
             UpdateTestFrequencies(freqString);
+            
+            var recordString = _serverSettings.GetGeneralSetting(ServerSettingsKeys.SERVER_RECORDING_FREQUENCIES).StringValue;
+            UpdateRecordingFrequencies(recordString);
+            
+
         }
 
         public async Task HandleAsync(ServerFrequenciesChanged message, CancellationToken cancellationToken)
         {
             if (message.TestFrequencies != null) UpdateTestFrequencies(message.TestFrequencies);
+            
+            if (message.ServerRecordingFrequencies != null) UpdateRecordingFrequencies(message.ServerRecordingFrequencies);
         }
 
 
@@ -80,6 +88,22 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                 }
 
             _testFrequencies = newList;
+        }
+        
+        private void UpdateRecordingFrequencies(string freqString)
+        {
+            var freqStringList = freqString.Split(',');
+
+            var newList = new List<double>();
+            foreach (var freq in freqStringList)
+                if (double.TryParse(freq.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out var freqDouble))
+                {
+                    freqDouble *= 1e+6; //convert to Hz from MHz
+                    newList.Add(freqDouble);
+                    Logger.Info("Adding Recording Frequency: " + freqDouble);
+                }
+
+            _recordingFrequencies = newList;
         }
 
 
@@ -174,7 +198,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
             
             //TODO temp
             _serverSettings.SetServerSetting(ServerSettingsKeys.SERVER_RECORDING,true);
-            recordingManager.Start();
+            recordingManager.Start(_recordingFrequencies);
 
             while (!_stop)
                 try
@@ -216,23 +240,31 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                                             //Add to the processing queue
                                             _outGoing.Add(outgoingVoice);
                                         }
-                                     
-                                        recordingManager.AddClientAudio(new ClientAudio()
+                                        //add to the recording queue if its not intercom &
+                                        for (int i = 0; i < udpVoicePacket.Modulations.Length; i++)
                                         {
-                                            Modulation = udpVoicePacket.Modulations[0],
-                                            Frequency = udpVoicePacket.Frequencies[0],
-                                            ClientGuid = udpVoicePacket.Guid,
-                                            UnitId = udpVoicePacket.UnitId,
-                                            Volume = 1,
-                                            EncodedAudio = udpVoicePacket.AudioPart1Bytes,
-                                            IsSecondary = false,
-                                            PacketNumber = udpVoicePacket.PacketNumber,
-                                            //Handle it as either received on INTERCOM or not
-                                            ReceivedRadio = udpVoicePacket.Modulations[0] == 2? 0:1,
-                                            UnitType = client.UnitState.UnitType,
-                                            OriginalClientGuid = udpVoicePacket.OriginalClientGuid,
-                                            ReceiveTime = DateTime.Now.Ticks
-                                        });
+                                            if (ShouldRecord((Modulation)udpVoicePacket.Modulations[i], udpVoicePacket.Frequencies[i] ))
+                                            {
+                                                recordingManager.AddClientAudio(new ClientAudio()
+                                                {
+                                                    Modulation = udpVoicePacket.Modulations[i],
+                                                    Frequency = udpVoicePacket.Frequencies[i],
+                                                    ClientGuid = udpVoicePacket.Guid,
+                                                    UnitId = udpVoicePacket.UnitId,
+                                                    Volume = 1,
+                                                    EncodedAudio = udpVoicePacket.AudioPart1Bytes,
+                                                    IsSecondary = false,
+                                                    PacketNumber = udpVoicePacket.PacketNumber,
+                                                    //Handle it as either received on INTERCOM or not
+                                                    ReceivedRadio = 1,
+                                                    UnitType = client.UnitState.UnitType,
+                                                    OriginalClientGuid = udpVoicePacket.OriginalClientGuid,
+                                                    ReceiveTime = DateTime.Now.Ticks
+                                                });
+                                                break;
+                                            }
+                                           
+                                        }
 
                                         //mark as transmitting for the UI
                                         var mainFrequency = udpVoicePacket.Frequencies.FirstOrDefault();
@@ -274,6 +306,21 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                 }
             
             recordingManager.Stop();
+        }
+
+        private bool ShouldRecord(Modulation modulation, double frequency)
+        {
+            if (Modulation.INTERCOM != modulation)
+            {
+                foreach (var recordingFrequency in _recordingFrequencies)
+                {
+                    if (RadioBase.FreqCloseEnough(frequency, recordingFrequency))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         private
