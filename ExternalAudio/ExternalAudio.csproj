@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <OutputType>Exe</OutputType>
     <RootNamespace>Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient</RootNamespace>
     <AssemblyName>FS3D-SRS-ExternalAudio</AssemblyName>
@@ -12,6 +12,8 @@
     <PublishSingleFile>false</PublishSingleFile>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <LangVersion>11</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client.Program</StartupObject>

@@ -4,7 +4,9 @@
     <RootNamespace>Ciribob.FS3D.SimpleRadio.Standalone.Tests</RootNamespace>
     <AssemblyName>FSD-Tests</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
+    <LangVersion>11</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>

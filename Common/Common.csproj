@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-	<TargetFramework>net6.0</TargetFramework>
+	<TargetFramework>net7.0</TargetFramework>
     <OutputType>Library</OutputType>
     <RootNamespace>Ciribob.FS3D.SimpleRadio.Standalone.Common</RootNamespace>
     <AssemblyName>SRS-Common</AssemblyName>
@@ -9,6 +9,8 @@
     <UseWPF>false</UseWPF>
     <ImportWindowsDesktopTargets>false</ImportWindowsDesktopTargets>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>11</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
