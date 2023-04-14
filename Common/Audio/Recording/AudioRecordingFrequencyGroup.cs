@@ -72,13 +72,9 @@ public class AudioRecordingFrequencyGroup
 
         }
             
-        //TODO process the audio samples
+        // process the audio samples
         // We have them in a list - and each client will return the requested number of floats - and generate dead air
         // as appropriate
-        // TODO at recording start - generate a folder (dont generate until the first audio comes in)
-        // Folder - Date-time-random string (to ensure uniqueness)
-        // in folder generate a recording for each client GUID
-        // each file will have date-time-guid.ogg as the name
         client.AddClientAudioSamples(audio);
     }
 

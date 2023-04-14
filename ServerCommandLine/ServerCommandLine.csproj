@@ -19,6 +19,7 @@
 		<ProjectReference Include="..\Common\Common.csproj" />
 	</ItemGroup>
 	<ItemGroup>
+		<PackageReference Include="CommandLineParser" Version="2.9.1" />
 		<PackageReference Include="Sentry" Version="3.10.0" />
 		<PackageReference Include="Sentry.PlatformAbstractions" Version="1.1.1" />
 		<PackageReference Include="Sentry.Protocol" Version="2.1.8" />

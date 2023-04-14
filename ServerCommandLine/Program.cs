@@ -1,7 +1,11 @@
 ﻿using System.Runtime;
 using System.Threading;
 using Caliburn.Micro;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network;
+using CommandLine;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -15,41 +19,22 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
     {
         private ServerState _serverState;
         private EventAggregator _eventAggregator = new EventAggregator();
+
         static void Main(string[] args)
         {
-            int port = 5002;
-            bool recording = false;
-            string frequencies = "";
-            foreach (var arg in args)
-            {
-                if (arg.Trim().StartsWith("--port="))
-                {
-                    string temp = arg.Trim().Replace("--port=", "");
-                    
-                    port = int.Parse(temp.Trim());
-                }
-                
-                if (arg.Trim().StartsWith("--recording="))
-                {
-                    string temp = arg.Trim().Replace("--recording=", "");
-                    
-                    recording = bool.Parse(temp.Trim());
-                }
-                
-                if (arg.Trim().StartsWith("--recordingFreqs="))
-                {
-                    frequencies = arg.Trim().Replace("--recordingFreqs=", "");
-                }
-            }
-
-            Console.WriteLine($"Using Port {port} and recording {recording}");
-            
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+
+            Parser.Default.ParseArguments<Options>(args)
+                .WithParsed(ProcessArgs);
+        }
+
+        private static void ProcessArgs(Options options)
+        {
+            Console.WriteLine($"Settings: \n{options}");
+
+
             Program p = new Program();
-            new Thread(() =>
-            {
-                p.StartServer(port, recording, frequencies);
-            }).Start();
+            new Thread(() => { p.StartServer(options); }).Start();
 
 
             var waitForProcessShutdownStart = new ManualResetEventSlim();
@@ -75,7 +60,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
             Console.WriteLine("Shutdown complete");
             // Now we're done with main, tell the shutdown handler
             waitForMainExit.Set();
-
         }
 
         private void StopServer()
@@ -90,9 +74,44 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
         }
 
 
-        public void StartServer(int port, bool recording, string frequencies)
+        public void StartServer(Options options)
         {
-            _serverState = new ServerState(_eventAggregator, port,true, recording, frequencies);
+            Settings.ServerSettingsStore.Instance.SetServerSetting(ServerSettingsKeys.SERVER_PORT, options.Port);
+
+            if (!string.IsNullOrEmpty(options.RecordingFrequencies))
+            {
+                Settings.ServerSettingsStore.Instance.SetServerSetting(ServerSettingsKeys.SERVER_RECORDING, true);
+                Settings.ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.SERVER_RECORDING_FREQUENCIES,
+                    options.RecordingFrequencies);
+            }
+            else
+            {
+                Settings.ServerSettingsStore.Instance.SetServerSetting(ServerSettingsKeys.SERVER_RECORDING, false);
+            }
+
+            var profileSettings = GlobalSettingsStore.Instance.ProfileSettingsStore;
+
+            profileSettings.SetClientSettingBool(ProfileSettingsKeys.NATOTone, options.FMRadioTone);
+            profileSettings.SetClientSettingBool(ProfileSettingsKeys.RadioEffects, options.RadioEffect);
+            profileSettings.SetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping, options.RadioEffect);
+            profileSettings.SetClientSettingFloat(ProfileSettingsKeys.NATOToneVolume, options.FMRadioToneVolume);
+
+            profileSettings.SetClientSettingFloat(ProfileSettingsKeys.FMNoiseVolume, options.FMRadioEffectVolume);
+            profileSettings.SetClientSettingFloat(ProfileSettingsKeys.HFNoiseVolume, options.HFRadioEffectVolume);
+            profileSettings.SetClientSettingFloat(ProfileSettingsKeys.UHFNoiseVolume, options.UHFRadioEffectVolume);
+            profileSettings.SetClientSettingFloat(ProfileSettingsKeys.VHFNoiseVolume, options.VHFRadioEffectVolume);
+
+            profileSettings.SetClientSettingBool(ProfileSettingsKeys.RadioEffects, options.RadioEffect);
+
+            profileSettings.SetClientSettingBool(ProfileSettingsKeys.RadioBackgroundNoiseEffect, options.RadioBackgroundEffects);
+
+            //TODO have a parameter for this
+            //  serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE);
+
+            profileSettings.SetClientSettingFloat(ProfileSettingsKeys.AircraftNoiseVolume, options.AircraftRadioEffectVolume);
+            profileSettings.SetClientSettingFloat(ProfileSettingsKeys.GroundNoiseVolume, options.GroundRadioEffectVolume);
+
+            _serverState = new ServerState(_eventAggregator);
         }
 
         private void SetupLogging()
@@ -119,6 +138,115 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
             config.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, wrapper));
 
             LogManager.Configuration = config;
+        }
+    }
+
+    public class Options
+    {
+        [Option('p', "port",
+            HelpText = "Port - 5002 is the default",
+            Default = 5002,
+            Required = false)]
+        public int Port { get; set; }
+
+
+        [Option('f', "recordingFreqs",
+            HelpText = "Frequency in MHz comma separated 121.5,122.3,152 - if set, recording is enabled ",
+            Required = false)]
+        public string RecordingFrequencies { get; set; }
+
+        [Option("audioClippingEffect",
+            HelpText =
+                "Audio Clipping Effect",
+            Default = true,
+            Required = false)]
+        public bool RadioClipping { get; set; }
+
+        [Option("radioEffect",
+            HelpText =
+                "Radio Effect - if not enabled other effects are ignored",
+            Default = true,
+            Required = false)]
+        public bool RadioEffect { get; set; }
+
+        [Option("fmRadioTone",
+            HelpText =
+                "FM Radio Tone",
+            Default = true,
+            Required = false)]
+        public bool FMRadioTone { get; set; }
+
+        [Option("fmRadioToneVolume",
+            HelpText =
+                "FM Radio Tone Volume",
+            Default = 1.2f,
+            Required = false)]
+        public float FMRadioToneVolume { get; set; }
+
+        [Option("radioBackgroundEffects",
+            HelpText =
+                "Background radio effects - UHF/VHF/HF and background Aircraft or ground noise",
+            Default = true,
+            Required = false)]
+        public bool RadioBackgroundEffects { get; set; }
+
+        [Option("uhfRadioEffectVolume",
+            HelpText =
+                "UHF Radio Effect Volume",
+            Default = 0.15f,
+            Required = false)]
+        public float UHFRadioEffectVolume { get; set; }
+
+        [Option("vhfRadioEffectVolume",
+            HelpText =
+                "VHF Radio Effect Volume",
+            Default = 0.15f,
+            Required = false)]
+        public float VHFRadioEffectVolume { get; set; }
+
+        [Option("hfRadioEffectVolume",
+            HelpText =
+                "HF Radio Effect Volume",
+            Default = 0.15f,
+            Required = false)]
+        public float HFRadioEffectVolume { get; set; }
+
+        [Option("fmRadioEffectVolume",
+            HelpText =
+                "FM Radio Effect Volume",
+            Default = 0.4f,
+            Required = false)]
+        public float FMRadioEffectVolume { get; set; }
+
+        [Option("aircraftRadioEffectVolume",
+            HelpText =
+                "Aircraft Radio Effect Volume",
+            Default = 0.5f,
+            Required = false)]
+        public float AircraftRadioEffectVolume { get; set; }
+
+        [Option("groundRadioEffectVolume",
+            HelpText =
+                "Ground Radio Effect Volume",
+            Default = 0.5f,
+            Required = false)]
+        public float GroundRadioEffectVolume { get; set; }
+
+        public override string ToString()
+        {
+            return
+                $"{nameof(RecordingFrequencies)}: {RecordingFrequencies}, \n" +
+                $"{nameof(RadioClipping)}: {RadioClipping}, \n" +
+                $"{nameof(RadioEffect)}: {RadioEffect}, \n" +
+                $"{nameof(FMRadioTone)}: {FMRadioTone}, \n" +
+                $"{nameof(FMRadioToneVolume)}: {FMRadioToneVolume}, \n" +
+                $"{nameof(RadioBackgroundEffects)}: {RadioBackgroundEffects}, \n" +
+                $"{nameof(UHFRadioEffectVolume)}: {UHFRadioEffectVolume}, \n" +
+                $"{nameof(VHFRadioEffectVolume)}: {VHFRadioEffectVolume}, \n" +
+                $"{nameof(HFRadioEffectVolume)}: {HFRadioEffectVolume}, \n" +
+                $"{nameof(FMRadioEffectVolume)}: {FMRadioEffectVolume}, \n" +
+                $"{nameof(AircraftRadioEffectVolume)}: {AircraftRadioEffectVolume}, \n" +
+                $"{nameof(GroundRadioEffectVolume)}: {GroundRadioEffectVolume}";
         }
     }
 }

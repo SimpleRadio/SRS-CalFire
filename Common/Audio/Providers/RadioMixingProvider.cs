@@ -254,21 +254,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
             {
                 return;
             }
-
-            bool midsTone = profileSettings.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
+            
 
             if (radioId == 0)
             {
                 var effect = _cachedAudioEffectsProvider.SelectedIntercomTransmissionEndEffect;
-                if (effect.Loaded)
-                {
-                    effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
-                }
-            }
-            else if (modulation == Modulation.MIDS && midsTone)
-            {
-                //end receive tone for MIDS
-                var effect = _cachedAudioEffectsProvider.MIDSEndTone;
                 if (effect.Loaded)
                 {
                     effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
@@ -290,15 +280,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
             {
                 return;
             }
-
-            bool midsTone = profileSettings.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
-
-            if (modulation == Modulation.MIDS && midsTone)
-            {
-                //no tone for MIDS
-                return;
-            }
-
+            
 
             if (radioId == 0)
             {
@@ -327,41 +309,12 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
             {
                 return;
             }
+            
+            var effect = _cachedAudioEffectsProvider.SelectedRadioTransmissionStartEffect;
 
-            bool midsTone = profileSettings.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
-
-            if (radioId == 0)
+            if (effect.Loaded)
             {
-                var effect = _cachedAudioEffectsProvider.SelectedIntercomTransmissionStartEffect;
-                if (effect.Loaded)
-                {
-                    effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
-                }
-            }
-            else if (encrypted && (profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEncryptionEffects)))
-            {
-                var effect = _cachedAudioEffectsProvider.KY58EncryptionTransmitTone;
-                if (effect.Loaded)
-                {
-                    effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
-                }
-            }
-            else if (modulation == Modulation.MIDS && midsTone)
-            {
-                var effect = _cachedAudioEffectsProvider.MIDSTransmitTone;
-                if (effect.Loaded)
-                {
-                    effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
-                }
-            }
-            else
-            {
-                var effect = _cachedAudioEffectsProvider.SelectedRadioTransmissionStartEffect;
-
-                if (effect.Loaded)
-                {
-                    effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
-                }
+                effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
             }
         }
 
@@ -374,20 +327,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
             {
                 return;
             }
-
-            bool midsTone = profileSettings.GetClientSettingBool(ProfileSettingsKeys.MIDSRadioEffect);
+            
 
             if (radioId == 0)
             {
                 var effect = _cachedAudioEffectsProvider.SelectedIntercomTransmissionEndEffect;
-                if (effect.Loaded)
-                {
-                    effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);
-                }
-            }
-            else if (modulation == Modulation.MIDS && midsTone)
-            {
-                var effect = _cachedAudioEffectsProvider.MIDSEndTone;
                 if (effect.Loaded)
                 {
                     effectsBuffer.Write(effect.AudioEffectFloat, 0, effect.AudioEffectFloat.Length);

@@ -45,12 +45,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Models
         {
             RADIO_TRANS_START = 0,
             RADIO_TRANS_END = 1,
-            KY_58_TX = 2,
-            KY_58_RX = 3,
             NATO_TONE=4,
-            MIDS_TX = 5,
-            MIDS_TX_END = 6,
-            HAVEQUICK_TONE = 7,
             VHF_NOISE = 8,
             HF_NOISE = 9,
             UHF_NOISE = 10,
@@ -58,8 +53,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Models
             INTERCOM_TRANS_START = 12,
             INTERCOM_TRANS_END = 13,
             AM_COLLISION = 14,
-            AIRCRAFT_NOISE = 12,
-            GROUND_NOISE = 13
+            AIRCRAFT_NOISE = 15,
+            GROUND_NOISE = 16
         }
 
         public CachedAudioEffect(AudioEffectTypes audioEffect): this(audioEffect, audioEffect.ToString() + ".wav", AppDomain.CurrentDomain.BaseDirectory + "\\AudioEffects\\"+ audioEffect.ToString() + ".wav") { }

@@ -111,14 +111,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
                 return IntercomTransmissionEnd[0];
             }
         }
-
-        public CachedAudioEffect KY58EncryptionTransmitTone { get; }
-        public CachedAudioEffect KY58EncryptionEndTone { get; }
+        
         public CachedAudioEffect NATOTone { get; }
-        public CachedAudioEffect MIDSTransmitTone { get; }
-        public CachedAudioEffect MIDSEndTone { get; }
-
-        public CachedAudioEffect HAVEQUICKTone { get; }
+        
 
         public CachedAudioEffect FMNoise { get; }
         public CachedAudioEffect UHFNoise { get; }
@@ -146,16 +141,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
 
             LoadRadioStartAndEndEffects();
             LoadIntercomStartAndEndEffects();
-
-            KY58EncryptionTransmitTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.KY_58_TX);
-            KY58EncryptionEndTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.KY_58_RX);
             
-            NATOTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.NATO_TONE);
-            
-            MIDSTransmitTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.MIDS_TX);
-            MIDSEndTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.MIDS_TX_END);
-
-            HAVEQUICKTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.HAVEQUICK_TONE);
+            NATOTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.NATO_TONE); ;
 
             FMNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.FM_NOISE);
             VHFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.VHF_NOISE);

@@ -23,7 +23,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting
         public static readonly Dictionary<string, string> Defaults = new Dictionary<string, string>()
         {
             { ServerSettingsKeys.DISTANCE_ENABLED.ToString(), "false" },
-            { ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE.ToString(), "true" },
+            { ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE.ToString(), "false" },
             { ServerSettingsKeys.IRL_RADIO_STATIC.ToString(), "true" },
             { ServerSettingsKeys.IRL_RADIO_TX.ToString(), "true" },
             { ServerSettingsKeys.LOS_ENABLED.ToString(), "false" },

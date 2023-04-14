@@ -33,10 +33,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
         private readonly CachedAudioEffectProvider effectProvider = CachedAudioEffectProvider.Instance;
 
         private bool natoToneEnabled;
-        private bool hqToneEnabled;
         private bool radioEffectsEnabled;
         private bool clippingEnabled;
-        private float hqToneVolume;
         private float natoToneVolume;
 
         private float fmVol;
@@ -95,10 +93,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
                 lastRefresh = now;
 
                 natoToneEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.NATOTone);
-                hqToneEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.HAVEQUICKTone);
                 radioEffectsEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
                 clippingEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping);
-                hqToneVolume = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.HQToneVolume);
                 natoToneVolume = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.NATOToneVolume);
                 amCollisionVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.AMCollisionVolume);
 
@@ -135,64 +131,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
 
                 clientTransmissionLength = Math.Max(clientTransmissionLength, transmission.PCMAudioLength);
             }
-
-            bool process = true;
-
-            // take info account server setting AND volume of this radio AND if its AM or FM
-            // FOR HAVEQUICK - only if its MORE THAN TWO
-            if (lastTransmission.ReceivedRadio != 0
-                && (lastTransmission.Modulation == Modulation.AM
-                    || lastTransmission.Modulation == Modulation.FM
-                    || lastTransmission.Modulation == Modulation.HAVEQUICK)
-                && irlRadioRXInterference)
-            {
-                if (transmissions.Count > 1)
-                {
-                    //All AM is wrecked if more than one transmission
-                    //For HQ - only if more than TWO transmissions
-                    if (lastTransmission.Modulation == Modulation.AM && amCollisionEffect.Loaded
-                    || lastTransmission.Modulation == Modulation.HAVEQUICK && transmissions.Count > 2)
-                    {
-                        //replace the buffer with our own
-                        int outIndex = 0;
-                        while (outIndex < clientTransmissionLength)
-                        {
-                            var amByte = this.amCollisionEffect.AudioEffectFloat[amEffectPosition++];
-
-                            tempBuffer[outIndex++] = (amByte *amCollisionVol) * lastTransmission.Volume;
-
-                            if (amEffectPosition == amCollisionEffect.AudioEffectFloat.Length)
-                            {
-                                amEffectPosition = 0;
-                            }
-                        }
-
-                        process = false;
-                    }
-                    else if (lastTransmission.Modulation == Modulation.FM)
-                    {
-                        //FM picketing / picket fencing - pick one transmission at random
-                        //TODO improve this to pick the stronger frequency?
-
-                        int index = _random.Next(transmissions.Count);
-                        var transmission = transmissions[index];
-
-                        for (int i = 0; i < transmission.PCMAudioLength; i++)
-                        {
-                            tempBuffer[i] = transmission.PCMMonoAudio[i];
-                        }
-
-                        clientTransmissionLength = transmission.PCMMonoAudio.Length;
-                    }
-
-                }
-            }
-
+            
             //only process if AM effect doesnt apply
-            if (process)
-                tempBuffer = ProcessClientAudioSamples(tempBuffer, clientTransmissionLength, 0, lastTransmission);
-
-
+            tempBuffer = ProcessClientAudioSamples(tempBuffer, clientTransmissionLength, 0, lastTransmission);
+            
             return tempBuffer;
         }
 
@@ -333,31 +275,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
                     if (natoPosition == natoTone.Length)
                     {
                         natoPosition = 0;
-                    }
-                }
-
-                if (modulation == Modulation.HAVEQUICK
-                     && effectProvider.HAVEQUICKTone.Loaded
-                     && hqToneEnabled)
-                {
-                    var hqTone = effectProvider.HAVEQUICKTone.AudioEffectFloat;
-
-                    audio += ((hqTone[hqTonePosition]) * hqToneVolume);
-                    hqTonePosition++;
-
-                    if (hqTonePosition == hqTone.Length)
-                    {
-                        var reset = _random.NextDouble();
-
-                        if (reset > HQ_RESET_CHANCE)
-                        {
-                            hqTonePosition = 0;
-                        }
-                        else
-                        {
-                            //one back to try again
-                            hqTonePosition += -1;
-                        }
                     }
                 }
 

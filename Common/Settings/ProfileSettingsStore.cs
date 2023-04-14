@@ -29,7 +29,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings
         IntercomChannel,
 
         RadioEffects,
-        RadioEncryptionEffects, //Radio Encryption effects
         RadioEffectsClipping,
         NATOTone,
 
@@ -47,16 +46,13 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings
         AlwaysAllowTransponderOverlay,
         RadioSwitchIsPTTOnlyWhenValid,
 
-        MIDSRadioEffect, //if on and Radio TX effects are on the MIDS tone is used
-
         PTTReleaseDelay,
 
         RadioTransmissionStartSelection,
         RadioTransmissionEndSelection,
-        HAVEQUICKTone,
+        
         RadioBackgroundNoiseEffect,
         NATOToneVolume,
-        HQToneVolume,
         FMNoiseVolume,
         VHFNoiseVolume,
         UHFNoiseVolume,
@@ -79,10 +75,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings
             {
                 { ProfileSettingsKeys.RadioEffects.ToString(), "true" },
                 { ProfileSettingsKeys.RadioEffectsClipping.ToString(), "false" },
-
-                { ProfileSettingsKeys.RadioEncryptionEffects.ToString(), "true" },
+                
                 { ProfileSettingsKeys.NATOTone.ToString(), "false" },
-                { ProfileSettingsKeys.HAVEQUICKTone.ToString(), "true" },
 
                 { ProfileSettingsKeys.RadioRxEffects_Start.ToString(), "true" },
                 { ProfileSettingsKeys.RadioRxEffects_End.ToString(), "true" },
@@ -99,7 +93,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings
 
                 { ProfileSettingsKeys.RadioTxEffects_Start.ToString(), "true" },
                 { ProfileSettingsKeys.RadioTxEffects_End.ToString(), "true" },
-                { ProfileSettingsKeys.MIDSRadioEffect.ToString(), "true" },
 
                 { ProfileSettingsKeys.AutoSelectPresetChannel.ToString(), "true" },
 
@@ -114,7 +107,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings
                 { ProfileSettingsKeys.RadioBackgroundNoiseEffect.ToString(), "true" },
 
                 { ProfileSettingsKeys.NATOToneVolume.ToString(), "1.2" },
-                { ProfileSettingsKeys.HQToneVolume.ToString(), "0.3" },
 
                 { ProfileSettingsKeys.VHFNoiseVolume.ToString(), "0.15" },
                 { ProfileSettingsKeys.HFNoiseVolume.ToString(), "0.15" },
