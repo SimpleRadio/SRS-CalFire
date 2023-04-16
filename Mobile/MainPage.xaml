@@ -21,18 +21,18 @@
                 FontSize="32"
                 HorizontalOptions="Center" />
 
-            <Label
-                Text="Welcome to .NET Multi-platform App UI"
-                SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to dot net Multi platform App U I"
-                FontSize="18"
+            <Button
+                x:Name="Start"
+                Text="Start"
+         
+                Clicked="OnStartClicked"
                 HorizontalOptions="Center" />
 
             <Button
-                x:Name="CounterBtn"
-                Text="Click me"
-                SemanticProperties.Hint="Counts the number of times you click"
-                Clicked="OnCounterClicked"
+                x:Name="Stop"
+                Text="Stop"
+        
+                Clicked="OnStopClicked"
                 HorizontalOptions="Center" />
 
         </VerticalStackLayout>
