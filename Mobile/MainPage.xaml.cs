@@ -1,63 +1,59 @@
-﻿using Ciribob.SRS.Mobile.Client;
-using System.Net;
+﻿using System.Net;
+using Ciribob.SRS.Mobile.Client;
 
-namespace Mobile
+namespace Mobile;
+
+public partial class MainPage : ContentPage
 {
-    public partial class MainPage : ContentPage
+    private SRSAudioManager _srsAudioManager;
+    private int count = 0;
+
+    public MainPage()
     {
-        int count = 0;
-        private SRSAudioManager _srsAudioManager = null;
+        InitializeComponent();
 
-        public async Task<PermissionStatus> CheckAndRequestMicrophonePermission()
-        {
-            PermissionStatus status = await Permissions.CheckStatusAsync<Permissions.Microphone>();
+        var status = CheckAndRequestMicrophonePermission();
+    }
 
-            if (status == PermissionStatus.Granted)
-                return status;
+    public async Task<PermissionStatus> CheckAndRequestMicrophonePermission()
+    {
+        var status = await Permissions.CheckStatusAsync<Permissions.Microphone>();
 
-            if (status == PermissionStatus.Denied && DeviceInfo.Platform == DevicePlatform.iOS)
-            {
-                // Prompt the user to turn on in settings
-                // On iOS once a permission has been denied it may not be requested again from the application
-                return status;
-            }
-
-            if (Permissions.ShouldShowRationale<Permissions.Microphone>())
-            {
-                // Prompt the user with additional information as to why the permission is needed
-            }
-
-            status = await Permissions.RequestAsync<Permissions.Microphone>();
-
+        if (status == PermissionStatus.Granted)
             return status;
-        }
 
-        public MainPage()
+        if (status == PermissionStatus.Denied && DeviceInfo.Platform == DevicePlatform.iOS)
+            // Prompt the user to turn on in settings
+            // On iOS once a permission has been denied it may not be requested again from the application
+            return status;
+
+        if (Permissions.ShouldShowRationale<Permissions.Microphone>())
         {
-            InitializeComponent();
-
-            Task<PermissionStatus> status = CheckAndRequestMicrophonePermission();
+            // Prompt the user with additional information as to why the permission is needed
         }
 
-        void OnStopClicked(System.Object sender, System.EventArgs e)
+        status = await Permissions.RequestAsync<Permissions.Microphone>();
+
+        return status;
+    }
+
+    private void OnStopClicked(object sender, EventArgs e)
+    {
+        _srsAudioManager?.StopEncoding();
+    }
+
+    private void OnStartClicked(object sender, EventArgs e)
+    {
+        _srsAudioManager?.StopEncoding();
+
+        if (IPEndPoint.TryParse(Address.Text, out var result))
         {
-            _srsAudioManager?.StopEncoding();
+            _srsAudioManager = new SRSAudioManager();
+            _srsAudioManager.StartPreview(result);
         }
-
-        void OnStartClicked(System.Object sender, System.EventArgs e)
+        else
         {
-            _srsAudioManager?.StopEncoding();
-
-            if (IPEndPoint.TryParse(Address.Text, out IPEndPoint result))
-            {
-                _srsAudioManager = new SRSAudioManager();
-                _srsAudioManager.StartPreview(result);
-            }
-            else
-            {
-                DisplayAlert("Error", "Invalid IP and port", "OK");
-            }
+            DisplayAlert("Error", "Invalid IP and port", "OK");
         }
-
     }
 }

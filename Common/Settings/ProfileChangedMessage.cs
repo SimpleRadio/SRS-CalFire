@@ -1,6 +1,5 @@
-﻿namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings
+﻿namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings;
+
+public class ProfileChangedMessage
 {
-    public class ProfileChangedMessage
-    {
-    }
 }

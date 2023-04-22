@@ -101,7 +101,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                 try
                 {
                     _eventAggregator.PublishOnUIThreadAsync(
-                        new ServerStateMessage(true, new List<SRClientBase>(_clients.Values)));
+                        new ServerStateMessage(true, new List<SRClientBase>(_clients.Values), state.SRSGuid));
+                    
+                    
                 }
                 catch (Exception ex)
                 {

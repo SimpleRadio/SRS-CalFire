@@ -17,8 +17,14 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
 {
     internal class Program
     {
-        private ServerState _serverState;
         private EventAggregator _eventAggregator = new EventAggregator();
+        private ServerState _serverState;
+
+        public Program()
+        {
+            SentrySdk.Init("https://ab4791abe55a4ae384a5a802c3060bc4@o414743.ingest.sentry.io/6011651");
+            SetupLogging();
+        }
 
         static void Main(string[] args)
         {
@@ -31,12 +37,10 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
         private static void ProcessArgs(Options options)
         {
             Console.WriteLine($"Settings: \n{options}");
-
-
+            
             Program p = new Program();
             new Thread(() => { p.StartServer(options); }).Start();
-
-
+            
             var waitForProcessShutdownStart = new ManualResetEventSlim();
             var waitForMainExit = new ManualResetEventSlim();
 
@@ -65,12 +69,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
         private void StopServer()
         {
             _serverState.StopServer();
-        }
-
-        public Program()
-        {
-            SentrySdk.Init("https://ab4791abe55a4ae384a5a802c3060bc4@o414743.ingest.sentry.io/6011651");
-            SetupLogging();
         }
 
 
@@ -104,9 +102,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
             profileSettings.SetClientSettingBool(ProfileSettingsKeys.RadioEffects, options.RadioEffect);
 
             profileSettings.SetClientSettingBool(ProfileSettingsKeys.RadioBackgroundNoiseEffect, options.RadioBackgroundEffects);
-
-            //TODO have a parameter for this
-            //  serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE);
 
             profileSettings.SetClientSettingFloat(ProfileSettingsKeys.AircraftNoiseVolume, options.AircraftRadioEffectVolume);
             profileSettings.SetClientSettingFloat(ProfileSettingsKeys.GroundNoiseVolume, options.GroundRadioEffectVolume);
@@ -148,7 +143,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
             Default = 5002,
             Required = false)]
         public int Port { get; set; }
-
 
         [Option('f', "recordingFreqs",
             HelpText = "Frequency in MHz comma separated 121.5,122.3,152 - if set, recording is enabled ",
@@ -232,9 +226,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server
             Required = false)]
         public float GroundRadioEffectVolume { get; set; }
 
+        [Option("groundRadioEffectVolume",
+            HelpText =
+                "Session ID",
+            Required = true)]
+        public string SessionId { get; set; }
+
         public override string ToString()
         {
             return
+                $"{nameof(SessionId)}: {SessionId}, \n" +
                 $"{nameof(RecordingFrequencies)}: {RecordingFrequencies}, \n" +
                 $"{nameof(RadioClipping)}: {RadioClipping}, \n" +
                 $"{nameof(RadioEffect)}: {RadioEffect}, \n" +

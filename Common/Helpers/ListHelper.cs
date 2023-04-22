@@ -1,18 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Ciribob.SRS.Common.Helpers
+namespace Ciribob.SRS.Common.Helpers;
+
+public static class ListHelper
 {
-    public static class ListHelper
+    //Too lazy... Thanks SO! http://stackoverflow.com/questions/11463734/split-a-list-into-smaller-lists-of-n-size
+    public static List<List<T>> ChunkBy<T>(this List<T> source, int chunkSize)
     {
-        //Too lazy... Thanks SO! http://stackoverflow.com/questions/11463734/split-a-list-into-smaller-lists-of-n-size
-        public static List<List<T>> ChunkBy<T>(this List<T> source, int chunkSize)
-        {
-            return source
-                .Select((x, i) => new { Index = i, Value = x })
-                .GroupBy(x => x.Index / chunkSize)
-                .Select(x => x.Select(v => v.Value).ToList())
-                .ToList();
-        }
+        return source
+            .Select((x, i) => new { Index = i, Value = x })
+            .GroupBy(x => x.Index / chunkSize)
+            .Select(x => x.Select(v => v.Value).ToList())
+            .ToList();
     }
 }

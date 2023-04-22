@@ -14,54 +14,50 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
 {
     public class ClientEffectsPipeline
     {
-        private readonly Random _random = new Random();
-
-        private OnlineFilter[] _filters;
+        private static readonly double HQ_RESET_CHANCE = 0.8;
 
         private readonly BiQuadFilter _highPassFilter;
         private readonly BiQuadFilter _lowPassFilter;
-
-        private static readonly double HQ_RESET_CHANCE = 0.8;
-
-        private int hqTonePosition = 0;
-        private int natoPosition = 0;
-        private int fmNoisePosition = 0;
-        private int vhfNoisePosition = 0;
-        private int uhfNoisePosition = 0;
-        private int hfNoisePosition = 0;
+        private readonly Random _random = new Random();
 
         private readonly CachedAudioEffectProvider effectProvider = CachedAudioEffectProvider.Instance;
 
-        private bool natoToneEnabled;
-        private bool radioEffectsEnabled;
-        private bool clippingEnabled;
-        private float natoToneVolume;
-
-        private float fmVol;
-        private float hfVol;
-        private float uhfVol;
-        private float vhfVol;
-        
-        private float groundNoiseVol;
-        private float aircraftNoiseVol;
-
-        private int groundNoisePosition = 0;
-        private int aircraftNoisePosition = 0;
-
-        private long lastRefresh = 0; //last refresh of settings
-
         private readonly Settings.ProfileSettingsStore profileSettings;
 
-        private bool radioEffects;
-        private bool radioBackgroundNoiseEffect;
+        private readonly SyncedServerSettings serverSettings;
+
+        private OnlineFilter[] _filters;
+        private int aircraftNoisePosition = 0;
+        private float aircraftNoiseVol;
 
         private CachedAudioEffect amCollisionEffect;
         private int amEffectPosition = 0;
-        private float amCollisionVol = 1.0f;
+        private bool clippingEnabled;
+        private int fmNoisePosition = 0;
 
-        private bool irlRadioRXInterference = false;
+        private float fmVol;
 
-        private readonly SyncedServerSettings serverSettings;
+        private int groundNoisePosition = 0;
+
+        private float groundNoiseVol;
+        private int hfNoisePosition = 0;
+        private float hfVol;
+
+        private int hqTonePosition = 0;
+
+        private long lastRefresh = 0; //last refresh of settings
+        private int natoPosition = 0;
+
+        private bool natoToneEnabled;
+        private float natoToneVolume;
+        private bool radioBackgroundNoiseEffect;
+
+        private bool radioEffects;
+        private bool radioEffectsEnabled;
+        private int uhfNoisePosition = 0;
+        private float uhfVol;
+        private int vhfNoisePosition = 0;
+        private float vhfVol;
 
 
         public ClientEffectsPipeline()
@@ -96,7 +92,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
                 radioEffectsEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
                 clippingEnabled = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping);
                 natoToneVolume = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.NATOToneVolume);
-                amCollisionVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.AMCollisionVolume);
 
                 fmVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.FMNoiseVolume);
                 hfVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.HFNoiseVolume);
@@ -106,8 +101,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
                 radioEffects = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
 
                 radioBackgroundNoiseEffect = profileSettings.GetClientSettingBool(ProfileSettingsKeys.RadioBackgroundNoiseEffect) ;
-
-                irlRadioRXInterference = serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE);
 
                 aircraftNoiseVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.AircraftNoiseVolume);
                 groundNoiseVol = profileSettings.GetClientSettingFloat(ProfileSettingsKeys.GroundNoiseVolume);

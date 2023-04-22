@@ -1,6 +1,5 @@
-﻿namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Models
+﻿namespace Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Models;
+
+internal class DisconnectedMessage
 {
-    internal class DisconnectedMessage
-    {
-    }
 }

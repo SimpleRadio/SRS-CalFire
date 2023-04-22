@@ -35,47 +35,51 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 {
     public class AudioManager : IHandle<SRClientUpdateMessage>
     {
-        
-        private WebRtcVad _voxDectection;
-      
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly AudioInputSingleton _audioInputSingleton = AudioInputSingleton.Instance;
         private readonly AudioOutputSingleton _audioOutputSingleton = AudioOutputSingleton.Instance;
 
         private readonly ConcurrentDictionary<string, ClientAudioProvider> _clientsBufferedAudio =
             new ConcurrentDictionary<string, ClientAudioProvider>();
-        
-        private List<RadioMixingProvider> _radioMixingProvider;
-        
-        private SRSMixingSampleProvider _finalMixdown;
 
         private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
 
         private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
 
         private readonly Queue<short> _micInputQueue = new(Constants.MIC_SEGMENT_FRAMES * 3);
-        
-        
-        //buffers intialised once for use repeatedly
-        short[] _pcmShort = new short[Constants.MIC_SEGMENT_FRAMES];
-        byte[] _pcmBytes = new byte[Constants.MIC_SEGMENT_FRAMES * 2];
-        
-        private byte[] _tempMicOutputBuffer = null;
-        
+        //Stopwatch _stopwatch = new Stopwatch();
+
+        private readonly object lockObj = new();
+
         private readonly bool windowsN;
+
+        private ClientEffectsPipeline _clientEffectsPipeline;
 
         private OpusEncoder _encoder;
 
         private int _errorCount;
 
+        private SRSMixingSampleProvider _finalMixdown;
+
+        private string _guid;
+
         private SRSWasapiOut _micWaveOut;
         private BufferedWaveProvider _micWaveOutBuffer;
 
         private ClientAudioProvider _passThroughAudioProvider;
+        byte[] _pcmBytes = new byte[Constants.MIC_SEGMENT_FRAMES * 2];
+
+
+        //buffers intialised once for use repeatedly
+        short[] _pcmShort = new short[Constants.MIC_SEGMENT_FRAMES];
+
+        private List<RadioMixingProvider> _radioMixingProvider;
         private EventDrivenResampler _resampler;
 
         private float _speakerBoost = 1.0f;
         private Preprocessor _speex;
+
+        private byte[] _tempMicOutputBuffer = null;
 
         //private Stopwatch _stopwatch = new();
 
@@ -83,17 +87,18 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         private UDPVoiceHandler _udpVoiceHandler;
         private VolumeSampleProviderWithPeak _volumeSampleProvider;
 
+        private WebRtcVad _voxDectection;
+
         private WasapiCapture _wasapiCapture;
 
         private SRSWasapiOut _waveOut;
-        //Stopwatch _stopwatch = new Stopwatch();
 
-        private readonly object lockObj = new();
-        
-        private ClientEffectsPipeline _clientEffectsPipeline;
+        //MIC SEGMENT FRAMES IS SHORTS not bytes - which is two bytes
+        //however we only want half of a frame IN BYTES not short - so its MIC_SEGMENT_FRAMES *2 (for bytes) then / 2 for bytes again
+        //declare here to save on garbage collection
+        byte[] tempBuffferFirst20ms = new byte[Constants.MIC_SEGMENT_FRAMES];
+        byte[] tempBuffferSecond20ms = new byte[Constants.MIC_SEGMENT_FRAMES];
 
-        private string _guid;
-        
         public AudioManager(bool windowsN)
         {
             this.windowsN = windowsN;
@@ -290,7 +295,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
         // private WaveFileWriter _beforeWaveFile;
         // private WaveFileWriter _afterFileWriter;
-         private void WasapiCaptureOnDataAvailable(object sender, WaveInEventArgs e)
+        private void WasapiCaptureOnDataAvailable(object sender, WaveInEventArgs e)
         {
             if (_resampler == null)
             {
@@ -481,7 +486,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
             if (messageBoxResult == MessageBoxResult.Yes) Process.Start("https://discord.gg/baw7g3t");
         }
-        
+
 
         private void InitMixers()
         {
@@ -497,7 +502,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             }
         }
 
-        
+
         private void InitVox()
         {
             if (_voxDectection != null)
@@ -634,12 +639,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                 Logger.Error(ex, "Error removing client input");
             }
         }
-        
-        //MIC SEGMENT FRAMES IS SHORTS not bytes - which is two bytes
-        //however we only want half of a frame IN BYTES not short - so its MIC_SEGMENT_FRAMES *2 (for bytes) then / 2 for bytes again
-        //declare here to save on garbage collection
-        byte[] tempBuffferFirst20ms = new byte[Constants.MIC_SEGMENT_FRAMES];
-        byte[] tempBuffferSecond20ms = new byte[Constants.MIC_SEGMENT_FRAMES];
+
         bool DoesFrameContainSpeech(byte[] audioFrame, short[] pcmShort)
         {
             Buffer.BlockCopy(audioFrame,0,tempBuffferFirst20ms,0, Constants.MIC_SEGMENT_FRAMES);

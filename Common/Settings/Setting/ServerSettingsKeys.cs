@@ -5,15 +5,15 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting
     public enum ServerSettingsKeys
     {
         SERVER_PORT = 0,
-        LOS_ENABLED = 1,
+        LOS_ENABLED = 1, // not used
         DISTANCE_ENABLED = 2,
         IRL_RADIO_TX = 3,
-        IRL_RADIO_RX_INTERFERENCE = 4,
+        IRL_RADIO_RX_INTERFERENCE = 4, // not used
         IRL_RADIO_STATIC = 5, // Not used
         TEST_FREQUENCIES = 6,
         SHOW_TUNED_COUNT = 7,
-        SHOW_TRANSMITTER_NAME = 8,
-        RETRANSMISSION_NODE_LIMIT = 9,
+        SHOW_TRANSMITTER_NAME = 8, // not used
+        RETRANSMISSION_NODE_LIMIT = 9, // not used
         SERVER_RECORDING = 10,
         SERVER_RECORDING_FREQUENCIES = 11
     }
@@ -24,7 +24,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting
         {
             { ServerSettingsKeys.DISTANCE_ENABLED.ToString(), "false" },
             { ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE.ToString(), "false" },
-            { ServerSettingsKeys.IRL_RADIO_STATIC.ToString(), "true" },
+            { ServerSettingsKeys.IRL_RADIO_STATIC.ToString(), "false" },
             { ServerSettingsKeys.IRL_RADIO_TX.ToString(), "true" },
             { ServerSettingsKeys.LOS_ENABLED.ToString(), "false" },
             { ServerSettingsKeys.SERVER_PORT.ToString(), "5002" },

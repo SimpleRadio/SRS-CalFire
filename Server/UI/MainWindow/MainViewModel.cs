@@ -22,15 +22,15 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
         private readonly IWindowManager _windowManager;
         private readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private string _testFrequencies =
-            ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.TEST_FREQUENCIES).StringValue;
-
-        private DispatcherTimer _testFrequenciesDebounceTimer;
-        
         private string _serverRecordingFrequencies =
             ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.SERVER_RECORDING_FREQUENCIES).StringValue;
 
         private DispatcherTimer _serverRecordingFrequenciesDebounceTimer;
+
+        private string _testFrequencies =
+            ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.TEST_FREQUENCIES).StringValue;
+
+        private DispatcherTimer _testFrequenciesDebounceTimer;
 
         public MainViewModel(IWindowManager windowManager, IEventAggregator eventAggregator,
             ClientAdminViewModel clientAdminViewModel)
@@ -48,18 +48,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
         public bool IsServerRunning { get; private set; } = true;
 
         public string ServerButtonText => IsServerRunning ? "Stop Server" : "Start Server";
-
-        public int NodeLimit
-        {
-            get => ServerSettingsStore.Instance.GetGeneralSetting(ServerSettingsKeys.RETRANSMISSION_NODE_LIMIT)
-                .IntValue;
-            set
-            {
-                ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.RETRANSMISSION_NODE_LIMIT,
-                    value.ToString());
-                _eventAggregator.PublishOnBackgroundThreadAsync(new ServerSettingsChangedMessage());
-            }
-        }
 
         public int ClientsCount { get; private set; }
 
@@ -87,7 +75,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
                 NotifyOfPropertyChange(() => TestFrequencies);
             }
         }
-        
+
         public string ServerRecordingFrequencies
         {
             get => _serverRecordingFrequencies;
@@ -162,7 +150,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
             _testFrequenciesDebounceTimer.Tick -= TestFrequenciesDebounceTimerTick;
             _testFrequenciesDebounceTimer = null;
         }
-        
+
         private void ServerRecordingFrequenciesDebounceTimerTick(object sender, EventArgs e)
         {
             ServerSettingsStore.Instance.SetGeneralSetting(ServerSettingsKeys.SERVER_RECORDING_FREQUENCIES, _serverRecordingFrequencies);
@@ -176,8 +164,5 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.MainWindow
             _serverRecordingFrequenciesDebounceTimer.Tick -= ServerRecordingFrequenciesDebounceTimerTick;
             _serverRecordingFrequenciesDebounceTimer = null;
         }
-
-
-       
     }
 }

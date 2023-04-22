@@ -1,4 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8"?>
+
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Mobile.MainPage">
@@ -9,7 +10,6 @@
             Padding="30,0"
             VerticalOptions="Center">
 
-         
 
             <Label
                 Text="Hello, World!"
@@ -20,11 +20,10 @@
             <Entry
                 x:Name="Address"
                 FontSize="32"
-                ClearButtonVisibility="WhileEditing" 
+                ClearButtonVisibility="WhileEditing"
                 Placeholder="127.0.0.1:5002"
                 IsSpellCheckEnabled="False"
-                IsTextPredictionEnabled="False"
-                />
+                IsTextPredictionEnabled="False" />
 
             <Button
                 x:Name="Start"
@@ -35,7 +34,7 @@
             <Button
                 x:Name="Stop"
                 Text="Stop"
-        
+
                 Clicked="OnStopClicked"
                 HorizontalOptions="Center" />
 

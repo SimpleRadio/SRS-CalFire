@@ -5,55 +5,49 @@ using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Core;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Network.Client;
 using NLog;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
+
+public abstract class AudioProvider
 {
-    public abstract class AudioProvider
+    public static readonly int SILENCE_PAD = 200;
+
+    protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+    protected OpusDecoder _decoder;
+
+    protected bool passThrough;
+
+    protected AudioProvider(bool passThrough)
     {
-        
-        public static readonly int SILENCE_PAD = 200;
+        this.passThrough = passThrough;
 
-        protected OpusDecoder _decoder;
+        _decoder = OpusDecoder.Create(Constants.OUTPUT_SAMPLE_RATE, 1);
+        _decoder.ForwardErrorCorrection = false;
+        _decoder.MaxDataBytes = Constants.OUTPUT_SAMPLE_RATE * 4;
+    }
 
-        protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+    public long LastUpdate { get; set; }
 
-        protected bool passThrough;
-        public long LastUpdate { get; set; }
+    //is it a new transmission?
+    protected bool LikelyNewTransmission()
+    {
+        if (passThrough) return false;
 
-        //is it a new transmission?
-        protected bool LikelyNewTransmission()
-        {
-            if (passThrough)
-            {
-                return false;
-            }
+        //400 ms since last update
+        var now = DateTime.Now.Ticks;
+        if (now - LastUpdate > 4000000) //400 ms since last update
+            return true;
 
-            //400 ms since last update
-            long now = DateTime.Now.Ticks;
-            if ((now - LastUpdate) > 4000000) //400 ms since last update
-            {
-                return true;
-            }
+        return false;
+    }
 
-            return false;
-        }
+    public abstract JitterBufferAudio AddClientAudioSamples(ClientAudio audio);
 
-        protected AudioProvider(bool passThrough)
-        {
-            this.passThrough = passThrough;
-              
-            _decoder = OpusDecoder.Create(Constants.OUTPUT_SAMPLE_RATE, 1);
-            _decoder.ForwardErrorCorrection = false;
-            _decoder.MaxDataBytes = Constants.OUTPUT_SAMPLE_RATE * 4;
-        }
 
-        public abstract JitterBufferAudio AddClientAudioSamples(ClientAudio audio);
-        
-        
-        //destructor to clear up opus
-        ~AudioProvider()
-        {
-            _decoder?.Dispose();
-            _decoder = null;
-        }
+    //destructor to clear up opus
+    ~AudioProvider()
+    {
+        _decoder?.Dispose();
+        _decoder = null;
     }
 }

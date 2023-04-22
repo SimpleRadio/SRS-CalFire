@@ -1,6 +1,5 @@
 ﻿using System;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility.NAudio;
-using NAudio.Dsp;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
@@ -9,17 +8,17 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 {
     public class EventDrivenResampler
     {
-        private readonly bool resampleRequired = false;
-        private readonly bool windowsN;
         private readonly BufferedWaveProvider buf;
         private readonly int bufferMultiplier = 1;
+        private readonly WdlResamplingSampleProvider mediaFoundationResampler;
+        private readonly bool resampleRequired = false;
+        private readonly IWaveProvider waveOut;
+        private readonly bool windowsN;
         private ResamplerDmoStream dmoResampler;
 
         private WaveFormat input;
-        private readonly WdlResamplingSampleProvider mediaFoundationResampler;
         private WaveFormat output;
         private WdlResampler resampler;
-        private readonly IWaveProvider waveOut;
 
         public EventDrivenResampler(bool windowsN, WaveFormat input, WaveFormat output)
         {

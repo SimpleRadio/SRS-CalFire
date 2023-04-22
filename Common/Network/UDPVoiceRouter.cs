@@ -21,7 +21,7 @@ using LogManager = NLog.LogManager;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
 {
-    internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>
+    internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<ServerStateMessage>
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -31,6 +31,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
 
         private readonly ConcurrentDictionary<string, SRClientBase> _clientsList;
         private readonly IEventAggregator _eventAggregator;
+        private readonly List<double> _globalFrequencies = new();
 
         private readonly BlockingCollection<OutgoingUDPPackets>
             _outGoing = new();
@@ -43,18 +44,20 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
             new();
 
         private readonly ServerSettingsStore _serverSettings = ServerSettingsStore.Instance;
-        private readonly List<double> _globalFrequencies = new();
+        private readonly string _sessionId;
         private UdpClient _listener;
+        private List<double> _recordingFrequencies = new();
+        private AudioRecordingManager _recordingManager;
 
         private volatile bool _stop;
 
         private List<double> _testFrequencies = new();
-        private List<double> _recordingFrequencies = new();
 
-        public UDPVoiceRouter(ConcurrentDictionary<string, SRClientBase> clientsList, IEventAggregator eventAggregator)
+        public UDPVoiceRouter(ConcurrentDictionary<string, SRClientBase> clientsList, IEventAggregator eventAggregator, string sessionId = "")
         {
             _clientsList = clientsList;
             _eventAggregator = eventAggregator;
+            _sessionId = sessionId;
             _eventAggregator.Subscribe(this);
 
             var freqString = _serverSettings.GetGeneralSetting(ServerSettingsKeys.TEST_FREQUENCIES).StringValue;
@@ -73,6 +76,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
             if (message.ServerRecordingFrequencies != null) UpdateRecordingFrequencies(message.ServerRecordingFrequencies);
         }
 
+        public Task HandleAsync(ServerStateMessage message, CancellationToken cancellationToken)
+        {
+            if(message.DisconnectingClientGuid != null && message.IsRunning)
+            {
+                _recordingManager.RemoveClientBuffer(message.DisconnectingClientGuid);
+            }
+            
+            return Task.CompletedTask;
+        }
+
 
         private void UpdateTestFrequencies(string freqString)
         {
@@ -89,7 +102,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
 
             _testFrequencies = newList;
         }
-        
+
         private void UpdateRecordingFrequencies(string freqString)
         {
             var freqStringList = freqString.Split(',');
@@ -194,11 +207,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
 
         private void ProcessPackets()
         {
-            var recordingManager = new AudioRecordingManager();
+            _recordingManager = new AudioRecordingManager(_sessionId);
             
-            //TODO temp
-            _serverSettings.SetServerSetting(ServerSettingsKeys.SERVER_RECORDING,true);
-            recordingManager.Start(_recordingFrequencies);
+            _recordingManager.Start(_recordingFrequencies);
 
             while (!_stop)
                 try
@@ -245,7 +256,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                                         {
                                             if (ShouldRecord((Modulation)udpVoicePacket.Modulations[i], udpVoicePacket.Frequencies[i] ))
                                             {
-                                                recordingManager.AddClientAudio(new ClientAudio()
+                                                _recordingManager.AddClientAudio(new ClientAudio()
                                                 {
                                                     Modulation = udpVoicePacket.Modulations[i],
                                                     Frequency = udpVoicePacket.Frequencies[i],
@@ -305,7 +316,8 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
                     Logger.Info("Failed to Process UDP Packet: " + ex.Message);
                 }
             
-            recordingManager.Stop();
+            _recordingManager.Stop();
+            _recordingManager = null;
         }
 
         private bool ShouldRecord(Modulation modulation, double frequency)
@@ -357,13 +369,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
         private OutgoingUDPPackets GenerateOutgoingPacket(UDPVoicePacket udpVoice, PendingPacket pendingPacket,
             SRClientBase fromClient)
         {
-            var nodeHopCount =
-                _serverSettings.GetGeneralSetting(ServerSettingsKeys.RETRANSMISSION_NODE_LIMIT).IntValue;
-
-            if (udpVoice.RetransmissionCount > nodeHopCount)
-                //not allowed to retransmit any further
-                return null;
-
             var outgoingList = new HashSet<IPEndPoint>();
 
 

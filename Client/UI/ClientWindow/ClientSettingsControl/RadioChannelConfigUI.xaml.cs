@@ -1,32 +1,31 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSettingsControl
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSettingsControl;
+
+/// <summary>
+///     Interaction logic for RadioChannelConfigUI.xaml
+/// </summary>
+public partial class RadioChannelConfigUi : UserControl
 {
-    /// <summary>
-    ///     Interaction logic for RadioChannelConfigUI.xaml
-    /// </summary>
-    public partial class RadioChannelConfigUi : UserControl
+    //"VolumeValue" string must match the method name
+    public static readonly DependencyProperty VolumeSliderDependencyProperty =
+        DependencyProperty.Register("VolumeValue", typeof(float), typeof(RadioChannelConfigUi),
+            new FrameworkPropertyMetadata((float)0)
+        );
+
+    public RadioChannelConfigUi()
     {
-        //"VolumeValue" string must match the method name
-        public static readonly DependencyProperty VolumeSliderDependencyProperty =
-            DependencyProperty.Register("VolumeValue", typeof(float), typeof(RadioChannelConfigUi),
-                new FrameworkPropertyMetadata((float)0)
-            );
+        InitializeComponent();
+    }
 
-        public RadioChannelConfigUi()
+    public float VolumeValue
+    {
+        set => SetValue(VolumeSliderDependencyProperty, value);
+        get
         {
-            InitializeComponent();
-        }
-
-        public float VolumeValue
-        {
-            set => SetValue(VolumeSliderDependencyProperty, value);
-            get
-            {
-                var val = (float)GetValue(VolumeSliderDependencyProperty);
-                return val;
-            }
+            var val = (float)GetValue(VolumeSliderDependencyProperty);
+            return val;
         }
     }
 }

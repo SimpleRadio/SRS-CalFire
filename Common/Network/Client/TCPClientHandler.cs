@@ -26,12 +26,12 @@ namespace Ciribob.SRS.Common.Network.Client
         private static readonly int MAX_DECODE_ERRORS = 5;
         private readonly ConnectedClientsSingleton _clients = ConnectedClientsSingleton.Instance;
         private readonly string _guid;
-        private PlayerUnitStateBase _playerUnitState;
 
         private readonly SyncedServerSettings _serverSettings = SyncedServerSettings.Instance;
         private readonly List<Guid> _subscriptions = new();
 
         private long _lastSent = -1;
+        private PlayerUnitStateBase _playerUnitState;
         private IPEndPoint _serverEndpoint;
 
         private volatile bool _stop;
@@ -49,6 +49,20 @@ namespace Ciribob.SRS.Common.Network.Client
         public Task HandleAsync(DisconnectRequestMessage message, CancellationToken cancellationToken)
         {
             Disconnect();
+
+            return Task.CompletedTask;
+        }
+
+        public Task HandleAsync(UnitUpdateMessage message, CancellationToken cancellationToken)
+        {
+            if (message.FullUpdate)
+            {
+                ClientRadioUpdated(message.UnitUpdate);
+            }
+            else
+            {
+                ClientCoalitionUpdate(message.UnitUpdate);
+            }
 
             return Task.CompletedTask;
         }
@@ -105,11 +119,8 @@ namespace Ciribob.SRS.Common.Network.Client
         private void ClientRadioUpdated(PlayerUnitStateBase updatedUnitState)
         {
             Logger.Debug("Sending Full Update to Server");
-
-            var needValidPosition = _serverSettings.GetSettingAsBool(ServerSettingsKeys.DISTANCE_ENABLED) ||
-                                    _serverSettings.GetSettingAsBool(ServerSettingsKeys.LOS_ENABLED);
-
-            if (!needValidPosition) updatedUnitState.LatLng = new LatLngPosition();
+            
+            updatedUnitState.LatLng = new LatLngPosition();
             //Only send if there is an actual change
             if (!updatedUnitState.Equals(_playerUnitState))
             {
@@ -130,10 +141,7 @@ namespace Ciribob.SRS.Common.Network.Client
 
         private void ClientCoalitionUpdate(PlayerUnitStateBase updatedMetadata)
         {
-
-            var needValidPosition = _serverSettings.GetSettingAsBool(ServerSettingsKeys.DISTANCE_ENABLED) ||
-                                    _serverSettings.GetSettingAsBool(ServerSettingsKeys.LOS_ENABLED);
-            if (!needValidPosition) updatedMetadata.LatLng = new LatLngPosition();
+            updatedMetadata.LatLng = new LatLngPosition();
 
             //only send if there is an actual change to metadata
             if (!_playerUnitState.MetaDataEquals(updatedMetadata))
@@ -425,20 +433,6 @@ namespace Ciribob.SRS.Common.Network.Client
             }
 
             Logger.Error("Disconnecting from server");
-        }
-
-        public Task HandleAsync(UnitUpdateMessage message, CancellationToken cancellationToken)
-        {
-            if (message.FullUpdate)
-            {
-                ClientRadioUpdated(message.UnitUpdate);
-            }
-            else
-            {
-                ClientCoalitionUpdate(message.UnitUpdate);
-            }
-
-            return Task.CompletedTask;
         }
     }
 }

@@ -103,7 +103,7 @@
                          Height="20"
                          VerticalAlignment="Center"
                          HorizontalAlignment="Center" />
-                
+
                 <Label Content="Recording Frequencies AM (MHz)"
                        Grid.Row="3"
                        Grid.Column="0"

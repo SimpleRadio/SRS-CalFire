@@ -28,9 +28,11 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
         private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
         private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
         private readonly string _guid;
+        private readonly RadioReceivingState[] _radioReceivingState;
         private readonly SyncedServerSettings _serverSettings = SyncedServerSettings.Instance;
         private readonly CancellationTokenSource _stopFlag = new();
         private readonly UDPVoiceHandler _udpClient;
+        private readonly object lockObj = new();
         private long _firstPTTPress; // to delay start PTT time
         private long _lastPTTPress; // to handle dodgy PTT - release time
 
@@ -38,11 +40,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
 
 
         private volatile bool _ptt = false;
-        private readonly RadioReceivingState[] _radioReceivingState;
         private bool _stop;
         private UDPCommandListener _udpCommandListener;
         private UDPStateSender _udpStateSender;
-        private readonly object lockObj = new();
 
         public UDPClientAudioProcessor(UDPVoiceHandler udpClient, AudioManager audioManager, string guid)
         {
@@ -93,13 +93,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
             if (udpVoicePacket.Guid == _guid) //|| udpVoicePacket.OriginalClientGuid == _guid
                 return;
             //my own transmission - throw away - stops test frequencies
-
-            //Hop count can limit the retransmission too
-            var nodeLimit = _serverSettings.RetransmitNodeLimit;
-
-            if (nodeLimit < udpVoicePacket.RetransmissionCount)
-                //Reached hop limit - no retransmit
-                return;
 
             //Check if Global
             var globalFrequencies = _serverSettings.GlobalFrequencies;
@@ -564,7 +557,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
                                             
                                             //we now WANT to duplicate through multiple pipelines ONLY if AM blocking is on
                                             //this is a nice optimisation to save duplicated audio on servers without that setting 
-                                            if (i == 0 || _serverSettings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_RX_INTERFERENCE))
+                                            if (i == 0)
                                             {
                                                 _audioManager.AddClientAudio(audio);
                                             }

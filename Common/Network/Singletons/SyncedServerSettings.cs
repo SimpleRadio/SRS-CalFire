@@ -9,22 +9,19 @@ namespace Ciribob.SRS.Common.Network.Singletons
 {
     public class SyncedServerSettings
     {
-        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private static SyncedServerSettings instance;
         private static readonly object _lock = new object();
         private static readonly Dictionary<string, string> defaults = DefaultServerSettings.Defaults;
 
         private readonly ConcurrentDictionary<string, string> _settings;
-
-        public List<double> GlobalFrequencies { get; set; } = new List<double>();
-
-        // Node Limit of 0 means no retransmission
-        public int RetransmitNodeLimit { get; set; } = 0;
+        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         public SyncedServerSettings()
         {
             _settings = new ConcurrentDictionary<string, string>();
         }
+
+        public List<double> GlobalFrequencies { get; set; } = new List<double>();
 
         public static SyncedServerSettings Instance
         {
@@ -58,14 +55,6 @@ namespace Ciribob.SRS.Common.Network.Singletons
             foreach (var kvp in encoded)
             {
                 _settings.AddOrUpdate(kvp.Key, kvp.Value, (key, oldVal) => kvp.Value);
-
-                if (kvp.Key.Equals(ServerSettingsKeys.RETRANSMISSION_NODE_LIMIT.ToString()))
-                {
-                    if (!int.TryParse(kvp.Value, out var nodeLimit))
-                        nodeLimit = 0;
-                    else
-                        RetransmitNodeLimit = nodeLimit;
-                }
             }
 
             EventBus.Instance.PublishOnBackgroundThreadAsync(new ServerSettingsUpdatedMessage(_settings));
