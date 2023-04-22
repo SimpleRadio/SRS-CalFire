@@ -10,10 +10,7 @@ using NLog;
 using Encoding = Android.Media.Encoding;
 using LogManager = NLog.LogManager;
 using Ciribob.SRS.Common.Network.Models;
-using Android.App;
 using System.Net;
-using System.Net.Sockets;
-using Android.Content;
 
 namespace Ciribob.SRS.Mobile.Client
 {
@@ -38,7 +35,7 @@ namespace Ciribob.SRS.Mobile.Client
 
         private UDPVoiceHandler udpVoiceHandler;
 
-        private IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse("192.168.0.140"), 5002);
+        private IPEndPoint endPoint;
 
 
         private readonly string Guid = ShortGuid.NewGuid();
@@ -47,39 +44,43 @@ namespace Ciribob.SRS.Mobile.Client
 
         public bool PTTPressed { get; set; }
 
-        public void StartPreview()
+        public void StartPreview(IPEndPoint ipEndpoint)
         {
-            EventBus.Instance.SubscribeOnUIThread(this);
-            //opus
-            _encoder = OpusEncoder.Create(Constants.MIC_SAMPLE_RATE, 1,
-                Application.Voip);
-            _encoder.ForwardErrorCorrection = false;
-            _decoder = OpusDecoder.Create(Constants.OUTPUT_SAMPLE_RATE, 1);
-            _decoder.ForwardErrorCorrection = false;
-            _decoder.MaxDataBytes = Constants.OUTPUT_SAMPLE_RATE * 4;
+            endPoint = ipEndpoint;
 
-            //Connect to TCP and UDP
-
-            var gameState = new PlayerUnitStateBase();
-            gameState.Name = "MOBILE";
-            gameState.UnitId = 100000000;
-            gameState.Radios = new List<RadioBase>();
-            gameState.Radios.Add(new RadioBase()
+            lock (lockob)
             {
-                Modulation = Modulation.DISABLED
+                EventBus.Instance.SubscribeOnUIThread(this);
+                //opus
+                _encoder = OpusEncoder.Create(Constants.MIC_SAMPLE_RATE, 1,
+                    Application.Voip);
+                _encoder.ForwardErrorCorrection = false;
+                _decoder = OpusDecoder.Create(Constants.OUTPUT_SAMPLE_RATE, 1);
+                _decoder.ForwardErrorCorrection = false;
+                _decoder.MaxDataBytes = Constants.OUTPUT_SAMPLE_RATE * 4;
 
-            });
-            gameState.Radios.Add(new RadioBase()
-            {
-                Modulation = Modulation.AM,
-                Freq = 1.51e+8d
+                //Connect to TCP and UDP
 
-            });
-            
-            var srsClientSyncHandler = new TCPClientHandler(Guid, gameState);
+                var gameState = new PlayerUnitStateBase();
+                gameState.Name = "MOBILE";
+                gameState.UnitId = 100000000;
+                gameState.Radios = new List<RadioBase>();
+                gameState.Radios.Add(new RadioBase()
+                {
+                    Modulation = Modulation.DISABLED
 
-            srsClientSyncHandler.TryConnect(endPoint);
+                });
+                gameState.Radios.Add(new RadioBase()
+                {
+                    Modulation = Modulation.AM,
+                    Freq = 1.51e+8d
 
+                });
+
+                var srsClientSyncHandler = new TCPClientHandler(Guid, gameState);
+
+                srsClientSyncHandler.TryConnect(endPoint);
+            }
         }
         
 
@@ -87,7 +88,6 @@ namespace Ciribob.SRS.Mobile.Client
         {
             if (!stop)
             {
-
                 lock (lockob)
                 {
                     EventBus.Instance.Unsubcribe(this);
@@ -110,7 +110,6 @@ namespace Ciribob.SRS.Mobile.Client
                     _audioRecorder = null;
                 }
             }
-          
         }
 
         private void ReadyToSend()
@@ -120,8 +119,6 @@ namespace Ciribob.SRS.Mobile.Client
                 Logger.Info($"Connecting UDP VoIP {endPoint}");
                 udpVoiceHandler = new UDPVoiceHandler(Guid, endPoint);
                 udpVoiceHandler.Connect();
-
-        
 
                 new Thread(SendAudio).Start();
                 new Thread(ReceiveAudio).Start();
@@ -180,7 +177,7 @@ namespace Ciribob.SRS.Mobile.Client
                 }
                 catch (OperationCanceledException ex)
                 {
-
+                    return;
                 }
             }
         }
@@ -206,16 +203,17 @@ namespace Ciribob.SRS.Mobile.Client
 
             _audioRecorder.StartRecording();
 
-            try
-            {
-                var audioManager = (AudioManager)Android.App.Application.Context.GetSystemService(Context.AudioService);
-                audioManager.BluetoothScoOn = true;
-                audioManager.StartBluetoothSco();
-            }
-            catch (System.Exception ex)
-            {
-                // Handle exception gently
-            }
+            //TODO make bluetooth work
+            //try
+            //{
+            //    var audioManager = (AudioManager)Android.App.Application.Context.GetSystemService(Context.AudioService);
+            //    audioManager.BluetoothScoOn = true;
+            //    audioManager.StartBluetoothSco();
+            //}
+            //catch (System.Exception ex)
+            //{
+            //    // Handle exception gently
+            //}
 
             byte[] recorderBuffer = new byte[MIC_SEGMENT_FRAMES_BYTES];
             byte[] encryptionBytes = new byte[1];
@@ -286,6 +284,7 @@ namespace Ciribob.SRS.Mobile.Client
         }
     }
 
+   
     public class PTTState
     {
         public bool PTTPressed { get; set; }

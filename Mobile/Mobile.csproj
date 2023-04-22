@@ -11,7 +11,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 
 		<!-- Display name -->
-		<ApplicationTitle>Mobile</ApplicationTitle>
+		<ApplicationTitle>FS3D Mobile</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>Ciribob.FS3D.SimpleRadio.Standalone.Mobile</ApplicationId>

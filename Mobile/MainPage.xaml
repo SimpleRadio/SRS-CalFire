@@ -9,11 +9,7 @@
             Padding="30,0"
             VerticalOptions="Center">
 
-            <Image
-                Source="dotnet_bot.png"
-                SemanticProperties.Description="Cute dot net bot waving hi to you!"
-                HeightRequest="200"
-                HorizontalOptions="Center" />
+         
 
             <Label
                 Text="Hello, World!"
@@ -21,10 +17,18 @@
                 FontSize="32"
                 HorizontalOptions="Center" />
 
+            <Entry
+                x:Name="Address"
+                FontSize="32"
+                ClearButtonVisibility="WhileEditing" 
+                Placeholder="127.0.0.1:5002"
+                IsSpellCheckEnabled="False"
+                IsTextPredictionEnabled="False"
+                />
+
             <Button
                 x:Name="Start"
                 Text="Start"
-         
                 Clicked="OnStartClicked"
                 HorizontalOptions="Center" />
 

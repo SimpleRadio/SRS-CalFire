@@ -1,11 +1,12 @@
 ﻿using Ciribob.SRS.Mobile.Client;
+using System.Net;
 
 namespace Mobile
 {
     public partial class MainPage : ContentPage
     {
         int count = 0;
-        private SRSAudioManager _srsAudioManager;
+        private SRSAudioManager _srsAudioManager = null;
 
         public async Task<PermissionStatus> CheckAndRequestMicrophonePermission()
         {
@@ -47,8 +48,15 @@ namespace Mobile
         {
             _srsAudioManager?.StopEncoding();
 
-            _srsAudioManager = new SRSAudioManager();
-            _srsAudioManager.StartPreview();
+            if (IPEndPoint.TryParse(Address.Text, out IPEndPoint result))
+            {
+                _srsAudioManager = new SRSAudioManager();
+                _srsAudioManager.StartPreview(result);
+            }
+            else
+            {
+                DisplayAlert("Error", "Invalid IP and port", "OK");
+            }
         }
 
     }
