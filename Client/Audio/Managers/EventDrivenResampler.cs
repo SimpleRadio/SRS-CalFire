@@ -3,148 +3,137 @@ using Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Utility.NAudio;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.Audio.Managers
+public class EventDrivenResampler
 {
-    public class EventDrivenResampler
+    private readonly BufferedWaveProvider buf;
+    private readonly int bufferMultiplier = 1;
+    private readonly WdlResamplingSampleProvider mediaFoundationResampler;
+    private readonly bool resampleRequired = false;
+    private readonly IWaveProvider waveOut;
+    private readonly bool windowsN;
+    private ResamplerDmoStream dmoResampler;
+
+    private WaveFormat input;
+    private WaveFormat output;
+    private WdlResampler resampler;
+
+    public EventDrivenResampler(bool windowsN, WaveFormat input, WaveFormat output)
     {
-        private readonly BufferedWaveProvider buf;
-        private readonly int bufferMultiplier = 1;
-        private readonly WdlResamplingSampleProvider mediaFoundationResampler;
-        private readonly bool resampleRequired = false;
-        private readonly IWaveProvider waveOut;
-        private readonly bool windowsN;
-        private ResamplerDmoStream dmoResampler;
+        this.windowsN = windowsN;
+        this.input = input;
+        this.output = output;
+        buf = new BufferedWaveProvider(input);
+        buf.ReadFully = false;
 
-        private WaveFormat input;
-        private WaveFormat output;
-        private WdlResampler resampler;
+        if (output.BitsPerSample > input.BitsPerSample) bufferMultiplier = 2;
 
-        public EventDrivenResampler(bool windowsN, WaveFormat input, WaveFormat output)
+        if (windowsN)
         {
-            this.windowsN = windowsN;
-            this.input = input;
-            this.output = output;
-            buf = new BufferedWaveProvider(input);
-            buf.ReadFully = false;
-
-            if (output.BitsPerSample > input.BitsPerSample) bufferMultiplier = 2;
-
-            if (windowsN)
-            {
-                mediaFoundationResampler = new WdlResamplingSampleProvider(buf.ToSampleProvider(), output.SampleRate);
-                waveOut = mediaFoundationResampler.ToMono().ToWaveProvider16();
-            }
-            else
-            {
-                dmoResampler = new ResamplerDmoStream(buf, output);
-            }
+            mediaFoundationResampler = new WdlResamplingSampleProvider(buf.ToSampleProvider(), output.SampleRate);
+            waveOut = mediaFoundationResampler.ToMono().ToWaveProvider16();
         }
-
-        private byte[] ResampleBytesDMO(byte[] inputByteArray, int length)
+        else
         {
-            var outBuffer = new byte[length * bufferMultiplier];
-            buf.AddSamples(inputByteArray, 0, length);
-
-            var read = dmoResampler.Read(outBuffer, 0, outBuffer.Length);
-
-            if (read == 0)
-            {
-                return new byte[0];
-            }
-
-            var finalBuf = new byte[read];
-            Buffer.BlockCopy(outBuffer, 0, finalBuf, 0, read);
-
-            return finalBuf;
+            dmoResampler = new ResamplerDmoStream(buf, output);
         }
+    }
 
-        private byte[] ResampleBytesMFC(byte[] inputByteArray, int length)
-        {
-            var outBuffer = new byte[length * bufferMultiplier];
+    private byte[] ResampleBytesDMO(byte[] inputByteArray, int length)
+    {
+        var outBuffer = new byte[length * bufferMultiplier];
+        buf.AddSamples(inputByteArray, 0, length);
 
-            buf.AddSamples(inputByteArray, 0, length);
+        var read = dmoResampler.Read(outBuffer, 0, outBuffer.Length);
 
-            var read = waveOut.Read(outBuffer, 0, outBuffer.Length);
+        if (read == 0) return new byte[0];
 
-            if (read == 0)
-            {
-                return new byte[0];
-            }
+        var finalBuf = new byte[read];
+        Buffer.BlockCopy(outBuffer, 0, finalBuf, 0, read);
 
-            var finalBuf = new byte[read];
-            Buffer.BlockCopy(outBuffer, 0, finalBuf, 0, read);
+        return finalBuf;
+    }
 
-            return finalBuf;
-        }
+    private byte[] ResampleBytesMFC(byte[] inputByteArray, int length)
+    {
+        var outBuffer = new byte[length * bufferMultiplier];
 
-        public byte[] ResampleBytes(byte[] inputByteArray, int length)
-        {
-            if (windowsN)
-                return ResampleBytesMFC(inputByteArray, length);
-            return ResampleBytesDMO(inputByteArray, length);
-        }
+        buf.AddSamples(inputByteArray, 0, length);
 
-        private short[] ResampleDMO(byte[] inputByteArray, int length)
-        {
-            var bytes = ResampleBytes(inputByteArray, length);
+        var read = waveOut.Read(outBuffer, 0, outBuffer.Length);
 
-            if (bytes.Length == 0) return new short[0];
+        if (read == 0) return new byte[0];
 
-            //convert byte to short
-            var sdata = new short[bytes.Length / 2];
-            Buffer.BlockCopy(bytes, 0, sdata, 0, bytes.Length);
+        var finalBuf = new byte[read];
+        Buffer.BlockCopy(outBuffer, 0, finalBuf, 0, read);
 
-            return sdata;
-        }
+        return finalBuf;
+    }
 
-        public short[] Resample(byte[] inputByteArray, int length)
-        {
-            if (windowsN)
-                return ResampleMFC(inputByteArray, length);
-            return ResampleDMO(inputByteArray, length);
-        }
+    public byte[] ResampleBytes(byte[] inputByteArray, int length)
+    {
+        if (windowsN)
+            return ResampleBytesMFC(inputByteArray, length);
+        return ResampleBytesDMO(inputByteArray, length);
+    }
 
-        private short[] ResampleMFC(byte[] inputByteArray, int length)
-        {
-            var outBuffer = new byte[length * bufferMultiplier];
+    private short[] ResampleDMO(byte[] inputByteArray, int length)
+    {
+        var bytes = ResampleBytes(inputByteArray, length);
 
-            buf.AddSamples(inputByteArray, 0, length);
+        if (bytes.Length == 0) return new short[0];
 
-            var read = waveOut.Read(outBuffer, 0, outBuffer.Length);
+        //convert byte to short
+        var sdata = new short[bytes.Length / 2];
+        Buffer.BlockCopy(bytes, 0, sdata, 0, bytes.Length);
 
-            if (read == 0)
-            {
-                return new short[0];
-            }
+        return sdata;
+    }
 
-            //convert byte to short
-            var sdata = new short[read / 2];
-            Buffer.BlockCopy(outBuffer, 0, sdata, 0, read);
-            return sdata;
-        }
+    public short[] Resample(byte[] inputByteArray, int length)
+    {
+        if (windowsN)
+            return ResampleMFC(inputByteArray, length);
+        return ResampleDMO(inputByteArray, length);
+    }
 
-        /// <summary>
-        ///     Dispose
-        /// </summary>
-        /// <param name="disposing">True if disposing (not from finalizer)</param>
-        public void Dispose(bool disposing)
+    private short[] ResampleMFC(byte[] inputByteArray, int length)
+    {
+        var outBuffer = new byte[length * bufferMultiplier];
+
+        buf.AddSamples(inputByteArray, 0, length);
+
+        var read = waveOut.Read(outBuffer, 0, outBuffer.Length);
+
+        if (read == 0) return new short[0];
+
+        //convert byte to short
+        var sdata = new short[read / 2];
+        Buffer.BlockCopy(outBuffer, 0, sdata, 0, read);
+        return sdata;
+    }
+
+    /// <summary>
+    ///     Dispose
+    /// </summary>
+    /// <param name="disposing">True if disposing (not from finalizer)</param>
+    public void Dispose(bool disposing)
+    {
+        buf.ClearBuffer();
+        if (windowsN)
         {
             buf.ClearBuffer();
-            if (windowsN)
-            {
-                buf.ClearBuffer();
-            }
-            else
-            {
-                dmoResampler?.Dispose();
-                dmoResampler = null;
-            }
         }
-
-        ~EventDrivenResampler()
+        else
         {
-            Dispose(false);
+            dmoResampler?.Dispose();
+            dmoResampler = null;
         }
+    }
+
+    ~EventDrivenResampler()
+    {
+        Dispose(false);
     }
 }
