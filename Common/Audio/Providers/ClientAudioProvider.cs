@@ -55,8 +55,7 @@ public class ClientAudioProvider : AudioProvider
 
         //convert the byte buffer to a wave buffer
         //   var waveBuffer = new WaveBuffer(tmp);
-
-        //TODO get rid of this
+        
         // waveWriter.WriteSamples(tmp,0,tmp.Length);
 
         audio.PcmAudioFloat = tmp;

@@ -503,7 +503,7 @@ public class AudioManager : IHandle<SRClientUpdateMessage>
     {
         lock (lockObj)
         {
-            //TODO
+            
             //Stop input handler
             _udpClientAudioProcessor?.Stop();
             _udpClientAudioProcessor = null;

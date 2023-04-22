@@ -208,7 +208,7 @@ public class RadioMixingProvider : ISampleProvider
             hasPlayedTransmissionStart = false;
             hasPlayedTransmissionEnd = true;
 
-            //TODO not sure about simultaneous
+          
             //We used to have this logic https://github.com/ciribob/DCS-SimpleRadioStandalone/blob/cd8fcbf7e2b2fafcf30875fc958276e3083e0ebb/DCS-SR-Client/Network/UDPVoiceHandler.cs#L135
             //if (!radioReceivingState.IsSimultaneous)
             PlaySoundEffectEndReceive(modulation);

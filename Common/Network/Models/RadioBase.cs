@@ -113,7 +113,7 @@ public class RadioBase
                 if (receivingRadio.SecFreq == frequency
                     && receivingRadio.SecFreq > 10000)
                 {
-                    //TODO come back too
+                   
                     if (encryptionKey == 0 || (receivingRadio.Encrypted ? receivingRadio.EncKey : 0) ==
                         encryptionKey)
                     {

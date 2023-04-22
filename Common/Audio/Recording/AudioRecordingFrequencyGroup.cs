@@ -52,7 +52,6 @@ public class AudioRecordingFrequencyGroup
     {
         //sort out effects!
         //16bit PCM Audio
-        //TODO: Clean  - remove if we havent received audio in a while?
         // If we have recieved audio, create a new buffered audio and read it
         ClientRecordedAudioProvider client = null;
         if (RecordedAudioProvider.TryGetValue(audio.OriginalClientGuid, out var value))

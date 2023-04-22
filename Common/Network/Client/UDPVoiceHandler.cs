@@ -150,8 +150,6 @@ public class UDPVoiceHandler
             && udpVoicePacket != null)
             try
             {
-                //TODO check this
-
                 if (udpVoicePacket.GuidBytes == null) udpVoicePacket.GuidBytes = _guidAsciiBytes;
 
                 if (udpVoicePacket.OriginalClientGuidBytes == null)
