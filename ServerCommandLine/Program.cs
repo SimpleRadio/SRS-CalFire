@@ -225,7 +225,7 @@ public class Options
         Required = false)]
     public float GroundRadioEffectVolume { get; set; }
 
-    [Option("groundRadioEffectVolume",
+    [Option("sessionId",
         HelpText =
             "Session ID",
         Required = true)]

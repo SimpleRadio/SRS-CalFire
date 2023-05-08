@@ -27,8 +27,7 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
     private readonly string _guid;
 
     private readonly SyncedServerSettings _serverSettings = SyncedServerSettings.Instance;
-    private readonly List<Guid> _subscriptions = new();
-
+    
     private long _lastSent = -1;
     private PlayerUnitStateBase _playerUnitState;
     private IPEndPoint _serverEndpoint;

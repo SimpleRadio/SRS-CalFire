@@ -184,23 +184,4 @@ namespace NAudio.Wave.SampleProviders
             return outputSamples;
         }
     }
-
-    /// <summary>
-    /// SampleProvider event args
-    /// </summary>
-    public class SampleProviderEventArgs : EventArgs
-    {
-        /// <summary>
-        /// Constructs a new SampleProviderEventArgs
-        /// </summary>
-        public SampleProviderEventArgs(ISampleProvider sampleProvider)
-        {
-            SampleProvider = sampleProvider;
-        }
-
-        /// <summary>
-        /// The Sample Provider
-        /// </summary>
-        public ISampleProvider SampleProvider { get; private set; }
-    }
 }

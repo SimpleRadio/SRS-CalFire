@@ -30,7 +30,6 @@
     </PropertyGroup>
     <ItemGroup>
         <Folder Include="Audio\NAudioLame\" />
-        <Folder Include="Network\Server\" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Caliburn.Micro.Core" Version="4.0.212" />
