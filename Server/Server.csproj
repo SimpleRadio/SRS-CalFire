@@ -16,7 +16,11 @@
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
         <LangVersion>11</LangVersion>
-        <Nullable>enable</Nullable>
+        <Nullable>disable</Nullable>
+        <IsPackable>false</IsPackable>
+        <Company>Ciribob/SRS</Company>
+        <AssemblyVersion>1.0.0.4</AssemblyVersion>
+        <FileVersion>1.0.0.4</FileVersion>
     </PropertyGroup>
     <PropertyGroup>
         <ApplicationIcon>server-10.ico</ApplicationIcon>
@@ -45,107 +49,34 @@
         <Content Include="NLog.config">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <AppDesigner Include="Properties\"/>
+        <AppDesigner Include="Properties\" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\Common\Common.csproj"/>
+        <ProjectReference Include="..\Common\Common.csproj" />
+        <ProjectReference Include="..\SharedAudio\SharedAudio.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <Resource Include="server-10.ico"/>
+        <Resource Include="server-10.ico" />
     </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.3.246501">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Caliburn.Micro" Version="4.0.173"/>
+        <PackageReference Include="Caliburn.Micro" Version="4.0.173" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2"/>
-        <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.Primitives" Version="5.0.1"/>
-        <PackageReference Include="Microsoft.Windows.Compatibility" Version="5.0.2"/>
-        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.37"/>
-        <PackageReference Include="PropertyChanged.Fody" Version="3.4.0"/>
-        <PackageReference Include="Sentry" Version="3.10.0"/>
-        <PackageReference Include="Sentry.PlatformAbstractions" Version="1.1.1"/>
-        <PackageReference Include="Sentry.Protocol" Version="2.1.8"/>
-        <PackageReference Include="SharpConfig" Version="3.2.9.1"/>
-        <PackageReference Include="System.ComponentModel" Version="4.3.0"/>
-    </ItemGroup>
-    <ItemGroup>
-        <None Update="AudioEffects\AIRCRAFT_NOISE.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\AM_COLLISION.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\beep-connected.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\beep-disconnected.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\FM_NOISE.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\GROUND_NOISE.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\HAVEQUICK_TONE.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\HF_NOISE.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\INTERCOM_TRANS_END.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\INTERCOM_TRANS_END_SILENT.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\INTERCOM_TRANS_START.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\INTERCOM_TRANS_START_SILENT.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\KY_58_RX.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\KY_58_TX.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\MIDS_TX.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\MIDS_TX_END.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\NATO_TONE.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\RADIO_TRANS_END.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\RADIO_TRANS_END_ALTERNATE.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\RADIO_TRANS_START.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\RADIO_TRANS_START_ALTERNATE.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\RADIO_TRANS_START_Apache.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\UHF_NOISE.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-        <None Update="AudioEffects\VHF_NOISE.wav">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Primitives" Version="5.0.1" />
+        <PackageReference Include="Microsoft.Windows.Compatibility" Version="5.0.2" />
+        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.37" />
+        <PackageReference Include="PropertyChanged.Fody" Version="3.4.0" />
+        <PackageReference Include="Sentry" Version="3.10.0" />
+        <PackageReference Include="Sentry.PlatformAbstractions" Version="1.1.1" />
+        <PackageReference Include="Sentry.Protocol" Version="2.1.8" />
+        <PackageReference Include="SharpConfig" Version="3.2.9.1" />
+        <PackageReference Include="System.ComponentModel" Version="4.3.0" />
     </ItemGroup>
 
 </Project>

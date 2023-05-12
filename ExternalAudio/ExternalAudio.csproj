@@ -4,16 +4,17 @@
         <OutputType>Exe</OutputType>
         <RootNamespace>Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient</RootNamespace>
         <AssemblyName>FS3D-SRS-ExternalAudio</AssemblyName>
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-        <UseWindowsForms>true</UseWindowsForms>
-        <UseWPF>true</UseWPF>
-        <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
         <PlatformTarget>x64</PlatformTarget>
         <PublishSingleFile>false</PublishSingleFile>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
         <LangVersion>11</LangVersion>
-        <Nullable>enable</Nullable>
+        <Nullable>disable</Nullable>
+        <IsPackable>false</IsPackable>
+        <Company>Ciribob/SRS</Company>
+        <AssemblyVersion>1.0.0.4</AssemblyVersion>
+        <FileVersion>1.0.0.4</FileVersion>
     </PropertyGroup>
     <PropertyGroup>
         <StartupObject>Ciribob.FS3D.SimpleRadio.Standalone.ExternalAudioClient.Client.Program</StartupObject>
@@ -27,13 +28,13 @@
         <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     </PropertyGroup>
     <ItemGroup>
-        <Reference Include="System.Speech"/>
+        <Reference Include="System.Speech" />
     </ItemGroup>
     <ItemGroup>
-        <None Include="LICENSE"/>
+        <None Include="LICENSE" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\Common\Common.csproj"/>
+        <ProjectReference Include="..\Common\Common.csproj" />
     </ItemGroup>
     <ItemGroup>
         <None Update="FodyWeavers.xml">
@@ -41,18 +42,18 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="CommandLineParser" Version="2.8.0"/>
-        <PackageReference Include="Google.Api.CommonProtos" Version="2.4.0"/>
-        <PackageReference Include="Google.Apis.Auth" Version="1.55.0"/>
-        <PackageReference Include="Google.Cloud.TextToSpeech.V1" Version="2.3.0"/>
-        <PackageReference Include="Google.Protobuf" Version="3.19.0"/>
-        <PackageReference Include="Grpc.Auth" Version="2.41.0"/>
-        <PackageReference Include="Grpc.Core" Version="2.41.0"/>
-        <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0"/>
+        <PackageReference Include="CommandLineParser" Version="2.8.0" />
+        <PackageReference Include="Google.Api.CommonProtos" Version="2.4.0" />
+        <PackageReference Include="Google.Apis.Auth" Version="1.55.0" />
+        <PackageReference Include="Google.Cloud.TextToSpeech.V1" Version="2.3.0" />
+        <PackageReference Include="Google.Protobuf" Version="3.19.0" />
+        <PackageReference Include="Grpc.Auth" Version="2.41.0" />
+        <PackageReference Include="Grpc.Core" Version="2.41.0" />
+        <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
         <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.3.246501">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="NAudio" Version="2.1.0"/>
-        <PackageReference Include="System.Speech" Version="5.0.0"/>
+        <PackageReference Include="NAudio" Version="2.1.0" />
+        <PackageReference Include="System.Speech" Version="5.0.0" />
     </ItemGroup>
 </Project>

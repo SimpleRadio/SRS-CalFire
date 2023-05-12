@@ -55,6 +55,11 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
     public UDPVoiceRouter(ConcurrentDictionary<string, SRClientBase> clientsList, IEventAggregator eventAggregator,
         string sessionId = "")
     {
+        if (sessionId == "")
+        {
+            sessionId = $"{DateTime.Now.ToShortDateString().Replace("/","-")}-{DateTime.Now.ToShortTimeString().Replace(":","")}";
+            Logger.Info("Session Blank - generating one");
+        }
         _clientsList = clientsList;
         _eventAggregator = eventAggregator;
         _sessionId = sessionId;
@@ -78,7 +83,7 @@ internal class UDPVoiceRouter : IHandle<ServerFrequenciesChanged>, IHandle<Serve
     public Task HandleAsync(ServerStateMessage message, CancellationToken cancellationToken)
     {
         if (message.DisconnectingClientGuid != null && message.IsRunning)
-            _recordingManager.RemoveClientBuffer(message.DisconnectingClientGuid);
+            _recordingManager?.RemoveClientBuffer(message.DisconnectingClientGuid);
 
         return Task.CompletedTask;
     }

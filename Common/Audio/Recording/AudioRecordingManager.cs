@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -16,7 +17,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Recording;
 
 public class AudioRecordingManager
 {
-    private const int MAX_BUFFER_SECONDS = 2;
     private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
     //per frequency per client list
@@ -32,13 +32,11 @@ public class AudioRecordingManager
 
     private bool _stop;
 
-    private byte[] _temporaryBuffer = new byte[MAX_BUFFER_SECONDS];
-
     public AudioRecordingManager(string sessionId)
     {
         _sessionId = sessionId;
+        
         _sampleRate = Constants.OUTPUT_SAMPLE_RATE;
-        _maxSamples = _sampleRate * MAX_BUFFER_SECONDS;
 
         _stop = true;
     }
@@ -56,7 +54,7 @@ public class AudioRecordingManager
 
         while (!_stop)
         {
-            Thread.Sleep(500);
+            Thread.Sleep(100);
             ProcessClientWriters(timer.ElapsedMilliseconds);
             timer.Restart();
         }
@@ -90,7 +88,7 @@ public class AudioRecordingManager
 
     public void Start(List<double> recordingFrequencies)
     {
-        if (!ServerSettingsStore.Instance.GetServerSetting(ServerSettingsKeys.SERVER_RECORDING).BoolValue)
+        if (recordingFrequencies.Count == 0)
         {
             _processThreadDone = true;
             _logger.Info("Transmission recording disabled");

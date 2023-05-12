@@ -43,6 +43,7 @@ public class VolumeSampleProviderWithPeak : ISampleProvider
     {
         var samplesRead = source.Read(buffer, offset, sampleCount);
 
+        float peak = 0;
         for (var n = 0; n < sampleCount; n++)
         {
             var sample = buffer[offset + n];
@@ -53,10 +54,15 @@ public class VolumeSampleProviderWithPeak : ISampleProvider
                 sample = 1.0F;
             else if (sample < -1.0F) sample = -1.0F;
 
+            if (sample > peak)
+            {
+                peak = sample;
+            }
+
             buffer[offset + n] = sample;
         }
 
-        _samplePeak((float)VolumeConversionHelper.CalculateRMS(buffer, offset, sampleCount));
+        _samplePeak(peak);
 
         return samplesRead;
     }

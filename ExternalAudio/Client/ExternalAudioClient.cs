@@ -123,6 +123,7 @@ internal class ExternalAudioClient : IHandle<TCPClientStatusMessage>
 
         var tokenSource = new CancellationTokenSource();
 
+        uint _packetNumber = 1;
         //get all the audio as Opus frames of 40 ms
         //send on 40 ms timer 
 
@@ -141,7 +142,8 @@ internal class ExternalAudioClient : IHandle<TCPClientStatusMessage>
                         Frequencies = freq,
                         UnitId = 100000,
                         Encryptions = encryptionBytes,
-                        Modulations = modulationBytes
+                        Modulations = modulationBytes,
+                        PacketNumber = _packetNumber++
                     };
 
                     udpVoiceHandler.Send(udpVoicePacket);

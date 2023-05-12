@@ -15,7 +15,9 @@
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
         <LangVersion>11</LangVersion>
-        <Nullable>enable</Nullable>
+        <Nullable>disable</Nullable>
+        <IsPackable>false</IsPackable>
+        <Company>Ciribob/SRS</Company>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -39,9 +41,9 @@
         <Version>1.0.0.4</Version>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-        <NoWarn/>
+        <NoWarn />
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-        <WarningsAsErrors/>
+        <WarningsAsErrors />
     </PropertyGroup>
     <ItemGroup>
         <None Update="AudioEffects\AIRCRAFT.wav">
@@ -56,11 +58,12 @@
         <None Update="aircraft-radios.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <AppDesigner Include="Properties\"/>
-        <None Remove="Resources\**"/>
+        <AppDesigner Include="Properties\" />
+        <None Remove="Resources\**" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\Common\Common.csproj"/>
+        <ProjectReference Include="..\Common\Common.csproj" />
+        <ProjectReference Include="..\SharedAudio\SharedAudio.csproj" />
     </ItemGroup>
     <ItemGroup>
         <None Update="multi-radio.json">
@@ -75,55 +78,55 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-        <Resource Include="server-10.ico"/>
+        <Resource Include="server-10.ico" />
     </ItemGroup>
     <ItemGroup>
-        <Resource Include="audio-headset.ico"/>
+        <Resource Include="audio-headset.ico" />
     </ItemGroup>
     <ItemGroup>
-        <Resource Include="status-disconnected-game.png"/>
-        <Resource Include="status-connected.png"/>
-        <Resource Include="status-disconnected-error.png"/>
-        <Resource Include="status-disconnected.png"/>
+        <Resource Include="status-disconnected-game.png" />
+        <Resource Include="status-connected.png" />
+        <Resource Include="status-disconnected-error.png" />
+        <Resource Include="status-disconnected.png" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Caliburn.Micro" Version="4.0.173"/>
-        <PackageReference Include="Caliburn.Micro.Core" Version="4.0.212"/>
-        <PackageReference Include="ControlzEx" Version="5.0.1"/>
+        <PackageReference Include="Caliburn.Micro" Version="4.0.173" />
+        <PackageReference Include="Caliburn.Micro.Core" Version="4.0.212" />
+        <PackageReference Include="ControlzEx" Version="5.0.1" />
         <PackageReference Include="Fody" Version="6.5.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0"/>
-        <PackageReference Include="MahApps.Metro" Version="2.4.9"/>
-        <PackageReference Include="MathNet.Filtering" Version="0.7.0"/>
-        <PackageReference Include="MathNet.Numerics" Version="4.15.0"/>
-        <PackageReference Include="Microsoft.Windows.Compatibility" Version="5.0.2"/>
-        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.37"/>
-        <PackageReference Include="NAudio.Wasapi" Version="2.1.0"/>
-        <PackageReference Include="PropertyChanged.Fody" Version="3.4.0"/>
-        <PackageReference Include="Sentry" Version="3.10.0"/>
-        <PackageReference Include="Sentry.PlatformAbstractions" Version="1.1.1"/>
-        <PackageReference Include="Sentry.Protocol" Version="2.1.8"/>
-        <PackageReference Include="SharpConfig" Version="3.2.9.1"/>
-        <PackageReference Include="SharpDX.DirectInput" Version="4.2.0"/>
-        <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0"/>
+        <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
+        <PackageReference Include="MahApps.Metro" Version="2.4.9" />
+        <PackageReference Include="MathNet.Filtering" Version="0.7.0" />
+        <PackageReference Include="MathNet.Numerics" Version="4.15.0" />
+        <PackageReference Include="Microsoft.Windows.Compatibility" Version="5.0.2" />
+        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.37" />
+        <PackageReference Include="NAudio.Wasapi" Version="2.1.0" />
+        <PackageReference Include="PropertyChanged.Fody" Version="3.4.0" />
+        <PackageReference Include="Sentry" Version="3.10.0" />
+        <PackageReference Include="Sentry.PlatformAbstractions" Version="1.1.1" />
+        <PackageReference Include="Sentry.Protocol" Version="2.1.8" />
+        <PackageReference Include="SharpConfig" Version="3.2.9.1" />
+        <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" />
+        <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
         <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.3.246501">
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="WebRtcVadSharp" Version="1.3.2"/>
-        <PackageReference Include="WPFCustomMessageBox.Fork" Version="1.0.9"/>
+        <PackageReference Include="WebRtcVadSharp" Version="1.3.2" />
+        <PackageReference Include="WPFCustomMessageBox.Fork" Version="1.0.9" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Remove="Audio\BufferedSampleProvider.cs"/>
-        <Compile Remove="DejitterBuffer.cs"/>
-        <Compile Remove="Resources\**"/>
+        <Compile Remove="Audio\BufferedSampleProvider.cs" />
+        <Compile Remove="DejitterBuffer.cs" />
+        <Compile Remove="Resources\**" />
     </ItemGroup>
     <ItemGroup>
-        <EmbeddedResource Remove="Resources\**"/>
+        <EmbeddedResource Remove="Resources\**" />
     </ItemGroup>
     <ItemGroup>
-        <Page Remove="Resources\**"/>
+        <Page Remove="Resources\**" />
     </ItemGroup>
     <ItemGroup>
         <Compile Update="Properties\Resources.Designer.cs">
@@ -144,6 +147,6 @@
         </EmbeddedResource>
     </ItemGroup>
     <ItemGroup>
-        <Folder Include="UI\Common"/>
+        <Folder Include="UI\Common" />
     </ItemGroup>
 </Project>

@@ -38,7 +38,7 @@ public class AudioRecordingFrequencyGroup
 
         var samplesRequired = (int)elapsedTime * (_waveFormat.SampleRate / 1000);
 
-        if (samplesRequired > _buffer.FloatBufferCount) _buffer = new WaveBuffer(samplesRequired * 4);
+        if (samplesRequired*4 > _buffer.MaxSize) _buffer = new WaveBuffer(samplesRequired * 4);
 
         var read = 0;
 
