@@ -699,6 +699,7 @@ public class UDPClientAudioProcessor : IDisposable
             _udpCommandListener = null;
             _udpStateSender?.Stop();
             _udpStateSender = null;
+            InputDeviceManager.Instance.StopListening();
         }
     }
 }

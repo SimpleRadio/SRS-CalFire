@@ -65,7 +65,7 @@ public class MainWindowViewModel : PropertyChangedBase, IHandle<TCPClientStatusM
 
         MultiRadioOverlayCommand = new DelegateCommand(MultiRadioOverlay);
 
-        TrayIconQuitCommand = new DelegateCommand(() => { Application.Current.MainWindow.Close(); });
+        TrayIconQuitCommand = new DelegateCommand(() => { Application.Current.Shutdown(); });
 
         _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         _updateTimer.Tick += UpdatePlayerCountAndVUMeters;

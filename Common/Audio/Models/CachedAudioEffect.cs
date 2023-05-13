@@ -30,7 +30,7 @@ public class CachedAudioEffect
     private static readonly WaveFormat RequiredFormat = new(Constants.OUTPUT_SAMPLE_RATE, 16, 1);
 
     public CachedAudioEffect(AudioEffectTypes audioEffect) : this(audioEffect, audioEffect + ".wav",
-        AppDomain.CurrentDomain.BaseDirectory + "\\AudioEffects\\" + audioEffect + ".wav")
+        AppDomain.CurrentDomain.BaseDirectory + $"{Path.DirectorySeparatorChar}AudioEffects{Path.DirectorySeparatorChar}" + audioEffect + ".wav")
     {
     }
 
@@ -71,11 +71,11 @@ public class CachedAudioEffect
                     }
                 }
             else
-                Logger.Info($"Unable to find file for effect {audioEffect} in AudioEffects\\{FileName} ");
+                Logger.Info($"Unable to find file for effect {audioEffect} in AudioEffects{Path.DirectorySeparatorChar}{FileName} ");
         }
         catch (Exception ex)
         {
-            Logger.Error($"Unable to find file for effect {audioEffect} in AudioEffects\\{FileName} ", ex);
+            Logger.Error($"Unable to find file for effect {audioEffect} in AudioEffects{Path.DirectorySeparatorChar}{FileName} ", ex);
         }
     }
 

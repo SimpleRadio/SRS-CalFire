@@ -6,6 +6,7 @@
         <AssemblyName>SRS-Common</AssemblyName>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <UseWindowsForms>false</UseWindowsForms>
+        <PlatformTarget>AnyCPU</PlatformTarget>
         <UseWPF>false</UseWPF>
         <ImportWindowsDesktopTargets>false</ImportWindowsDesktopTargets>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

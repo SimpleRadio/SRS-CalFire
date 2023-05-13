@@ -26,13 +26,15 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
         new();
 
     private readonly IEventAggregator _eventAggregator;
+    private readonly string _sessionId;
     private UDPVoiceRouter _serverListener;
     private ServerSync _serverSync;
     private volatile bool _stop = true;
 
-    public ServerState(IEventAggregator eventAggregator)
+    public ServerState(IEventAggregator eventAggregator, string sessionId="")
     {
         _eventAggregator = eventAggregator;
+        _sessionId = sessionId;
         _eventAggregator.Subscribe(this);
 
         StartServer();
@@ -90,7 +92,7 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
     {
         if (_serverListener == null)
         {
-            _serverListener = new UDPVoiceRouter(_connectedClients, _eventAggregator);
+            _serverListener = new UDPVoiceRouter(_connectedClients, _eventAggregator, _sessionId);
             var listenerThread = new Thread(_serverListener.Listen);
             listenerThread.Start();
 

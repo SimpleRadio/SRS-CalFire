@@ -108,7 +108,7 @@ internal class Program
             options.AircraftRadioEffectVolume);
         profileSettings.SetClientSettingFloat(ProfileSettingsKeys.GroundNoiseVolume, options.GroundRadioEffectVolume);
 
-        _serverState = new ServerState(_eventAggregator);
+        _serverState = new ServerState(_eventAggregator, options.SessionId);
     }
 
     private void SetupLogging()
