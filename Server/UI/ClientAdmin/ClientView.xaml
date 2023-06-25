@@ -16,7 +16,7 @@
                    HorizontalAlignment="Left"
                    VerticalAlignment="Center"
                    TextAlignment="Center" />
-     
+
         <Button Name="KickClient"
                 Width="28"
                 Margin="2,0,4,0"

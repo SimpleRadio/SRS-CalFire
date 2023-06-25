@@ -5,77 +5,76 @@ using System.Linq;
 using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Models;
 
-namespace Ciribob.SRS.Common.Network.Singletons
+namespace Ciribob.SRS.Common.Network.Singletons;
+
+public sealed class ConnectedClientsSingleton : PropertyChangedBase
 {
-    public sealed class ConnectedClientsSingleton : PropertyChangedBase
+    private static volatile ConnectedClientsSingleton _instance;
+    private static readonly object _lock = new();
+
+    private ConnectedClientsSingleton()
     {
-        private static volatile ConnectedClientsSingleton _instance;
-        private static readonly object _lock = new();
+    }
 
-        private ConnectedClientsSingleton()
+    public ConcurrentDictionary<string, SRClientBase> Clients { get; } = new();
+
+    public static ConnectedClientsSingleton Instance
+    {
+        get
         {
+            if (_instance == null)
+                lock (_lock)
+                {
+                    if (_instance == null)
+                        _instance = new ConnectedClientsSingleton();
+                }
+
+            return _instance;
         }
+    }
 
-        public ConcurrentDictionary<string, SRClientBase> Clients { get; } = new();
-
-        public static ConnectedClientsSingleton Instance
+    public SRClientBase this[string key]
+    {
+        get => Clients[key];
+        set
         {
-            get
-            {
-                if (_instance == null)
-                    lock (_lock)
-                    {
-                        if (_instance == null)
-                            _instance = new ConnectedClientsSingleton();
-                    }
-
-                return _instance;
-            }
+            Clients[key] = value;
+            NotifyAll();
         }
+    }
 
-        public SRClientBase this[string key]
-        {
-            get => Clients[key];
-            set
-            {
-                Clients[key] = value;
-                NotifyAll();
-            }
-        }
-
-        public ICollection<SRClientBase> Values => Clients.Values;
+    public ICollection<SRClientBase> Values => Clients.Values;
 
 
-        public int Total => Clients.Count();
+    public int Total => Clients.Count();
 
-        public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler PropertyChanged;
 
-        public void NotifyAll()
-        {
-            NotifyPropertyChanged("Total");
-        }
+    public void NotifyAll()
+    {
+        NotifyPropertyChanged("Total");
+    }
 
-        public bool TryRemove(string key, out SRClientBase value)
-        {
-            var result = Clients.TryRemove(key, out value);
-            if (result) NotifyPropertyChanged("Total");
-            return result;
-        }
+    public bool TryRemove(string key, out SRClientBase value)
+    {
+        var result = Clients.TryRemove(key, out value);
+        if (result) NotifyPropertyChanged("Total");
+        return result;
+    }
 
-        public void Clear()
-        {
-            Clients.Clear();
-            NotifyPropertyChanged("Total");
-        }
+    public void Clear()
+    {
+        Clients.Clear();
+        NotifyPropertyChanged("Total");
+    }
 
-        public bool TryGetValue(string key, out SRClientBase value)
-        {
-            return Clients.TryGetValue(key, out value);
-        }
+    public bool TryGetValue(string key, out SRClientBase value)
+    {
+        return Clients.TryGetValue(key, out value);
+    }
 
-        public bool ContainsKey(string key)
-        {
-            return Clients.ContainsKey(key);
-        }
+    public bool ContainsKey(string key)
+    {
+        return Clients.ContainsKey(key);
     }
 }

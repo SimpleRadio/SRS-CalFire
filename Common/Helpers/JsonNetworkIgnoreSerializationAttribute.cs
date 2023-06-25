@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Ciribob.SRS.Common.Helpers
+namespace Ciribob.SRS.Common.Helpers;
+
+public class JsonNetworkIgnoreSerializationAttribute : Attribute
 {
-    public class JsonNetworkIgnoreSerializationAttribute : Attribute
-    {
-    }
 }

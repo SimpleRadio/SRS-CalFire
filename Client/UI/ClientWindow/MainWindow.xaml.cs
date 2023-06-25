@@ -3,82 +3,79 @@ using System.ComponentModel;
 using System.Runtime;
 using System.Windows;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.SRS.Common.Setting;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
 using MahApps.Metro.Controls;
 using NLog;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow;
+
+/// <summary>
+///     Interaction logic for MainWindow.xaml
+/// </summary>
+public partial class MainWindow : MetroWindow
 {
-    /// <summary>
-    ///     Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : MetroWindow
+    private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
+    private readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+    public MainWindow()
     {
-        private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
-        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
-        public MainWindow()
+        InitializeComponent();
+
+        // Initialize images/icons
+        Images.Init();
+
+        // Initialise sounds
+        Sounds.Init();
+
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Left = _globalSettings.GetPositionSetting(GlobalSettingsKeys.ClientX).DoubleValue;
+        Top = _globalSettings.GetPositionSetting(GlobalSettingsKeys.ClientY).DoubleValue;
+
+        Title = Title + " - " + UpdaterChecker.VERSION;
+
+        if (_globalSettings.GetClientSettingBool(GlobalSettingsKeys.StartMinimised))
         {
-            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+            Hide();
+            WindowState = WindowState.Minimized;
 
-            InitializeComponent();
-
-            // Initialize images/icons
-            Images.Init();
-
-            // Initialise sounds
-            Sounds.Init();
-
-            WindowStartupLocation = WindowStartupLocation.Manual;
-            Left = _globalSettings.GetPositionSetting(GlobalSettingsKeys.ClientX).DoubleValue;
-            Top = _globalSettings.GetPositionSetting(GlobalSettingsKeys.ClientY).DoubleValue;
-
-            Title = Title + " - " + UpdaterChecker.VERSION;
-
-            if (_globalSettings.GetClientSettingBool(GlobalSettingsKeys.StartMinimised))
-            {
-                Hide();
-                WindowState = WindowState.Minimized;
-
-                Logger.Info("Started FS3D SRS Client " + UpdaterChecker.VERSION + " minimized");
-            }
-            else
-            {
-                Logger.Info("Started FS3D SRS Client " + UpdaterChecker.VERSION);
-            }
-
-            DataContext = new MainWindowViewModel();
-
-            string[] args = Environment.GetCommandLineArgs();
-
-            foreach (string arg in args)
-            {
-                if (arg.StartsWith("--server="))
-                {
-                    var address = arg.Replace("--server=", "");
-                    ((MainWindowViewModel)DataContext).ServerAddress = address;
-                    ((MainWindowViewModel)DataContext).Connect();
-                }
-            }
+            Logger.Info("Started FS3D SRS Client " + UpdaterChecker.VERSION + " minimized");
+        }
+        else
+        {
+            Logger.Info("Started FS3D SRS Client " + UpdaterChecker.VERSION);
         }
 
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            ((MainWindowViewModel)DataContext).OnClosing();
+        DataContext = new MainWindowViewModel();
 
-            _globalSettings.SetPositionSetting(GlobalSettingsKeys.ClientX, Left);
-            _globalSettings.SetPositionSetting(GlobalSettingsKeys.ClientY, Top);
+        var args = Environment.GetCommandLineArgs();
 
-            //save window position
-            base.OnClosing(e);
-        }
+        foreach (var arg in args)
+            if (arg.StartsWith("--server="))
+            {
+                var address = arg.Replace("--server=", "");
+                ((MainWindowViewModel)DataContext).ServerAddress = address;
+                ((MainWindowViewModel)DataContext).Connect();
+            }
+    }
 
-        protected override void OnStateChanged(EventArgs e)
-        {
-            if (WindowState == WindowState.Minimized &&
-                _globalSettings.GetClientSettingBool(GlobalSettingsKeys.MinimiseToTray)) Hide();
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        ((MainWindowViewModel)DataContext).OnClosing();
 
-            base.OnStateChanged(e);
-        }
+        _globalSettings.SetPositionSetting(GlobalSettingsKeys.ClientX, Left);
+        _globalSettings.SetPositionSetting(GlobalSettingsKeys.ClientY, Top);
+
+        //save window position
+        base.OnClosing(e);
+    }
+
+    protected override void OnStateChanged(EventArgs e)
+    {
+        if (WindowState == WindowState.Minimized &&
+            _globalSettings.GetClientSettingBool(GlobalSettingsKeys.MinimiseToTray)) Hide();
+
+        base.OnStateChanged(e);
     }
 }

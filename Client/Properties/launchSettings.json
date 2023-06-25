@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Client": {
-      "commandName": "Project",
-      "commandLineArgs": "--server=127.0.0.1:5002"
+      "commandName": "Project"
     }
   }
 }

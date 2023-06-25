@@ -10,7 +10,6 @@
                       xmlns:resx="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.Properties"
                       xmlns:clientSettingsControl="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ClientSettingsControl"
                       xmlns:inputSettingsControl="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.InputSettingsControl"
-                      xmlns:settings="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings"
                       Title="FS3D SRS Client"
                       Width="550"
                       Height="590"
@@ -137,7 +136,7 @@
                                  MaxLines="1"
                                  Text="{Binding ServerAddress , Mode=TwoWay}"
                                  TextWrapping="Wrap"
-                                 IsEnabled="{Binding IsNotConnected, Mode=OneWay}"/>
+                                 IsEnabled="{Binding IsNotConnected, Mode=OneWay}" />
 
                     </StackPanel>
 
@@ -180,11 +179,11 @@
                                 Margin="0,15,0,0"
                                 HorizontalAlignment="Center"
                                 Command="{Binding ClientListCommand}"
-                                Content="Toggle Client List" 
+                                Content="Toggle Client List"
                                 IsEnabled="{Binding IsConnected}" />
                     </StackPanel>
 
-                  
+
                     <StackPanel Margin="0"
                                 HorizontalAlignment="Center"
                                 Orientation="Horizontal">
@@ -229,10 +228,10 @@
 
         <TabItem Header="Controls">
             <GroupBox x:Name="ControlsGroupBox" Header="Controls">
-        
+
                 <inputSettingsControl:InputSettings />
             </GroupBox>
-        
+
         </TabItem>
 
         <TabItem Header="Settings">

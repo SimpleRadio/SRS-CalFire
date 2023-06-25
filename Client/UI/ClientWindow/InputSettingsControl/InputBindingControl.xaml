@@ -19,7 +19,7 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="30" />
-            <RowDefinition  Height="30" />
+            <RowDefinition Height="30" />
 
         </Grid.RowDefinitions>
 
@@ -33,12 +33,11 @@
                  Grid.Column="1"
                  TextAlignment="Center"
                  IsEnabled="False"
-                 Text="None"
-        />
+                 Text="None" />
         <TextBox x:Name="DeviceText"
                  Grid.Row="0"
                  Grid.Column="2"
-               
+
                  IsEnabled="False"
                  Text="None"
                  TextAlignment="Center" />
@@ -46,14 +45,12 @@
                 Grid.Row="0"
                 Grid.Column="3"
                 Click="Device_Click"
-                Content="Set "
-                 />
+                Content="Set " />
         <Button x:Name="DeviceClear"
                 Grid.Row="0"
                 Grid.Column="4"
                 Click="DeviceClear_Click"
-                Content="Clear"
-                />
+                Content="Clear" />
 
         <Label x:Name="ModifierLabel"
                Grid.Row="1"
@@ -78,14 +75,12 @@
                 Grid.Row="1"
                 Grid.Column="3"
                 Click="Modifier_Click"
-                Content="Set "
-               />
+                Content="Set " />
         <Button x:Name="ModifierButtonClear"
                 Grid.Row="1"
                 Grid.Column="4"
                 Click="ModifierClear_Click"
-                Content="Clear"
-                 />
+                Content="Clear" />
 
     </Grid>
 

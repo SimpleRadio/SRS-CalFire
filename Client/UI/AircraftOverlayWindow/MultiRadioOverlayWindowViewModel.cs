@@ -10,154 +10,134 @@ using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Singletons;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AircraftOverlayWindow
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.AircraftOverlayWindow;
+
+public class MultiRadioOverlayWindowViewModel : PropertyChangedBase
 {
-    public class MultiRadioOverlayWindowViewModel: PropertyChangedBase
+    private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
+    private readonly ConnectedClientsSingleton _connectClientsSingleton = ConnectedClientsSingleton.Instance;
+    private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
+    private DispatcherTimer _updateTimer;
+
+    public MultiRadioOverlayWindowViewModel()
     {
-        private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
-        private readonly ConnectedClientsSingleton _connectClientsSingleton = ConnectedClientsSingleton.Instance;
-        private DispatcherTimer _updateTimer;
-        private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
+        //TODO
+        // Add support for intercom
+        // Add support for opacity
+        // Add support for hotkeys
 
-        public ICommand RadioSelect { get; set; }
-
-        public bool HotIntercomMicToggle
+        RadioSelect = new DelegateCommand(() =>
         {
-            get => ClientStateSingleton.Instance.PlayerUnitState.IntercomHotMic;
-            set
-            {
-                ClientStateSingleton.Instance.PlayerUnitState.IntercomHotMic = value;
+            RadioHelper.SelectRadio(0);
+            NotifyPropertyChanged(nameof(Radio));
+        }, () => IsAvailable);
+    }
 
-                NotifyPropertyChanged();
-            }
+    public ICommand RadioSelect { get; set; }
+
+    public bool HotIntercomMicToggle
+    {
+        get => ClientStateSingleton.Instance.PlayerUnitState.IntercomHotMic;
+        set
+        {
+            ClientStateSingleton.Instance.PlayerUnitState.IntercomHotMic = value;
+
+            NotifyPropertyChanged();
         }
+    }
 
-        public Radio Radio => ClientStateSingleton.Instance.PlayerUnitState.Radios[0];
+    public Radio Radio => ClientStateSingleton.Instance.PlayerUnitState.Radios[0];
 
-        public void Start()
+    public bool IsAvailable
+    {
+        get
         {
-            Stop();
-            _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
-            _updateTimer.Tick += RefreshView;
-            _updateTimer.Start();
+            var radio = Radio;
+
+            if (radio == null) return false;
+
+            return radio.Modulation != Modulation.DISABLED;
         }
+    }
 
-
-        public void Stop()
+    public SolidColorBrush RadioActiveFill
+    {
+        get
         {
-            _updateTimer?.Stop();
-            _updateTimer = null;
+            if (Radio == null || !IsAvailable) return new SolidColorBrush(Colors.Red);
+
+            if (ClientStateSingleton.Instance.RadioSendingState.IsSending &&
+                ClientStateSingleton.Instance.RadioSendingState.SendingOn == 0)
+                return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#96FF6D"));
+            if (ClientStateSingleton.Instance.PlayerUnitState.SelectedRadio != 0)
+                return new SolidColorBrush(Colors.Orange);
+            return new SolidColorBrush(Colors.Green);
         }
+    }
 
-        private void RefreshView(object? sender, EventArgs e)
+    public bool VolumeEnabled
+    {
+        get
         {
-            NotifyPropertyChanged(nameof(RadioActiveFill));
-            NotifyPropertyChanged(nameof(Volume));
-            NotifyPropertyChanged(nameof(HotIntercomMicToggle));
-        }
-
-        public bool IsAvailable
-        {
-            get
-            {
-                var radio = Radio;
-
-                if (radio == null)
-                {
-                    return false;
-                }
-
-                return radio.Modulation != Modulation.DISABLED;
-            }
-        }
-
-        public SolidColorBrush RadioActiveFill
-        {
-            get
-            {
-                if (Radio == null || !IsAvailable)
-                {
-                    return new SolidColorBrush(Colors.Red);
-                }
-
-                if (ClientStateSingleton.Instance.RadioSendingState.IsSending &&
-                    ClientStateSingleton.Instance.RadioSendingState.SendingOn == 0)
-                {
-                    return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#96FF6D"));
-                }
-                else if (ClientStateSingleton.Instance.PlayerUnitState.SelectedRadio != 0)
-                {
-                    return new SolidColorBrush(Colors.Orange);
-                }
-                else
-                {
-                    return new SolidColorBrush(Colors.Green);
-                }
-            }
-        }
-
-        public bool VolumeEnabled
-        {
-            get
-            {
-                if (IsAvailable)
-                {
-                    var currentRadio = Radio;
-
-                    if (currentRadio != null && currentRadio.Config.VolumeControl == RadioConfig.VolumeMode.OVERLAY)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-        }
-
-        public float Volume
-        {
-            get
+            if (IsAvailable)
             {
                 var currentRadio = Radio;
 
-                if (currentRadio != null)
-                {
-
-                    return currentRadio.Volume * 100.0f;
-                }
-
-                return 0f;
+                if (currentRadio != null && currentRadio.Config.VolumeControl == RadioConfig.VolumeMode.OVERLAY)
+                    return true;
             }
-            set
+
+            return false;
+        }
+    }
+
+    public float Volume
+    {
+        get
+        {
+            var currentRadio = Radio;
+
+            if (currentRadio != null) return currentRadio.Volume * 100.0f;
+
+            return 0f;
+        }
+        set
+        {
+            var currentRadio = Radio;
+
+            if (currentRadio != null)
             {
-                var currentRadio = Radio;
+                var clientRadio = _clientStateSingleton.PlayerUnitState.Radios[0];
 
-                if (currentRadio != null)
-                {
-                    var clientRadio = _clientStateSingleton.PlayerUnitState.Radios[0];
-
-                    clientRadio.Volume = value / 100.0f;
-                }
+                clientRadio.Volume = value / 100.0f;
             }
         }
+    }
 
-        public MultiRadioOverlayWindowViewModel()
-        {
-            //TODO
-            // Add support for intercom
-            // Add support for opacity
-            // Add support for hotkeys
+    public void Start()
+    {
+        Stop();
+        _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
+        _updateTimer.Tick += RefreshView;
+        _updateTimer.Start();
+    }
 
-            RadioSelect = new DelegateCommand(() =>
-            {
-                RadioHelper.SelectRadio(0);
-                NotifyPropertyChanged(nameof(Radio));
-            }, () => IsAvailable);
-        }
 
-        ~MultiRadioOverlayWindowViewModel()
-        {
-            _updateTimer?.Stop();
-        }
+    public void Stop()
+    {
+        _updateTimer?.Stop();
+        _updateTimer = null;
+    }
+
+    private void RefreshView(object? sender, EventArgs e)
+    {
+        NotifyPropertyChanged(nameof(RadioActiveFill));
+        NotifyPropertyChanged(nameof(Volume));
+        NotifyPropertyChanged(nameof(HotIntercomMicToggle));
+    }
+
+    ~MultiRadioOverlayWindowViewModel()
+    {
+        _updateTimer?.Stop();
     }
 }

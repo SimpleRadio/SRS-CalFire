@@ -1,74 +1,59 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
 using Ciribob.SRS.Common.Network.Models.EventMessages;
-using Ciribob.SRS.Common.Setting;
 using NLog;
 
-namespace Ciribob.SRS.Common.Network.Singletons
+namespace Ciribob.SRS.Common.Network.Singletons;
+
+public class SyncedServerSettings
 {
-    public class SyncedServerSettings
+    private static SyncedServerSettings instance;
+    private static readonly object _lock = new();
+    private static readonly Dictionary<string, string> defaults = DefaultServerSettings.Defaults;
+
+    private readonly ConcurrentDictionary<string, string> _settings;
+    private readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+    public SyncedServerSettings()
     {
-        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        private static SyncedServerSettings instance;
-        private static readonly object _lock = new object();
-        private static readonly Dictionary<string, string> defaults = DefaultServerSettings.Defaults;
+        _settings = new ConcurrentDictionary<string, string>();
+    }
 
-        private readonly ConcurrentDictionary<string, string> _settings;
+    public List<double> GlobalFrequencies { get; set; } = new();
 
-        public List<double> GlobalFrequencies { get; set; } = new List<double>();
-
-        // Node Limit of 0 means no retransmission
-        public int RetransmitNodeLimit { get; set; } = 0;
-
-        public SyncedServerSettings()
+    public static SyncedServerSettings Instance
+    {
+        get
         {
-            _settings = new ConcurrentDictionary<string, string>();
-        }
-
-        public static SyncedServerSettings Instance
-        {
-            get
+            lock (_lock)
             {
-                lock (_lock)
-                {
-                    if (instance == null) instance = new SyncedServerSettings();
-                }
-
-                return instance;
-            }
-        }
-
-        public  string ServerVersion { get; set; }
-
-        public string GetSetting(ServerSettingsKeys key)
-        {
-            var setting = key.ToString();
-
-            return _settings.GetOrAdd(setting, defaults.ContainsKey(setting) ? defaults[setting] : "");
-        }
-
-        public bool GetSettingAsBool(ServerSettingsKeys key)
-        {
-            return Convert.ToBoolean(GetSetting(key));
-        }
-
-        public void Decode(Dictionary<string, string> encoded)
-        {
-            foreach (var kvp in encoded)
-            {
-                _settings.AddOrUpdate(kvp.Key, kvp.Value, (key, oldVal) => kvp.Value);
-
-                if (kvp.Key.Equals(ServerSettingsKeys.RETRANSMISSION_NODE_LIMIT.ToString()))
-                {
-                    if (!int.TryParse(kvp.Value, out var nodeLimit))
-                        nodeLimit = 0;
-                    else
-                        RetransmitNodeLimit = nodeLimit;
-                }
+                if (instance == null) instance = new SyncedServerSettings();
             }
 
-            EventBus.Instance.PublishOnBackgroundThreadAsync(new ServerSettingsUpdatedMessage(_settings));
+            return instance;
         }
+    }
+
+    public string ServerVersion { get; set; }
+
+    public string GetSetting(ServerSettingsKeys key)
+    {
+        var setting = key.ToString();
+
+        return _settings.GetOrAdd(setting, defaults.ContainsKey(setting) ? defaults[setting] : "");
+    }
+
+    public bool GetSettingAsBool(ServerSettingsKeys key)
+    {
+        return Convert.ToBoolean(GetSetting(key));
+    }
+
+    public void Decode(Dictionary<string, string> encoded)
+    {
+        foreach (var kvp in encoded) _settings.AddOrUpdate(kvp.Key, kvp.Value, (key, oldVal) => kvp.Value);
+
+        EventBus.Instance.PublishOnBackgroundThreadAsync(new ServerSettingsUpdatedMessage(_settings));
     }
 }

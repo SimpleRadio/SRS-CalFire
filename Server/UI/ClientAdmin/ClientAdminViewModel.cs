@@ -8,55 +8,54 @@ using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models;
 using NLog;
 using LogManager = NLog.LogManager;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.ClientAdmin
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.UI.ClientAdmin;
+
+public sealed class ClientAdminViewModel : Screen, IHandle<ServerStateMessage>
 {
-    public sealed class ClientAdminViewModel : Screen, IHandle<ServerStateMessage>
+    private static readonly TimeSpan LastTransmissionThreshold = TimeSpan.FromMilliseconds(200);
+
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+    private readonly IEventAggregator _eventAggregator;
+    private readonly DispatcherTimer _updateTimer;
+
+    public ClientAdminViewModel(IEventAggregator eventAggregator)
     {
-        private static readonly TimeSpan LastTransmissionThreshold = TimeSpan.FromMilliseconds(200);
+        _eventAggregator = eventAggregator;
+        _eventAggregator.Subscribe(this);
 
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        private readonly IEventAggregator _eventAggregator;
-        private readonly DispatcherTimer _updateTimer;
+        DisplayName = "SR Client List";
 
-        public ClientAdminViewModel(IEventAggregator eventAggregator)
-        {
-            _eventAggregator = eventAggregator;
-            _eventAggregator.Subscribe(this);
+        _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
+        _updateTimer.Tick += _updateTimer_Tick;
+    }
 
-            DisplayName = "SR Client List";
+    public ObservableCollection<ClientViewModel> Clients { get; } = new();
 
-            _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
-            _updateTimer.Tick += _updateTimer_Tick;
-        }
+    public async Task HandleAsync(ServerStateMessage message, CancellationToken token)
+    {
+        Clients.Clear();
 
-        public ObservableCollection<ClientViewModel> Clients { get; } = new();
+        message.Clients.Apply(client => Clients.Add(new ClientViewModel(client, _eventAggregator)));
+    }
 
-        public async Task HandleAsync(ServerStateMessage message, CancellationToken token)
-        {
-            Clients.Clear();
+    protected override async Task OnActivateAsync(CancellationToken token)
+    {
+        _updateTimer?.Start();
 
-            message.Clients.Apply(client => Clients.Add(new ClientViewModel(client, _eventAggregator)));
-        }
+        base.OnActivateAsync(token);
+    }
 
-        protected override async Task OnActivateAsync(CancellationToken token)
-        {
-            _updateTimer?.Start();
+    protected override async Task OnDeactivateAsync(bool close, CancellationToken token)
+    {
+        if (close) _updateTimer?.Stop();
 
-            base.OnActivateAsync(token);
-        }
+        base.OnDeactivateAsync(close, token);
+    }
 
-        protected override async Task OnDeactivateAsync(bool close, CancellationToken token)
-        {
-            if (close) _updateTimer?.Stop();
-
-            base.OnDeactivateAsync(close, token);
-        }
-
-        private void _updateTimer_Tick(object sender, EventArgs e)
-        {
-            foreach (var client in Clients)
-                if (DateTime.Now - client.Client.LastTransmissionReceived >= LastTransmissionThreshold)
-                    client.Client.TransmittingFrequency = "---";
-        }
+    private void _updateTimer_Tick(object sender, EventArgs e)
+    {
+        foreach (var client in Clients)
+            if (DateTime.Now - client.Client.LastTransmissionReceived >= LastTransmissionThreshold)
+                client.Client.TransmittingFrequency = "---";
     }
 }

@@ -2,22 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json.Serialization;
 
-namespace Ciribob.SRS.Common.Helpers
+namespace Ciribob.SRS.Common.Helpers;
+
+public class JsonNetworkPropertiesResolver : DefaultContractResolver
 {
-    public class JsonNetworkPropertiesResolver : DefaultContractResolver
+    protected override List<MemberInfo> GetSerializableMembers(Type objectType)
     {
-        protected override List<MemberInfo> GetSerializableMembers(Type objectType)
-        {
-            var list = base.GetSerializableMembers(objectType);
+        var list = base.GetSerializableMembers(objectType);
 
-            //filter out things we dont want on the TCP network sync
-            list = list.Where(pi => !Attribute.IsDefined(pi, typeof(JsonNetworkIgnoreSerializationAttribute))).ToList();
+        //filter out things we dont want on the TCP network sync
+        list = list.Where(pi => !Attribute.IsDefined(pi, typeof(JsonNetworkIgnoreSerializationAttribute))).ToList();
 
-            return list;
-        }
+        return list;
     }
 }

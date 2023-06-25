@@ -2,61 +2,58 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Threading;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
 using Ciribob.SRS.Common.Network.Singletons;
-using Ciribob.SRS.Common.Setting;
 using MahApps.Metro.Controls;
 using NLog;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ServerSettingsWindow
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.ServerSettingsWindow;
+
+/// <summary>
+///     Interaction logic for ServerSettingsWindow.xaml
+/// </summary>
+public partial class ServerSettingsWindow : MetroWindow
 {
-    /// <summary>
-    ///     Interaction logic for ServerSettingsWindow.xaml
-    /// </summary>
-    public partial class ServerSettingsWindow : MetroWindow
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+    private readonly SyncedServerSettings _serverSettings = SyncedServerSettings.Instance;
+    private readonly DispatcherTimer _updateTimer;
+
+    public ServerSettingsWindow()
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        InitializeComponent();
 
-        private readonly SyncedServerSettings _serverSettings = SyncedServerSettings.Instance;
-        private readonly DispatcherTimer _updateTimer;
+        _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _updateTimer.Tick += UpdateUI;
+        _updateTimer.Start();
 
-        public ServerSettingsWindow()
+        UpdateUI(null, null);
+    }
+
+    private void UpdateUI(object sender, EventArgs e)
+    {
+        var settings = _serverSettings;
+
+        try
         {
-            InitializeComponent();
-
-            _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            _updateTimer.Tick += UpdateUI;
-            _updateTimer.Start();
-
-            UpdateUI(null, null);
+            RealRadio.Content = settings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_TX) ? "ON" : "OFF";
+            ServerVersion.Content = SyncedServerSettings.Instance.ServerVersion;
         }
-
-        private void UpdateUI(object sender, EventArgs e)
+        catch (IndexOutOfRangeException ex)
         {
-            var settings = _serverSettings;
-
-            try
-            {
-                RealRadio.Content = settings.GetSettingAsBool(ServerSettingsKeys.IRL_RADIO_TX) ? "ON" : "OFF";
-                ServerVersion.Content = SyncedServerSettings.Instance.ServerVersion;
-            
-            }
-            catch (IndexOutOfRangeException ex)
-            {
-                Logger.Warn("Missing Server Option - Connected to old server");
-            }
+            Logger.Warn("Missing Server Option - Connected to old server");
         }
+    }
 
-        private void CloseButton_OnClick(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
+    private void CloseButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        Close();
+    }
 
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            base.OnClosing(e);
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        base.OnClosing(e);
 
-            _updateTimer.Stop();
-        }
+        _updateTimer.Stop();
     }
 }

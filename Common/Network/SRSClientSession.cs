@@ -9,102 +9,101 @@ using Ciribob.SRS.Common.Network.Models;
 using Newtonsoft.Json;
 using NLog;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Server.Network;
+
+public class SRSClientSession : TcpSession
 {
-    public class SRSClientSession : TcpSession
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+    private readonly HashSet<IPAddress> _bannedIps;
+
+    private readonly ConcurrentDictionary<string, SRClientBase> _clients;
+
+    // Received data string.
+    private readonly StringBuilder _receiveBuffer = new();
+
+    public SRSClientSession(ServerSync server, ConcurrentDictionary<string, SRClientBase> client,
+        HashSet<IPAddress> bannedIps) : base(server)
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        private readonly HashSet<IPAddress> _bannedIps;
+        _clients = client;
+        _bannedIps = bannedIps;
+    }
 
-        private readonly ConcurrentDictionary<string, SRClientBase> _clients;
+    public string SRSGuid { get; set; }
 
-        // Received data string.
-        private readonly StringBuilder _receiveBuffer = new();
+    protected override void OnConnected()
+    {
+        var clientIp = (IPEndPoint)Socket.RemoteEndPoint;
 
-        public SRSClientSession(ServerSync server, ConcurrentDictionary<string, SRClientBase> client,
-            HashSet<IPAddress> bannedIps) : base(server)
+        if (_bannedIps.Contains(clientIp.Address))
         {
-            _clients = client;
-            _bannedIps = bannedIps;
+            Logger.Warn("Disconnecting Banned Client -  " + clientIp.Address + " " + clientIp.Port);
+
+            Disconnect();
         }
+    }
 
-        public string SRSGuid { get; set; }
-
-        protected override void OnConnected()
+    protected override void OnSent(long sent, long pending)
+    {
+        // Disconnect slow client with 50MB send buffer
+        if (pending > 5e+7)
         {
-            var clientIp = (IPEndPoint)Socket.RemoteEndPoint;
+            Logger.Error("Disconnecting - pending is too large");
+            Disconnect();
+        }
+    }
 
-            if (_bannedIps.Contains(clientIp.Address))
+    protected override void OnDisconnected()
+    {
+        _receiveBuffer.Clear();
+        ((ServerSync)Server).HandleDisconnect(this);
+    }
+
+    private List<NetworkMessage> GetNetworkMessage()
+    {
+        var messages = new List<NetworkMessage>();
+        //search for a \n, extract up to that \n and then remove from buffer
+        var content = _receiveBuffer.ToString();
+        while (content.Length > 2 && content.Contains("\n"))
+        {
+            //extract message
+            var message = content.Substring(0, content.IndexOf("\n", StringComparison.Ordinal) + 1);
+
+            //now clear from buffer
+            _receiveBuffer.Remove(0, message.Length);
+
+            try
             {
-                Logger.Warn("Disconnecting Banned Client -  " + clientIp.Address + " " + clientIp.Port);
-
-                Disconnect();
+                var networkMessage = JsonConvert.DeserializeObject<NetworkMessage>(message.Trim());
+                //trim the received part
+                messages.Add(networkMessage);
             }
-        }
-
-        protected override void OnSent(long sent, long pending)
-        {
-            // Disconnect slow client with 50MB send buffer
-            if (pending > 5e+7)
+            catch (Exception ex)
             {
-                Logger.Error("Disconnecting - pending is too large");
-                Disconnect();
-            }
-        }
-
-        protected override void OnDisconnected()
-        {
-            _receiveBuffer.Clear();
-            ((ServerSync)Server).HandleDisconnect(this);
-        }
-
-        private List<NetworkMessage> GetNetworkMessage()
-        {
-            var messages = new List<NetworkMessage>();
-            //search for a \n, extract up to that \n and then remove from buffer
-            var content = _receiveBuffer.ToString();
-            while (content.Length > 2 && content.Contains("\n"))
-            {
-                //extract message
-                var message = content.Substring(0, content.IndexOf("\n", StringComparison.Ordinal) + 1);
-
-                //now clear from buffer
-                _receiveBuffer.Remove(0, message.Length);
-
-                try
-                {
-                    var networkMessage = JsonConvert.DeserializeObject<NetworkMessage>(message.Trim());
-                    //trim the received part
-                    messages.Add(networkMessage);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error(ex, $"Unable to process JSON: \n {message}");
-                }
-
-
-                //load in next part
-                content = _receiveBuffer.ToString();
+                Logger.Error(ex, $"Unable to process JSON: \n {message}");
             }
 
-            return messages;
+
+            //load in next part
+            content = _receiveBuffer.ToString();
         }
 
-        protected override void OnReceived(byte[] buffer, long offset, long size)
-        {
-            _receiveBuffer.Append(Encoding.UTF8.GetString(buffer, (int)offset, (int)size));
+        return messages;
+    }
 
-            foreach (var s in GetNetworkMessage()) ((ServerSync)Server).HandleMessage(this, s);
-        }
+    protected override void OnReceived(byte[] buffer, long offset, long size)
+    {
+        _receiveBuffer.Append(Encoding.UTF8.GetString(buffer, (int)offset, (int)size));
 
-        protected override void OnTrySendException(Exception ex)
-        {
-            Logger.Error(ex, "Caught Client Session Exception");
-        }
+        foreach (var s in GetNetworkMessage()) ((ServerSync)Server).HandleMessage(this, s);
+    }
 
-        protected override void OnError(SocketError error)
-        {
-            Logger.Error($"Caught Socket Error: {error}");
-        }
+    protected override void OnTrySendException(Exception ex)
+    {
+        Logger.Error(ex, "Caught Client Session Exception");
+    }
+
+    protected override void OnError(SocketError error)
+    {
+        Logger.Error($"Caught Socket Error: {error}");
     }
 }

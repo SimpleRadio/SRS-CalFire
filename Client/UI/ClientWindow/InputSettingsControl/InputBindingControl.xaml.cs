@@ -5,180 +5,172 @@ using System.Windows.Controls;
 using Caliburn.Micro;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Singletons;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.Common;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.SRS.Common.Network.Singletons;
 using SharpDX.DirectInput;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.InputSettingsControl
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Client.UI.ClientWindow.InputSettingsControl;
+
+/// <summary>
+///     Interaction logic for InputBindingControl.xaml
+/// </summary>
+public partial class InputBindingControl : UserControl, IHandle<ProfileChangedMessage>
 {
-    /// <summary>
-    ///     Interaction logic for InputBindingControl.xaml
-    /// </summary>
-    public partial class InputBindingControl : UserControl, IHandle<ProfileChangedMessage>
+    public static readonly DependencyProperty ControlInputDependencyPropertyProperty =
+        DependencyProperty.Register(nameof(ControlInputBinding), typeof(InputBinding), typeof(InputBindingControl),
+            new PropertyMetadata(null)
+        );
+
+    public static readonly DependencyProperty ControlInputNameDependencyPropertyProperty =
+        DependencyProperty.Register(nameof(InputName), typeof(string), typeof(InputBindingControl),
+            new PropertyMetadata("None")
+        );
+
+
+    public InputBindingControl()
     {
+        InitializeComponent();
 
-        public static readonly DependencyProperty ControlInputDependencyPropertyProperty =
-            DependencyProperty.Register(nameof(ControlInputBinding), typeof(InputBinding), typeof(InputBindingControl),
-                new PropertyMetadata(null)
-            );
+        Loaded += (sender, args) => LoadInputSettings();
 
-        public static readonly DependencyProperty ControlInputNameDependencyPropertyProperty =
-            DependencyProperty.Register(nameof(InputName), typeof(string), typeof(InputBindingControl),
-                new PropertyMetadata("None")
-            );
+        EventBus.Instance.SubscribeOnUIThread(this);
+    }
 
 
-
-        public InputBindingControl()
+    public InputBinding ControlInputBinding
+    {
+        set => SetValue(ControlInputDependencyPropertyProperty, value);
+        get
         {
-            InitializeComponent();
-
-            Loaded += (sender, args) => LoadInputSettings();
-
-            EventBus.Instance.SubscribeOnUIThread(this);
+            var val = (InputBinding)GetValue(ControlInputDependencyPropertyProperty);
+            return val;
         }
+    }
 
+    public InputBinding ModifierBinding { get; set; }
 
-        public InputBinding ControlInputBinding
+    public string InputName
+    {
+        set => SetValue(ControlInputNameDependencyPropertyProperty, value);
+        get
         {
-            set
-            {
-                SetValue(ControlInputDependencyPropertyProperty, value);
-            }
-            get
-            {
-                var val = (InputBinding)GetValue(ControlInputDependencyPropertyProperty);
-                return val;
-            }
+            var val = (string)GetValue(ControlInputNameDependencyPropertyProperty);
+            return val;
         }
+    }
 
-        public InputBinding ModifierBinding { get; set; }
-        public string InputName {
-            set
-            {
-                SetValue(ControlInputNameDependencyPropertyProperty, value);
-               
-            }
-            get
-            {
-                var val = (string)GetValue(ControlInputNameDependencyPropertyProperty);
-                return val;
-            }
-        }
+    public Task HandleAsync(ProfileChangedMessage message, CancellationToken cancellationToken)
+    {
+        LoadInputSettings();
 
-        public void LoadInputSettings()
+        return Task.CompletedTask;
+    }
+
+    public void LoadInputSettings()
+    {
+        DeviceLabel.Content = InputName;
+        ModifierLabel.Content = InputName + " Modifier";
+        ModifierBinding = (InputBinding)(int)ControlInputBinding + 100; //add 100 gets the enum of the modifier
+
+        var currentInputProfile = GlobalSettingsStore.Instance.ProfileSettingsStore.GetCurrentInputProfile();
+
+        if (currentInputProfile != null)
         {
-            DeviceLabel.Content = InputName;
-            ModifierLabel.Content = InputName + " Modifier";
-            ModifierBinding = (InputBinding)(int)ControlInputBinding + 100; //add 100 gets the enum of the modifier
-
-            var currentInputProfile = GlobalSettingsStore.Instance.ProfileSettingsStore.GetCurrentInputProfile();
-
-            if (currentInputProfile != null)
+            var devices = currentInputProfile;
+            if (currentInputProfile.ContainsKey(ControlInputBinding))
             {
-                var devices = currentInputProfile;
-                if (currentInputProfile.ContainsKey(ControlInputBinding))
-                {
-                    var button = devices[ControlInputBinding].Button;
-                    DeviceText.Text =
-                        GetDeviceText(button, devices[ControlInputBinding].DeviceName); 
-                    Device.Text = devices[ControlInputBinding].DeviceName;
-                }
-                else
-                {
-                    DeviceText.Text = "None";
-                    Device.Text = "None";
-                }
+                var button = devices[ControlInputBinding].Button;
+                DeviceText.Text =
+                    GetDeviceText(button, devices[ControlInputBinding].DeviceName);
+                Device.Text = devices[ControlInputBinding].DeviceName;
+            }
+            else
+            {
+                DeviceText.Text = "None";
+                Device.Text = "None";
+            }
 
-                if (currentInputProfile.ContainsKey(ModifierBinding))
-                {
-                    var button = devices[ModifierBinding].Button;
-                    ModifierText.Text =
-                        GetDeviceText(button, devices[ModifierBinding].DeviceName);
-                    ModifierDevice.Text = devices[ModifierBinding].DeviceName;
-                }
-                else
-                {
-                    ModifierText.Text = "None";
-                    ModifierDevice.Text = "None";
-                }
+            if (currentInputProfile.ContainsKey(ModifierBinding))
+            {
+                var button = devices[ModifierBinding].Button;
+                ModifierText.Text =
+                    GetDeviceText(button, devices[ModifierBinding].DeviceName);
+                ModifierDevice.Text = devices[ModifierBinding].DeviceName;
+            }
+            else
+            {
+                ModifierText.Text = "None";
+                ModifierDevice.Text = "None";
             }
         }
+    }
 
-        private string GetDeviceText(int button, string name)
-        {
-            if (name.ToLowerInvariant() == "keyboard")
+    private string GetDeviceText(int button, string name)
+    {
+        if (name.ToLowerInvariant() == "keyboard")
+            try
             {
-                try
-                {
-                    var key = (Key)button;
-                    return key.ToString();
-                }
-                catch { }
-
+                var key = (Key)button;
+                return key.ToString();
             }
-            return button < 128 ? (button + 1).ToString() : "POV " + (button - 127);
-        }
-
-        private void Device_Click(object sender, RoutedEventArgs e)
-        {
-            DeviceClear.IsEnabled = false;
-            DeviceButton.IsEnabled = false;
-
-            InputDeviceManager.Instance.AssignButton(device =>
+            catch
             {
-                DeviceClear.IsEnabled = true;
-                DeviceButton.IsEnabled = true;
+            }
 
-                Device.Text = device.DeviceName;
-                DeviceText.Text = GetDeviceText(device.Button,device.DeviceName);
+        return button < 128 ? (button + 1).ToString() : "POV " + (button - 127);
+    }
 
-                device.InputBind = ControlInputBinding;
+    private void Device_Click(object sender, RoutedEventArgs e)
+    {
+        DeviceClear.IsEnabled = false;
+        DeviceButton.IsEnabled = false;
 
-                GlobalSettingsStore.Instance.ProfileSettingsStore.SetControlSetting(device);
-            });
-        }
-
-
-        private void DeviceClear_Click(object sender, RoutedEventArgs e)
+        InputDeviceManager.Instance.AssignButton(device =>
         {
-            GlobalSettingsStore.Instance.ProfileSettingsStore.RemoveControlSetting(ControlInputBinding);
+            DeviceClear.IsEnabled = true;
+            DeviceButton.IsEnabled = true;
 
-            Device.Text = "None";
-            DeviceText.Text = "None";
-        }
+            Device.Text = device.DeviceName;
+            DeviceText.Text = GetDeviceText(device.Button, device.DeviceName);
 
-        private void Modifier_Click(object sender, RoutedEventArgs e)
+            device.InputBind = ControlInputBinding;
+
+            GlobalSettingsStore.Instance.ProfileSettingsStore.SetControlSetting(device);
+        });
+    }
+
+
+    private void DeviceClear_Click(object sender, RoutedEventArgs e)
+    {
+        GlobalSettingsStore.Instance.ProfileSettingsStore.RemoveControlSetting(ControlInputBinding);
+
+        Device.Text = "None";
+        DeviceText.Text = "None";
+    }
+
+    private void Modifier_Click(object sender, RoutedEventArgs e)
+    {
+        ModifierButtonClear.IsEnabled = false;
+        ModifierButton.IsEnabled = false;
+
+        InputDeviceManager.Instance.AssignButton(device =>
         {
-            ModifierButtonClear.IsEnabled = false;
-            ModifierButton.IsEnabled = false;
+            ModifierButtonClear.IsEnabled = true;
+            ModifierButton.IsEnabled = true;
 
-            InputDeviceManager.Instance.AssignButton(device =>
-            {
-                ModifierButtonClear.IsEnabled = true;
-                ModifierButton.IsEnabled = true;
+            ModifierDevice.Text = device.DeviceName;
+            ModifierText.Text = GetDeviceText(device.Button, device.DeviceName);
+            device.InputBind = ModifierBinding;
 
-                ModifierDevice.Text = device.DeviceName;
-                ModifierText.Text = GetDeviceText(device.Button, device.DeviceName);
-                device.InputBind = ModifierBinding;
-
-                GlobalSettingsStore.Instance.ProfileSettingsStore.SetControlSetting(device);
-            });
-        }
+            GlobalSettingsStore.Instance.ProfileSettingsStore.SetControlSetting(device);
+        });
+    }
 
 
-        private void ModifierClear_Click(object sender, RoutedEventArgs e)
-        {
-            GlobalSettingsStore.Instance.ProfileSettingsStore.RemoveControlSetting(ModifierBinding);
-            ModifierDevice.Text = "None";
-            ModifierText.Text = "None";
-        }
-
-        public Task HandleAsync(ProfileChangedMessage message, CancellationToken cancellationToken)
-        {
-            LoadInputSettings();
-
-            return Task.CompletedTask;
-        }
+    private void ModifierClear_Click(object sender, RoutedEventArgs e)
+    {
+        GlobalSettingsStore.Instance.ProfileSettingsStore.RemoveControlSetting(ModifierBinding);
+        ModifierDevice.Text = "None";
+        ModifierText.Text = "None";
     }
 }

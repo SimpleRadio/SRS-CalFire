@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace Ciribob.SRS.Common.Network.Models
-{
-    public struct ClientListExport
-    {
-        public ICollection<SRClientBase> Clients { get; set; }
+namespace Ciribob.SRS.Common.Network.Models;
 
-        public string ServerVersion { get; set; }
-    }
+public struct ClientListExport
+{
+    public ICollection<SRClientBase> Clients { get; set; }
+
+    public string ServerVersion { get; set; }
 }
