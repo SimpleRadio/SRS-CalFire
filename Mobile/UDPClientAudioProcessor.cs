@@ -1,4 +1,5 @@
-﻿using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+﻿using Caliburn.Micro;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Network.Client;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Input;
@@ -9,10 +10,11 @@ using Ciribob.SRS.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Singletons;
 using NLog;
+using LogManager = NLog.LogManager;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 
-public class UDPClientAudioProcessor : IDisposable
+public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     private readonly ConnectedClientsSingleton _clients = ConnectedClientsSingleton.Instance;
@@ -33,8 +35,12 @@ public class UDPClientAudioProcessor : IDisposable
     private volatile bool _ptt;
     private bool _stop;
     private ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
+    public bool PTT
+    {
+        set { _ptt = value; }
+    }
 
-    public UDPClientAudioProcessor(UDPVoiceHandler udpClient, string guid, SRSAudioManager audioManager)
+    public UDPClientAudioProcessor(UDPVoiceHandler udpClient, SRSAudioManager audioManager,string guid)
     {
         _udpClient = udpClient;
         _guid = guid;
@@ -150,7 +156,7 @@ public class UDPClientAudioProcessor : IDisposable
             }
 
 
-        if (_ptt == true)
+        if (_ptt)
         {
             // Always add currently selected radio (if valid)
             var currentSelected = _clientStateSingleton.PlayerUnitState.SelectedRadio;
@@ -215,7 +221,6 @@ public class UDPClientAudioProcessor : IDisposable
         if (_udpClient.Ready
             && bytes != null
             && (transmittingRadios = PTTPressed(out sendingOn, voice)).Count > 0)
-            //can only send if DCS is connected
         {
             try
             {
@@ -267,9 +272,9 @@ public class UDPClientAudioProcessor : IDisposable
                     if (currentlySelectedRadio != null &&
                         (!_clientStateSingleton.RadioSendingState.IsSending ||
                          _clientStateSingleton.RadioSendingState.SendingOn != sendingOn))
-                        // _audioManager.PlaySoundEffectStartTransmit(sendingOn,
-                        //     currentlySelectedRadio.Encrypted && currentlySelectedRadio.EncKey > 0,
-                        //     currentlySelectedRadio.Volume, currentlySelectedRadio.Modulation);
+                        _audioManager.PlaySoundEffectStartTransmit(sendingOn,
+                            currentlySelectedRadio.Encrypted && currentlySelectedRadio.EncKey > 0,
+                            currentlySelectedRadio.Volume, currentlySelectedRadio.Modulation);
 
                     //set radio overlay state
                     _clientStateSingleton.RadioSendingState = new RadioSendingState
@@ -311,8 +316,8 @@ public class UDPClientAudioProcessor : IDisposable
                     var radio = _clientStateSingleton.PlayerUnitState.Radios[
                         _clientStateSingleton.RadioSendingState.SendingOn];
 
-                    // _audioManager.PlaySoundEffectEndTransmit(_clientStateSingleton.RadioSendingState.SendingOn,
-                    //     radio.Volume, radio.Modulation);
+                    _audioManager.PlaySoundEffectEndTransmit(_clientStateSingleton.RadioSendingState.SendingOn,
+                        radio.Volume, radio.Modulation);
                 }
             }
         }
@@ -458,7 +463,7 @@ public class UDPClientAudioProcessor : IDisposable
 
                                         //we now WANT to duplicate through multiple pipelines ONLY if AM blocking is on
                                         //this is a nice optimisation to save duplicated audio on servers without that setting 
-                                        // if (i == 0) _audioManager.AddClientAudio(audio);
+                                        if (i == 0) _audioManager.AddClientAudio(audio);
                                     }
                                 }
                             }
@@ -601,4 +606,15 @@ public class UDPClientAudioProcessor : IDisposable
             _clientStateSingleton.RadioSendingState.IsSending = false;
         }
     }
+
+    public Task HandleAsync(PTTState message, CancellationToken cancellationToken)
+    {
+        _ptt = message.PTTPressed;
+
+        return Task.CompletedTask;
+    }
+}
+public class PTTState
+{
+    public bool PTTPressed { get; set; }
 }

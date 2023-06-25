@@ -1,19 +1,26 @@
-﻿using System.Net;
+﻿using System.Collections.Concurrent;
+using System.Net;
 using Android.Media;
 using Caliburn.Micro;
 using Ciribob.FS3D.SimpleRadio.Standalone.Audio;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Core;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Network.Client;
+using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Singleton;
 using Ciribob.SRS.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Models;
 using Ciribob.SRS.Common.Network.Models.EventMessages;
 using Ciribob.SRS.Common.Network.Singletons;
+using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 using NLog;
 using Application = Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Application;
 using LogManager = NLog.LogManager;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 
-public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState>
+public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState>, IHandle<SRClientUpdateMessage>
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -43,12 +50,58 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
     private bool stop;
 
     private UDPVoiceHandler udpVoiceHandler;
+    private UDPClientAudioProcessor _clientAudioProcessor;
+    
+    private readonly ConcurrentDictionary<string, ClientAudioProvider> _clientsBufferedAudio = new();
+
+    private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
+
+    private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
+    
+    private readonly ClientEffectsPipeline _clientEffectsPipeline;
+    
+    private List<RadioMixingProvider> _radioMixingProvider;
+    private SRSMixingSampleProvider _finalMixdown;
+
 
     public bool PTTPressed { get; set; }
+
+    public SRSAudioManager()
+    {
+        _clientEffectsPipeline = new ClientEffectsPipeline();
+    }
+    
+    private void InitMixers()
+    {
+        _finalMixdown =
+            new SRSMixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 2));
+        _finalMixdown.ReadFully = true;
+
+        _radioMixingProvider = new List<RadioMixingProvider>();
+        for (var i = 0; i < _clientStateSingleton.PlayerUnitState.Radios.Count; i++)
+        {
+            var mix = new RadioMixingProvider(WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 2), i);
+            _radioMixingProvider.Add(mix);
+            _finalMixdown.AddMixerInput(mix);
+        }
+    }
+    
+    public Task HandleAsync(SRClientUpdateMessage message, CancellationToken cancellationToken)
+    {
+        if (!message.Connected) RemoveClientBuffer(message.SrClient);
+
+        return Task.CompletedTask;
+    }
+
 
     public Task HandleAsync(PTTState message, CancellationToken cancellationToken)
     {
         PTTPressed = message.PTTPressed;
+
+        if (_clientAudioProcessor != null)
+        {
+            _clientAudioProcessor.PTT = PTTPressed;
+        }
 
         return Task.CompletedTask;
     }
@@ -124,6 +177,9 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
 
                 _audioPlayer = null;
                 _audioRecorder = null;
+                
+                _clientAudioProcessor?.Stop();
+                _clientAudioProcessor = null;
             }
     }
 
@@ -134,6 +190,9 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
             Logger.Info($"Connecting UDP VoIP {endPoint}");
             udpVoiceHandler = new UDPVoiceHandler(Guid, endPoint);
             udpVoiceHandler.Connect();
+            
+            _clientAudioProcessor = new UDPClientAudioProcessor(udpVoiceHandler, this, Guid);
+            _clientAudioProcessor.Start();
 
             new Thread(SendAudio).Start();
             new Thread(ReceiveAudio).Start();
@@ -148,42 +207,33 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
                 .SetContentType(AudioContentType.Speech)
                 .Build())
             .SetAudioFormat(new AudioFormat.Builder()
-                .SetEncoding(Encoding.Pcm16bit)
+                .SetEncoding(Encoding.PcmFloat)
                 .SetSampleRate(Constants.OUTPUT_SAMPLE_RATE)
-                .SetChannelMask(ChannelOut.Mono)
+                .SetChannelMask(ChannelOut.Stereo)
                 .Build())
-            .SetBufferSizeInBytes(AudioTrack.GetMinBufferSize(Constants.OUTPUT_SAMPLE_RATE, ChannelOut.Mono,
+            .SetBufferSizeInBytes(AudioTrack.GetMinBufferSize(Constants.OUTPUT_SAMPLE_RATE, ChannelOut.Stereo,
                 Encoding.PcmFloat))
             .SetTransferMode(AudioTrackMode.Stream)
             .Build();
 
         _audioPlayer.Play();
 
+        float[] buffer =
+            new float[((Constants.OUTPUT_SAMPLE_RATE / 1000) * Constants.OUTPUT_AUDIO_LENGTH_MS * 2 * 4 )];
+       
         while (!stop)
             try
             {
-                var encodedOpusAudio = new byte[0];
-                udpVoiceHandler.EncodedAudio.TryTake(out encodedOpusAudio, 100000, _stopFlag.Token);
+                int read = _finalMixdown.Read(buffer, 0,
+                    buffer.Length);
+
+                _audioPlayer.Write(buffer, 0, read, WriteMode.Blocking);
+
+                Array.Clear(buffer);
                 
-                if (encodedOpusAudio != null
-                    && encodedOpusAudio.Length >=
-                    UDPVoicePacket.PacketHeaderLength + UDPVoicePacket.FixedPacketLength +
-                    UDPVoicePacket.FrequencySegmentLength)
-                {
-                    //Decode bytes
-                    var udpVoicePacket = UDPVoicePacket.DecodeVoicePacket(encodedOpusAudio);
-
-                    if (udpVoicePacket != null)
-                    {
-                        var decodedBytes = _decoder.Decode(udpVoicePacket.AudioPart1Bytes,
-                            udpVoicePacket.AudioPart1Length, out var decodedLength);
-
-                        if (decodedLength > 0)
-                            _audioPlayer.Write(decodedBytes, 0, decodedLength, WriteMode.NonBlocking);
-                    }
-                }
+                Thread.Sleep(40);
             }
-            catch (OperationCanceledException ex)
+            catch (Exception ex)
             {
                 return;
             }
@@ -242,6 +292,8 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
 
                     Buffer.BlockCopy(encodedBytes, 0, toSend, 0, encodedLength);
 
+                    _clientAudioProcessor?.Send(encodedBytes, encodedLength, true);
+
                     var udpVoicePacket = new UDPVoicePacket
                     {
                         AudioPart1Bytes = toSend,
@@ -263,9 +315,60 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
 
         StopEncoding();
     }
-}
 
-public class PTTState
-{
-    public bool PTTPressed { get; set; }
+    public void PlaySoundEffectEndTransmit(int sendingOn, float radioVolume, Modulation radioModulation)
+    {
+        _radioMixingProvider[sendingOn]?.PlaySoundEffectEndTransmit(radioVolume, radioModulation);
+    }
+    public void PlaySoundEffectStartTransmit(int sendingOn, bool encrypted, float volume, Modulation modulation)
+    {
+        _radioMixingProvider[sendingOn]?.PlaySoundEffectStartTransmit(encrypted, volume, modulation);
+    }
+    
+    public void AddClientAudio(ClientAudio audio)
+    {
+        //sort out effects!
+        //16bit PCM Audio
+        //TODO: Clean  - remove if we havent received audio in a while?
+        // If we have recieved audio, create a new buffered audio and read it
+        ClientAudioProvider client = null;
+        if (_clientsBufferedAudio.ContainsKey(audio.OriginalClientGuid))
+        {
+            client = _clientsBufferedAudio[audio.OriginalClientGuid];
+        }
+        else
+        {
+            client = new ClientAudioProvider();
+            _clientsBufferedAudio[audio.OriginalClientGuid] = client;
+
+            foreach (var mixer in _radioMixingProvider) mixer.AddMixerInput(client);
+        }
+
+        client.AddClientAudioSamples(audio);
+    }
+
+    private void RemoveClientBuffer(SRClientBase srClient)
+    {
+        //TODO test this
+        ClientAudioProvider clientAudio = null;
+        _clientsBufferedAudio.TryRemove(srClient.ClientGuid, out clientAudio);
+
+        if (clientAudio == null) return;
+
+        try
+        {
+            foreach (var mixer in _radioMixingProvider) mixer.RemoveMixerInput(clientAudio);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex, "Error removing client input");
+        }
+        
+        //TODO for later
+        //MAKE SURE TO INIT THE MIXERS - CLEAR WHEN APPROPRIATE
+        //ALSO INIT THE _clientsBufferedAudio and also CLEAR AS APPROPRIATE
+        //THE AUDIO writer should also calculate time between the last sleep and fill in the audio as well as appropriate (rather than assuming 40ms perfect)
+        //VOX detection might be possible to add if I can find the right DLLS
+        //FOR TESTING - need to set a radio on the singleton as well
+    }
 }
