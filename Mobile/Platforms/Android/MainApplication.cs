@@ -1,8 +1,9 @@
 ﻿using Android.App;
 using Android.Runtime;
 using Java.Lang;
+using Mobile;
 
-namespace Mobile;
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 
 [Application]
 public class MainApplication : MauiApplication

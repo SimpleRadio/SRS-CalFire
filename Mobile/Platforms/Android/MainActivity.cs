@@ -2,9 +2,8 @@
 using Android.Content.PM;
 using Android.Views;
 using Ciribob.SRS.Common.Network.Singletons;
-using Ciribob.SRS.Mobile.Client;
 
-namespace Mobile;
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 
 [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true,
     ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode |

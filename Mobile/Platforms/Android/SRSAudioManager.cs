@@ -11,7 +11,7 @@ using NLog;
 using Application = Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Application;
 using LogManager = NLog.LogManager;
 
-namespace Ciribob.SRS.Mobile.Client;
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 
 public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState>
 {
@@ -20,7 +20,7 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
     public static readonly int MIC_INPUT_AUDIO_LENGTH_MS = 40;
 
     public static readonly int MIC_SEGMENT_FRAMES_BYTES =
-        Constants.MIC_SAMPLE_RATE / 1000 * MIC_INPUT_AUDIO_LENGTH_MS * 2; //2 because its bytes not shor
+        Constants.MIC_SAMPLE_RATE / 1000 * MIC_INPUT_AUDIO_LENGTH_MS * 2; //2 because its bytes not shorts
 
     private readonly Queue<byte> _micInputQueue = new(MIC_SEGMENT_FRAMES_BYTES * 3);
 
@@ -164,8 +164,7 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
             {
                 var encodedOpusAudio = new byte[0];
                 udpVoiceHandler.EncodedAudio.TryTake(out encodedOpusAudio, 100000, _stopFlag.Token);
-
-
+                
                 if (encodedOpusAudio != null
                     && encodedOpusAudio.Length >=
                     UDPVoicePacket.PacketHeaderLength + UDPVoicePacket.FixedPacketLength +

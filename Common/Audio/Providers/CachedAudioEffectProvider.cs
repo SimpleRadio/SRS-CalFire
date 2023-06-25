@@ -14,10 +14,19 @@ public class CachedAudioEffectProvider
 
     private readonly string sourceFolder;
 
+    public CachedEffectsLoaderDelegate CachedEffectsLoader { get; set; }
+
+    public delegate Stream CachedEffectsLoaderDelegate(string fileName);
+
     private CachedAudioEffectProvider()
     {
         sourceFolder = AppDomain.CurrentDomain.BaseDirectory + "\\AudioEffects\\";
 
+       LoadEffects();
+    }
+
+    public void LoadEffects()
+    {
         //init lists
         RadioTransmissionStart = new List<CachedAudioEffect>();
         RadioTransmissionEnd = new List<CachedAudioEffect>();
@@ -28,13 +37,13 @@ public class CachedAudioEffectProvider
         LoadRadioStartAndEndEffects();
         LoadIntercomStartAndEndEffects();
 
-        NATOTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.NATO_TONE);
-        ;
+        NATOTone = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.NATO_TONE, CachedEffectsLoader);
+        
 
-        FMNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.FM_NOISE);
-        VHFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.VHF_NOISE);
-        UHFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.UHF_NOISE);
-        HFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.HF_NOISE);
+        FMNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.FM_NOISE, CachedEffectsLoader);
+        VHFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.VHF_NOISE,CachedEffectsLoader);
+        UHFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.UHF_NOISE,CachedEffectsLoader);
+        HFNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.HF_NOISE,CachedEffectsLoader);
 
         //sort out volume (if needed)
         // CreateAudioEffectDouble(HAVEQUICKTone);
@@ -44,19 +53,19 @@ public class CachedAudioEffectProvider
         // CreateAudioEffectDouble(VHFNoise);
         // CreateAudioEffectDouble(HFNoise);
 
-        AMCollision = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.AM_COLLISION);
+        AMCollision = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.AM_COLLISION,CachedEffectsLoader);
 
-        GroundNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.GROUND_NOISE);
+        GroundNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.GROUND_NOISE,CachedEffectsLoader);
 
-        AircraftNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.AIRCRAFT_NOISE);
+        AircraftNoise = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.AIRCRAFT_NOISE,CachedEffectsLoader);
         // CreateAudioEffectDouble(AMCollision);
     }
 
-    public List<CachedAudioEffect> RadioTransmissionStart { get; }
-    public List<CachedAudioEffect> RadioTransmissionEnd { get; }
+    public List<CachedAudioEffect> RadioTransmissionStart { get; set; }
+    public List<CachedAudioEffect> RadioTransmissionEnd { get; set; }
 
-    public List<CachedAudioEffect> IntercomTransmissionStart { get; }
-    public List<CachedAudioEffect> IntercomTransmissionEnd { get; }
+    public List<CachedAudioEffect> IntercomTransmissionStart { get; set; }
+    public List<CachedAudioEffect> IntercomTransmissionEnd { get; set; }
 
     public static CachedAudioEffectProvider Instance
     {
@@ -128,19 +137,17 @@ public class CachedAudioEffectProvider
         }
     }
 
-    public CachedAudioEffect NATOTone { get; }
-
-
-    public CachedAudioEffect FMNoise { get; }
-    public CachedAudioEffect UHFNoise { get; }
-    public CachedAudioEffect VHFNoise { get; }
-    public CachedAudioEffect HFNoise { get; }
+    public CachedAudioEffect NATOTone { get; set; }
+    public CachedAudioEffect FMNoise { get; set; }
+    public CachedAudioEffect UHFNoise { get; set; }
+    public CachedAudioEffect VHFNoise { get; set; }
+    public CachedAudioEffect HFNoise { get; set; }
 
     public CachedAudioEffect AMCollision { get; set; }
 
-    public CachedAudioEffect GroundNoise { get; }
+    public CachedAudioEffect GroundNoise { get; set; }
 
-    public CachedAudioEffect AircraftNoise { get; }
+    public CachedAudioEffect AircraftNoise { get; set; }
 
     private void LoadRadioStartAndEndEffects()
     {
@@ -157,7 +164,7 @@ public class CachedAudioEffectProvider
                         .ToString().ToLowerInvariant()))
                 {
                     var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START,
-                        effect, effectPath);
+                        effect, effectPath, CachedEffectsLoader);
 
                     if (audioEffect.AudioEffectFloat != null) RadioTransmissionStart.Add(audioEffect);
                 }
@@ -165,7 +172,7 @@ public class CachedAudioEffectProvider
                              .ToString().ToLowerInvariant()))
                 {
                     var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END,
-                        effect, effectPath);
+                        effect, effectPath, CachedEffectsLoader);
 
                     if (audioEffect.AudioEffectFloat != null) RadioTransmissionEnd.Add(audioEffect);
                 }
@@ -174,20 +181,20 @@ public class CachedAudioEffectProvider
             //IF the audio folder is missing - to avoid a crash, init with a blank one
             if (RadioTransmissionStart.Count == 0)
                 RadioTransmissionStart.Add(
-                    new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START));
+                    new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START, CachedEffectsLoader));
 
             if (RadioTransmissionEnd.Count == 0)
-                RadioTransmissionEnd.Add(new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END));
+                RadioTransmissionEnd.Add(new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END, CachedEffectsLoader));
         }
         else
         {
             //IF the audio folder is missing - to avoid a crash, init with a blank one
             if (RadioTransmissionStart.Count == 0)
                 RadioTransmissionStart.Add(
-                    new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START));
+                    new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_START, CachedEffectsLoader));
 
             if (RadioTransmissionEnd.Count == 0)
-                RadioTransmissionEnd.Add(new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END));
+                RadioTransmissionEnd.Add(new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.RADIO_TRANS_END, CachedEffectsLoader));
         }
     }
 
@@ -206,7 +213,7 @@ public class CachedAudioEffectProvider
                         .ToString().ToLowerInvariant()))
                 {
                     var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_START,
-                        effect, effectPath);
+                        effect, effectPath, CachedEffectsLoader);
 
                     if (audioEffect.AudioEffectFloat != null) IntercomTransmissionStart.Add(audioEffect);
                 }
@@ -214,7 +221,7 @@ public class CachedAudioEffectProvider
                              .ToString().ToLowerInvariant()))
                 {
                     var audioEffect = new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_END,
-                        effect, effectPath);
+                        effect, effectPath, CachedEffectsLoader);
 
                     if (audioEffect.AudioEffectFloat != null) IntercomTransmissionEnd.Add(audioEffect);
                 }
@@ -223,22 +230,22 @@ public class CachedAudioEffectProvider
             //IF the audio folder is missing - to avoid a crash, init with a blank one
             if (IntercomTransmissionStart.Count == 0)
                 IntercomTransmissionStart.Add(
-                    new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_START));
+                    new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_START, CachedEffectsLoader));
 
             if (IntercomTransmissionEnd.Count == 0)
                 IntercomTransmissionEnd.Add(
-                    new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_END));
+                    new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_END, CachedEffectsLoader));
         }
         else
         {
             //IF the audio folder is missing - to avoid a crash, init with a blank one
             if (IntercomTransmissionStart.Count == 0)
                 IntercomTransmissionStart.Add(
-                    new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_START));
+                    new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_START,CachedEffectsLoader));
 
             if (IntercomTransmissionEnd.Count == 0)
                 IntercomTransmissionEnd.Add(
-                    new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_END));
+                    new CachedAudioEffect(CachedAudioEffect.AudioEffectTypes.INTERCOM_TRANS_END, CachedEffectsLoader));
         }
     }
 }

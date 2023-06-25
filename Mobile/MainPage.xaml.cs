@@ -1,7 +1,9 @@
 ﻿using System.Net;
-using Ciribob.SRS.Mobile.Client;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
+using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
+using System.IO;
 
-namespace Mobile;
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile;
 
 public partial class MainPage : ContentPage
 {
@@ -13,6 +15,18 @@ public partial class MainPage : ContentPage
         InitializeComponent();
 
         var status = CheckAndRequestMicrophonePermission();
+        
+        CachedAudioEffectProvider.Instance.CachedEffectsLoader = delegate(string name)
+        {
+            using var stream =  FileSystem.OpenAppPackageFileAsync(name);
+            var memStream = new MemoryStream();
+            stream.Result.CopyTo(memStream);
+            memStream.Position = 0;
+            stream.Dispose();
+
+            return memStream;
+        };
+        CachedAudioEffectProvider.Instance.LoadEffects();
     }
 
     public async Task<PermissionStatus> CheckAndRequestMicrophonePermission()

@@ -2,6 +2,7 @@
 using System.IO;
 using Ciribob.FS3D.SimpleRadio.Standalone.Audio;
 using Ciribob.FS3D.SimpleRadio.Standalone.Audio.Utility;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
 using NAudio.Wave;
 using NLog;
 
@@ -9,6 +10,7 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Models;
 
 public class CachedAudioEffect
 {
+    private CachedAudioEffectProvider.CachedEffectsLoaderDelegate _loaderDelegate;
     public enum AudioEffectTypes
     {
         RADIO_TRANS_START = 0,
@@ -29,13 +31,15 @@ public class CachedAudioEffect
 
     private static readonly WaveFormat RequiredFormat = new(Constants.OUTPUT_SAMPLE_RATE, 16, 1);
 
-    public CachedAudioEffect(AudioEffectTypes audioEffect) : this(audioEffect, audioEffect + ".wav",
-        AppDomain.CurrentDomain.BaseDirectory + $"{Path.DirectorySeparatorChar}AudioEffects{Path.DirectorySeparatorChar}" + audioEffect + ".wav")
+    public CachedAudioEffect(AudioEffectTypes audioEffect,
+        CachedAudioEffectProvider.CachedEffectsLoaderDelegate cachedEffectsLoaderDelegate) : this(audioEffect, audioEffect + ".wav",
+        AppDomain.CurrentDomain.BaseDirectory + $"{Path.DirectorySeparatorChar}AudioEffects{Path.DirectorySeparatorChar}" + audioEffect + ".wav", cachedEffectsLoaderDelegate)
     {
     }
 
-    public CachedAudioEffect(AudioEffectTypes audioEffect, string fileName, string path)
+    public CachedAudioEffect(AudioEffectTypes audioEffect, string fileName, string path, CachedAudioEffectProvider.CachedEffectsLoaderDelegate cachedEffectsLoaderDelegate)
     {
+        _loaderDelegate = cachedEffectsLoaderDelegate;
         FileName = fileName;
         AudioEffectType = audioEffect;
 
@@ -45,33 +49,68 @@ public class CachedAudioEffect
 
         try
         {
-            if (File.Exists(file))
-                using (var reader = new WaveFileReader(file))
+            if (_loaderDelegate != null)
+            {
+                using (Stream str = _loaderDelegate(fileName))
                 {
-                    //    Assert.AreEqual(16, reader.WaveFormat.BitsPerSample, "Only works with 16 bit audio");
-                    if (reader.WaveFormat.BitsPerSample == RequiredFormat.BitsPerSample &&
-                        reader.WaveFormat.SampleRate == reader.WaveFormat.SampleRate && reader.WaveFormat.Channels == 1)
+                    //TODO check this isnt leaking memory - it should close the stream
+                    using (var reader = new WaveFileReader(str))
                     {
-                        var tmpBytes = new byte[reader.Length];
-                        var read = reader.Read(tmpBytes, 0, tmpBytes.Length);
-                        Logger.Info($"Read Effect {audioEffect} from {file} Successfully - Format {reader.WaveFormat}");
+                        //    Assert.AreEqual(16, reader.WaveFormat.BitsPerSample, "Only works with 16 bit audio");
+                        if (reader.WaveFormat.BitsPerSample == RequiredFormat.BitsPerSample &&
+                            reader.WaveFormat.SampleRate == reader.WaveFormat.SampleRate && reader.WaveFormat.Channels == 1)
+                        {
+                            var tmpBytes = new byte[reader.Length];
+                            var read = reader.Read(tmpBytes, 0, tmpBytes.Length);
+                            Logger.Info($"Read Effect {audioEffect} from Stream Successfully - Format {reader.WaveFormat}");
 
-                        //convert to short  - 16 - then to float 32
-                        var tmpShort = ConversionHelpers.ByteArrayToShortArray(tmpBytes);
+                            //convert to short  - 16 - then to float 32
+                            var tmpShort = ConversionHelpers.ByteArrayToShortArray(tmpBytes);
 
-                        //now to float
-                        AudioEffectFloat = ConversionHelpers.ShortPCM16ArrayToFloat32Array(tmpShort);
+                            //now to float
+                            AudioEffectFloat = ConversionHelpers.ShortPCM16ArrayToFloat32Array(tmpShort);
 
-                        Loaded = true;
-                    }
-                    else
-                    {
-                        Logger.Info(
-                            $"Unable to read Effect {audioEffect} from {file} Successfully - {reader.WaveFormat} is not {RequiredFormat} !");
+                            Loaded = true;
+                        }
+                        else
+                        {
+                            Logger.Info(
+                                $"Unable to read Effect {audioEffect} from Stream Successfully - {reader.WaveFormat} is not {RequiredFormat} !");
+                        }
                     }
                 }
+            }
             else
-                Logger.Info($"Unable to find file for effect {audioEffect} in AudioEffects{Path.DirectorySeparatorChar}{FileName} ");
+            {
+                if (File.Exists(file))
+                    using (var reader = new WaveFileReader(file))
+                    {
+                        //    Assert.AreEqual(16, reader.WaveFormat.BitsPerSample, "Only works with 16 bit audio");
+                        if (reader.WaveFormat.BitsPerSample == RequiredFormat.BitsPerSample &&
+                            reader.WaveFormat.SampleRate == reader.WaveFormat.SampleRate && reader.WaveFormat.Channels == 1)
+                        {
+                            var tmpBytes = new byte[reader.Length];
+                            var read = reader.Read(tmpBytes, 0, tmpBytes.Length);
+                            Logger.Info($"Read Effect {audioEffect} from {file} Successfully - Format {reader.WaveFormat}");
+
+                            //convert to short  - 16 - then to float 32
+                            var tmpShort = ConversionHelpers.ByteArrayToShortArray(tmpBytes);
+
+                            //now to float
+                            AudioEffectFloat = ConversionHelpers.ShortPCM16ArrayToFloat32Array(tmpShort);
+
+                            Loaded = true;
+                        }
+                        else
+                        {
+                            Logger.Info(
+                                $"Unable to read Effect {audioEffect} from {file} Successfully - {reader.WaveFormat} is not {RequiredFormat} !");
+                        }
+                    }
+                else
+                    Logger.Info($"Unable to find file for effect {audioEffect} in AudioEffects{Path.DirectorySeparatorChar}{FileName} ");
+            }
+            
         }
         catch (Exception ex)
         {
