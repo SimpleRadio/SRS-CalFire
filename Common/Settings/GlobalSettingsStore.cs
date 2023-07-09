@@ -290,9 +290,6 @@ public class GlobalSettingsStore
 
     private GlobalSettingsStore()
     {
-        //Try migrating
-        MigrateSettings();
-
         //check commandline
         var args = Environment.GetCommandLineArgs();
 
@@ -307,13 +304,13 @@ public class GlobalSettingsStore
         try
         {
             var count = 0;
-            while (IsFileLocked(new FileInfo(ConfigFileName)) && count < 10)
+            while (IsFileLocked(new FileInfo(Path+ConfigFileName)) && count < 10)
             {
                 Thread.Sleep(200);
                 count++;
             }
 
-            _configuration = Configuration.LoadFromFile(ConfigFileName);
+            _configuration = Configuration.LoadFromFile(Path+ConfigFileName);
         }
         catch (FileNotFoundException ex)
         {
@@ -361,7 +358,7 @@ public class GlobalSettingsStore
     public string ConfigFileName { get; } = CFG_FILE_NAME;
     public ProfileSettingsStore ProfileSettingsStore { get; }
 
-    public string Path { get; } = "";
+    public static string Path { get; set; } = "";
 
     public static GlobalSettingsStore Instance
     {
@@ -397,23 +394,6 @@ public class GlobalSettingsStore
 
         //file is not locked
         return false;
-    }
-
-    private void MigrateSettings()
-    {
-        try
-        {
-            if (File.Exists(Path + PREVIOUS_CFG_FILE_NAME) && !File.Exists(Path + CFG_FILE_NAME))
-            {
-                Logger.Info($"Migrating {Path + PREVIOUS_CFG_FILE_NAME} to {Path + CFG_FILE_NAME}");
-                File.Copy(Path + PREVIOUS_CFG_FILE_NAME, Path + CFG_FILE_NAME, true);
-                Logger.Info($"Migrated {Path + PREVIOUS_CFG_FILE_NAME} to {Path + CFG_FILE_NAME}");
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.Error(ex, "Error migrating global settings");
-        }
     }
 
     public void SetClientSetting(GlobalSettingsKeys key, string[] strArray)

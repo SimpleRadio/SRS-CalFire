@@ -130,7 +130,7 @@ public class ProfileSettingsStore
     public ProfileSettingsStore(GlobalSettingsStore globalSettingsStore)
     {
         _globalSettings = globalSettingsStore;
-        Path = _globalSettings.Path;
+        Path = GlobalSettingsStore.Path;
 
         MigrateOldSettings();
 

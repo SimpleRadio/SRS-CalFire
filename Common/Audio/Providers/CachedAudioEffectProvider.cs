@@ -14,15 +14,15 @@ public class CachedAudioEffectProvider
 
     private readonly string sourceFolder;
 
-    public CachedEffectsLoaderDelegate CachedEffectsLoader { get; set; }
+    //Used on Android or other platforms to change the loader system
+    public static CachedEffectsLoaderDelegate CachedEffectsLoader { get; set; }
 
     public delegate Stream CachedEffectsLoaderDelegate(string fileName);
 
     private CachedAudioEffectProvider()
-    {
+    { 
         sourceFolder = AppDomain.CurrentDomain.BaseDirectory + "\\AudioEffects\\";
-
-       LoadEffects();
+        LoadEffects();
     }
 
     public void LoadEffects()

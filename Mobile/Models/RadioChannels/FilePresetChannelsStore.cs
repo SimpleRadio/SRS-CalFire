@@ -60,15 +60,21 @@ public class FilePresetChannelsStore : IPresetChannelsStore
 
     private string FindRadioFile(string radioName)
     {
-        var files = Directory.GetFiles(Environment.CurrentDirectory);
-
-        foreach (var fileAndPath in files)
+        try
         {
-            var name = Path.GetFileNameWithoutExtension(fileAndPath);
+            var files = Directory.GetFiles(Environment.CurrentDirectory);
 
-            if (NormaliseString(name) == radioName) return fileAndPath;
+            foreach (var fileAndPath in files)
+            {
+                var name = Path.GetFileNameWithoutExtension(fileAndPath);
+
+                if (NormaliseString(name) == radioName) return fileAndPath;
+            }
         }
-
+        catch (Exception ex)
+        {
+            Logger.Error(ex,$"Error Loading file {ex.Message}");
+        }
         return null;
     }
 

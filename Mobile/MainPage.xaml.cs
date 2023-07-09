@@ -2,6 +2,7 @@
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 using System.IO;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile;
 
@@ -15,8 +16,17 @@ public partial class MainPage : ContentPage
         InitializeComponent();
 
         var status = CheckAndRequestMicrophonePermission();
+
+        /*
+         * SET STATICS on singletons BEFORE load to set up the platform specific bits
+         */
         
-        CachedAudioEffectProvider.Instance.CachedEffectsLoader = delegate(string name)
+        //https://learn.microsoft.com/en-us/dotnet/maui/platform-integration/storage/file-system-helpers?tabs=windows
+        //Set path to use writeable app data directory
+        GlobalSettingsStore.Path = FileSystem.Current.AppDataDirectory+Path.DirectorySeparatorChar;
+        
+        //Load from APK itself (magic loader using streaming memory)
+        CachedAudioEffectProvider.CachedEffectsLoader = delegate(string name)
         {
             using var stream =  FileSystem.OpenAppPackageFileAsync(name);
             var memStream = new MemoryStream();
@@ -26,7 +36,10 @@ public partial class MainPage : ContentPage
 
             return memStream;
         };
-        CachedAudioEffectProvider.Instance.LoadEffects();
+        
+        /*
+        *
+        */
     }
 
     public async Task<PermissionStatus> CheckAndRequestMicrophonePermission()
@@ -50,7 +63,7 @@ public partial class MainPage : ContentPage
 
         return status;
     }
-
+    
     private void OnStopClicked(object sender, EventArgs e)
     {
         _srsAudioManager?.StopEncoding();

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using Android.Media;
 using Caliburn.Micro;
@@ -122,6 +123,8 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
 
         lock (lockob)
         {
+            InitMixers();
+            
             EventBus.Instance.SubscribeOnUIThread(this);
             //opus
             _encoder = OpusEncoder.Create(Constants.MIC_SAMPLE_RATE, 1,
@@ -212,26 +215,34 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
                 .SetChannelMask(ChannelOut.Stereo)
                 .Build())
             .SetBufferSizeInBytes(AudioTrack.GetMinBufferSize(Constants.OUTPUT_SAMPLE_RATE, ChannelOut.Stereo,
-                Encoding.PcmFloat))
+                Encoding.PcmFloat)*16) // Added artibrary * 10 ?
             .SetTransferMode(AudioTrackMode.Stream)
             .Build();
 
         _audioPlayer.Play();
 
         float[] buffer =
-            new float[((Constants.OUTPUT_SAMPLE_RATE / 1000) * Constants.OUTPUT_AUDIO_LENGTH_MS * 2 * 4 )];
+            new float[((Constants.OUTPUT_SAMPLE_RATE / 1000) * Constants.OUTPUT_AUDIO_LENGTH_MS * 2 * 16 )];
+            
+  
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
        
         while (!stop)
             try
             {
-                int read = _finalMixdown.Read(buffer, 0,
-                    buffer.Length);
+                long floatsRequired = stopwatch.ElapsedMilliseconds * (Constants.OUTPUT_SAMPLE_RATE/1000) * 2; //Stereo samples * milliseconds
+                stopwatch.Restart();
 
-                _audioPlayer.Write(buffer, 0, read, WriteMode.Blocking);
-
-                Array.Clear(buffer);
-                
-                Thread.Sleep(40);
+                if (floatsRequired > 0 && floatsRequired < buffer.Length)
+                {
+                    int read = _finalMixdown.Read(buffer, 0,
+                        (int)floatsRequired); 
+                    _audioPlayer.Write(buffer, 0, read, WriteMode.Blocking);
+                    Array.Clear(buffer);
+             //       Logger.Info($"floats required {read} floats {read/2/(Constants.OUTPUT_SAMPLE_RATE/1000)}ms");
+                }
+                Thread.Sleep(1);
             }
             catch (Exception ex)
             {
@@ -283,29 +294,29 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
             //Read the input
             var read = _audioRecorder.Read(recorderBuffer, 0, MIC_SEGMENT_FRAMES_BYTES, 0);
 
-            if (read == MIC_SEGMENT_FRAMES_BYTES)
-                if (PTTPressed)
-                {
-                    var encodedBytes = _encoder.Encode(recorderBuffer, MIC_SEGMENT_FRAMES_BYTES, out var encodedLength);
+            if (read == MIC_SEGMENT_FRAMES_BYTES) 
+            {
+                var encodedBytes = _encoder.Encode(recorderBuffer, MIC_SEGMENT_FRAMES_BYTES, out var encodedLength);
 
-                    var toSend = new byte[encodedLength];
+                var toSend = new byte[encodedLength];
 
-                    Buffer.BlockCopy(encodedBytes, 0, toSend, 0, encodedLength);
+                Buffer.BlockCopy(encodedBytes, 0, toSend, 0, encodedLength);
 
-                    _clientAudioProcessor?.Send(encodedBytes, encodedLength, true);
+                _clientAudioProcessor.PTT = PTTPressed;
+                _clientAudioProcessor?.Send(toSend, encodedLength, true);
 
-                    var udpVoicePacket = new UDPVoicePacket
-                    {
-                        AudioPart1Bytes = toSend,
-                        AudioPart1Length = (ushort)encodedLength,
-                        Frequencies = frequencies,
-                        UnitId = 100000,
-                        Encryptions = encryptionBytes,
-                        Modulations = modulationBytes
-                    };
-
-                    udpVoiceHandler.Send(udpVoicePacket);
-                }
+               //  var udpVoicePacket = new UDPVoicePacket
+               //  {
+               //      AudioPart1Bytes = toSend,
+               //      AudioPart1Length = (ushort)encodedLength,
+               //      Frequencies = frequencies,
+               //      UnitId = 100000,
+               //      Encryptions = encryptionBytes,
+               //      Modulations = modulationBytes
+               //  };
+               //
+               // udpVoiceHandler.Send(udpVoicePacket);
+              }
         }
     }
 

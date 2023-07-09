@@ -263,7 +263,7 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
                         Modulations = modulations.ToArray(),
                         PacketNumber = _packetNumber++
                     };
-
+                    
                     _udpClient.Send(udpVoicePacket);
 
                     var currentlySelectedRadio = _clientStateSingleton.PlayerUnitState.Radios[sendingOn];

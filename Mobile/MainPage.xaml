@@ -21,6 +21,7 @@
                 x:Name="Address"
                 FontSize="32"
                 ClearButtonVisibility="WhileEditing"
+                Text="192.168.0.67:5002"
                 Placeholder="127.0.0.1:5002"
                 IsSpellCheckEnabled="False"
                 IsTextPredictionEnabled="False" />
