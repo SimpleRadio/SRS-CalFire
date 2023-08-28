@@ -52,16 +52,22 @@
                                      Grid.ColumnSpan="{orientation:OnOrientation Portrait=2, Landscape=4}"
                                      HorizontalOptions="Center" VerticalOptions="Start"
                                      Padding="10" Spacing="10">
-                    <HorizontalStackLayout HorizontalOptions="Fill" VerticalOptions="Start">
-                        <Label>Intercom</Label>
+                    <HorizontalStackLayout HorizontalOptions="Fill" VerticalOptions="Center" Spacing="5">
+                        <Ellipse 
+                            WidthRequest="15"
+                            HeightRequest="15"
+                            Fill="{Binding RadioActiveFill}"
+                            VerticalOptions="Start"/>
+                        <Label Padding="0" >Intercom</Label>
+                  
                         <Slider Margin="0,0,0,20" Maximum="100" Minimum="0" IsEnabled="{Binding VolumeEnabled}"
                                 Value="{Binding Volume}" Style="{StaticResource VolumeSlider}" WidthRequest="200" />
                     </HorizontalStackLayout>
                     <HorizontalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                        <Button Text="Hot Mic ON" FontFamily="RobotoMono" FontSize="12" BackgroundColor="#919191"
-                                TextColor="White" />
                         <Button Text="Select Intercom" FontFamily="RobotoMono" FontSize="12" BackgroundColor="#919191"
-                                TextColor="White" />
+                                TextColor="White" Command="{Binding RadioSelect}" />
+                        <Button Text="Hot Mic" FontFamily="RobotoMono" FontSize="12" BackgroundColor="#919191"
+                                TextColor="{Binding HotIntercomTextColour}" Command="{Binding Path=HotIntercomMicToggle, Mode=TwoWay}" />
                     </HorizontalStackLayout>
                     <Button Text="TRANSMIT" FontFamily="RobotoMono" FontSize="30" BackgroundColor="#919191"
                             TextColor="White" Pressed="Transmit_OnPressed" Released="Transmit_OnReleased" />

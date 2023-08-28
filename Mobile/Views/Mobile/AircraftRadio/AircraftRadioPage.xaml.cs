@@ -12,6 +12,8 @@ public partial class AircraftRadioPage : ContentPage
         _srsAudioManager = srsAudioManager;
         InitializeComponent();
 
+        BindingContext = new AircraftRadioPageViewModel();
+
         DeviceDisplay.Current.KeepScreenOn = true;
 
         Radio1.BindingContext = new RadioViewModel(1);
@@ -45,6 +47,8 @@ public partial class AircraftRadioPage : ContentPage
             ((RadioViewModel)Radio8.BindingContext).RefreshView();
             ((RadioViewModel)Radio9.BindingContext).RefreshView();
             ((RadioViewModel)Radio10.BindingContext).RefreshView();
+
+            ((AircraftRadioPageViewModel)BindingContext).RefreshView();
         }
         catch (NullReferenceException ex)
         {

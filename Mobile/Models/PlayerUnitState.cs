@@ -136,7 +136,7 @@ public class PlayerUnitState : PropertyChangedBase
         Radios = new ObservableCollection<Radio>(Radio.LoadRadioConfig(MULTI_RADIO_JSON));
         SelectedRadio = 1;
         UnitType = PlayerUnitStateBase.TYPE_AIRCRAFT;
-        IntercomHotMic = true;
+        IntercomHotMic = false;
         EventBus.Instance.PublishOnBackgroundThreadAsync(new UnitUpdateMessage
             { FullUpdate = true, UnitUpdate = ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase });
     }
