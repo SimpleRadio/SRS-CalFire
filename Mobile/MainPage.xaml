@@ -10,13 +10,6 @@
             Padding="30,0"
             VerticalOptions="Center">
 
-
-            <Label
-                Text="Hello, World!"
-                SemanticProperties.HeadingLevel="Level1"
-                FontSize="32"
-                HorizontalOptions="Center" />
-
             <Entry
                 x:Name="Address"
                 FontSize="32"
@@ -27,17 +20,29 @@
                 IsTextPredictionEnabled="False" />
 
             <Button
-                x:Name="Start"
+                x:Name="Connect"
                 Text="Start"
                 Clicked="OnStartClicked"
                 HorizontalOptions="Center" />
 
             <Button
-                x:Name="Stop"
+                x:Name="Disconnect"
                 Text="Stop"
-
                 Clicked="OnStopClicked"
                 HorizontalOptions="Center" />
+
+            <Button
+                x:Name="HandheldRadio"
+                Text="Handheld Radio"
+                Clicked="Navigate_Clicked"
+                HorizontalOptions="Center" />
+            
+            <Button
+                x:Name="AircraftRadio"
+                Text="Aircraft Radio"
+                Clicked="AircraftRadio_OnClicked"
+                HorizontalOptions="Center" />
+
 
         </VerticalStackLayout>
     </ScrollView>

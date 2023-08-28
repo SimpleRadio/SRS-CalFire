@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Network.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
 using Ciribob.SRS.Common.Helpers;
 using Newtonsoft.Json;
@@ -37,6 +38,7 @@ public class NetworkMessage
     public string ExternalAWACSModePassword { get; set; }
 
     public string Version { get; set; }
+    public PresetChannels PresetChannels { get; set; }
 
     public string Encode()
     {

@@ -54,9 +54,23 @@
 
         <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
         <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+        <None Remove="Resources\Fonts\RobotoMono-VariableFont.ttf" />
+        <MauiFont Include="Resources\Fonts\RobotoMono-VariableFont.ttf">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </MauiFont>
+        <None Remove="Resources\Raw\handheld-radio.json" />
+        <MauiAsset Include="Resources\Raw\handheld-radio.json">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </MauiAsset>
+        <None Remove="Resources\Raw\multi-radio.json" />
+        <MauiAsset Include="Resources\Raw\multi-radio.json">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </MauiAsset>
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="CommunityToolkit.Maui" Version="5.3.0" />
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
         <PackageReference Include="NLog.Extensions.Logging" Version="5.3.2" />
         <PackageReference Include="NLog.Targets.MauiLog" Version="5.2.0" />
@@ -224,6 +238,20 @@
       <Compile Update="UDPClientAudioProcessor.cs">
         <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
       </Compile>
+      <Compile Update="Views\Mobile\HandheldRadio\HandheldRadioPage.xaml.cs">
+        <DependentUpon>MainRadioPage.xaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
     </ItemGroup>
+
+    <ItemGroup>
+      <MauiXaml Update="Views\Mobile\HandheldRadio\HandheldRadioPage.xaml">
+        <SubType>Designer</SubType>
+        <Generator>MSBuild:Compile</Generator>
+      </MauiXaml>
+    </ItemGroup>
+
+
+
 
 </Project>

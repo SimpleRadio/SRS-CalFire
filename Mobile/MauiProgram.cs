@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Extensions.Logging;
-
+using CommunityToolkit.Maui;
 namespace Mobile;
 
 public static class MauiProgram
@@ -11,10 +11,13 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
+            //- Our documentation site: https://docs.microsoft.com/dotnet/communitytoolkit/maui
+            .UseMauiCommunityToolkit()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                fonts.AddFont("RobotoMono-VariableFont.ttf", "RobotoMono");
             });
         
         // Add NLog for Logging

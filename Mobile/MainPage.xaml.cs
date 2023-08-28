@@ -3,6 +3,9 @@ using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 using System.IO;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
+using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Singleton;
+using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile;
+using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.AircraftRadio;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile;
 
@@ -14,7 +17,7 @@ public partial class MainPage : ContentPage
     public MainPage()
     {
         InitializeComponent();
-
+        
         var status = CheckAndRequestMicrophonePermission();
 
         /*
@@ -82,5 +85,17 @@ public partial class MainPage : ContentPage
         {
             DisplayAlert("Error", "Invalid IP and port", "OK");
         }
+    }
+    private void Navigate_Clicked(object sender, EventArgs e)
+    {
+        ClientStateSingleton.Instance.PlayerUnitState.LoadHandHeldRadio();
+        Navigation.PushAsync(new HandheldRadioPage(_srsAudioManager));
+
+    }
+
+    private void AircraftRadio_OnClicked(object sender, EventArgs e)
+    {
+        ClientStateSingleton.Instance.PlayerUnitState.LoadMultiRadio();
+        Navigation.PushAsync(new AircraftRadioPage(_srsAudioManager));
     }
 }

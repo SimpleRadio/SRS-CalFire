@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Caliburn.Micro;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Network.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models;
 using Ciribob.SRS.Common.Network.Models;
 using NLog;
@@ -30,6 +32,7 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
     private UDPVoiceRouter _serverListener;
     private ServerSync _serverSync;
     private volatile bool _stop = true;
+    private PresetChannels _presetChannels = new();
 
     public ServerState(IEventAggregator eventAggregator, string sessionId="")
     {
@@ -37,7 +40,25 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
         _sessionId = sessionId;
         _eventAggregator.Subscribe(this);
 
+        //TODO move this out of here so it can be passed in instead
+        LoadPresets();
         StartServer();
+    }
+    
+    private void LoadPresets()
+    {
+        _presetChannels = new PresetChannels();
+        try
+        {
+            var lines = File.ReadAllLines(GetCurrentDirectory() + Path.DirectorySeparatorChar + "presets.txt");
+
+            _presetChannels = PresetChannels.AddRadioPresets(lines);
+
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Error Loading Presets",ex);
+        }
     }
 
     public async Task HandleAsync(BanClientMessage message, CancellationToken cancellationToken)
@@ -81,13 +102,6 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
         return currentDirectory;
     }
 
-    private static string NormalizePath(string path)
-    {
-        // Taken from https://stackoverflow.com/a/21058121 on 2018-06-22
-        return Path.GetFullPath(new Uri(path).LocalPath)
-            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-    }
-
     private void StartServer()
     {
         if (_serverListener == null)
@@ -96,7 +110,7 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
             var listenerThread = new Thread(_serverListener.Listen);
             listenerThread.Start();
 
-            _serverSync = new ServerSync(_connectedClients, _bannedIps, _eventAggregator);
+            _serverSync = new ServerSync(_connectedClients, _bannedIps, _eventAggregator,_presetChannels);
             var serverSyncThread = new Thread(_serverSync.StartListening);
             serverSyncThread.Start();
         }
@@ -135,7 +149,7 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
 
             _bannedIps.Add(remoteIpEndPoint.Address);
 
-            File.AppendAllText(GetCurrentDirectory() + "\\banned.txt",
+            File.AppendAllText(GetCurrentDirectory() +Path.DirectorySeparatorChar+ "banned.txt",
                 remoteIpEndPoint.Address + "\r\n");
         }
         catch (Exception ex)

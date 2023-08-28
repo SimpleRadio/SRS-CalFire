@@ -69,23 +69,37 @@ public class Radio : PropertyChangedBase
         return Modulation != Modulation.DISABLED;
     }
 
-    public void ReloadChannels()
+    public void ReloadChannels(List<Common.Network.Models.PresetChannel> presets = null)
     {
         PresetChannels.Clear();
         PresetChannels.Add(new PresetChannel { Channel = 0, Text = "No Channel", Value = 0 });
+        
         if (Name.Length == 0 || !Available()) return;
-        foreach (var presetChannel in new FilePresetChannelsStore().LoadFromStore(Name))
+        
+        if (presets == null)
         {
-            var freq = (double)presetChannel.Value;
+            presets = SyncedServerSettings.Instance.PresetChannels.GetRadioPresets(Name);
+        }
+
+        int channelCount = 1;
+        foreach (var presetChannel in presets)
+        {
+            var freq = presetChannel.PresetFrequency;
             if (freq < Config.MaxFrequency && freq > Config.MinimumFrequency)
             {
-                PresetChannels.Add(presetChannel);
-                Logger.Info($"Added {presetChannel.Text} for radio {Name} with frequency {freq}");
+                PresetChannels.Add(new PresetChannel()
+                {
+                    Channel = channelCount,
+                    Value = (Double)freq,
+                    Text = presetChannel.ChannelName
+                });
+                Logger.Info($"Added {presetChannel.ChannelName} for radio {Name} with frequency {freq}");
+                channelCount++;
             }
             else
             {
                 Logger.Error(
-                    $"Unable to add {presetChannel.Text} for radio {Name} with frequency {freq} - outside of radio range");
+                    $"Unable to add {presetChannel.ChannelName} for radio {Name} with frequency {freq} - outside of radio range");
             }
         }
 
@@ -114,8 +128,10 @@ public class Radio : PropertyChangedBase
     }
 
 
+    //TODO fix this for mobilie!
     public static List<Radio> LoadRadioConfig(string file)
     {
+    
         var loadedConfig = new Radio[11];
 
         for (var i = 0; i < 11; i++)
@@ -137,8 +153,12 @@ public class Radio : PropertyChangedBase
 
         try
         {
-            var radioJson = File.ReadAllText(file);
-            var loadedList = JsonConvert.DeserializeObject<Radio[]>(radioJson);
+           using var stream =  FileSystem.OpenAppPackageFileAsync(file);
+           using var reader = new StreamReader(stream.Result);
+          
+           var contents = reader.ReadToEnd();
+
+            var loadedList = JsonConvert.DeserializeObject<Radio[]>(contents);
 
             //      if (loadedList.Length < 2) throw new Exception("Not enough radios configured");
 

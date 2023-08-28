@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Caliburn.Micro;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Network.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.NetCoreServer;
@@ -24,16 +25,17 @@ public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
 
     private readonly ConcurrentDictionary<string, SRClientBase> _clients = new();
     private readonly IEventAggregator _eventAggregator;
+    private readonly PresetChannels _presetChannels;
 
     private readonly ServerSettingsStore _serverSettings;
 
-
     public ServerSync(ConcurrentDictionary<string, SRClientBase> connectedClients, HashSet<IPAddress> _bannedIps,
-        IEventAggregator eventAggregator) : base(IPAddress.Any, ServerSettingsStore.Instance.GetServerPort())
+        IEventAggregator eventAggregator, PresetChannels presetChannels) : base(IPAddress.Any, ServerSettingsStore.Instance.GetServerPort())
     {
         _clients = connectedClients;
         this._bannedIps = _bannedIps;
         _eventAggregator = eventAggregator;
+        _presetChannels = presetChannels;
         _eventAggregator.Subscribe(this);
         _serverSettings = ServerSettingsStore.Instance;
 
@@ -342,7 +344,8 @@ public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
             MsgType = NetworkMessage.MessageType.SYNC,
             Clients = new List<SRClientBase>(_clients.Values),
             ServerSettings = _serverSettings.ToDictionary(),
-            Version = UpdaterChecker.VERSION
+            Version = UpdaterChecker.VERSION,
+            PresetChannels = _presetChannels
         };
 
         session.Send(replyMessage.Encode());

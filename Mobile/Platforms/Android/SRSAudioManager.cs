@@ -136,21 +136,7 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
 
             //Connect to TCP and UDP
 
-            var gameState = new PlayerUnitStateBase();
-            gameState.Name = "MOBILE";
-            gameState.UnitId = 100000000;
-            gameState.Radios = new List<RadioBase>();
-            gameState.Radios.Add(new RadioBase
-            {
-                Modulation = Modulation.DISABLED
-            });
-            gameState.Radios.Add(new RadioBase
-            {
-                Modulation = Modulation.AM,
-                Freq = 1.51e+8d
-            });
-
-            var srsClientSyncHandler = new TCPClientHandler(Guid, gameState);
+            var srsClientSyncHandler = new TCPClientHandler(Guid, Singleton.ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase);
 
             srsClientSyncHandler.TryConnect(endPoint);
         }
@@ -228,7 +214,7 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
        
-        while (!stop)
+        while (!stop && _audioPlayer!=null)
             try
             {
                 long floatsRequired = stopwatch.ElapsedMilliseconds * (Constants.OUTPUT_SAMPLE_RATE/1000) * 2; //Stereo samples * milliseconds
@@ -238,7 +224,7 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
                 {
                     int read = _finalMixdown.Read(buffer, 0,
                         (int)floatsRequired); 
-                    _audioPlayer.Write(buffer, 0, read, WriteMode.Blocking);
+                    _audioPlayer?.Write(buffer, 0, read, WriteMode.Blocking);
                     Array.Clear(buffer);
              //       Logger.Info($"floats required {read} floats {read/2/(Constants.OUTPUT_SAMPLE_RATE/1000)}ms");
                 }

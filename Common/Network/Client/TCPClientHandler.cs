@@ -279,9 +279,14 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                                                 new SRClientUpdateMessage(client));
                                         }
 
+                                    //add presets
+                                    if (serverMessage.PresetChannels != null)
+                                    {
+                                        _serverSettings.SetPresetChannels(serverMessage.PresetChannels);
+                                    }
+                                    
                                     //add server settings
                                     _serverSettings.Decode(serverMessage.ServerSettings);
-
                                     break;
 
                                 case NetworkMessage.MessageType.SERVER_SETTINGS:
