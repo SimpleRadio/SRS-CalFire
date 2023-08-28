@@ -73,24 +73,21 @@ public class Radio : PropertyChangedBase
     {
         PresetChannels.Clear();
         PresetChannels.Add(new PresetChannel { Channel = 0, Text = "No Channel", Value = 0 });
-        
-        if (Name.Length == 0 || !Available()) return;
-        
-        if (presets == null)
-        {
-            presets = SyncedServerSettings.Instance.PresetChannels.GetRadioPresets(Name);
-        }
 
-        int channelCount = 1;
+        if (Name.Length == 0 || !Available()) return;
+
+        if (presets == null) presets = SyncedServerSettings.Instance.PresetChannels.GetRadioPresets(Name);
+
+        var channelCount = 1;
         foreach (var presetChannel in presets)
         {
             var freq = presetChannel.PresetFrequency;
             if (freq < Config.MaxFrequency && freq > Config.MinimumFrequency)
             {
-                PresetChannels.Add(new PresetChannel()
+                PresetChannels.Add(new PresetChannel
                 {
                     Channel = channelCount,
-                    Value = (Double)freq,
+                    Value = freq,
                     Text = $@"{presetChannel.ChannelName}"
                 });
                 Logger.Info($"Added {presetChannel.ChannelName} for radio {Name} with frequency {freq}");
@@ -131,7 +128,6 @@ public class Radio : PropertyChangedBase
     //TODO fix this for mobilie!
     public static List<Radio> LoadRadioConfig(string file)
     {
-    
         var loadedConfig = new Radio[11];
 
         for (var i = 0; i < 11; i++)
@@ -153,10 +149,10 @@ public class Radio : PropertyChangedBase
 
         try
         {
-           using var stream =  FileSystem.OpenAppPackageFileAsync(file);
-           using var reader = new StreamReader(stream.Result);
-          
-           var contents = reader.ReadToEnd();
+            using var stream = FileSystem.OpenAppPackageFileAsync(file);
+            using var reader = new StreamReader(stream.Result);
+
+            var contents = reader.ReadToEnd();
 
             var loadedList = JsonConvert.DeserializeObject<Radio[]>(contents);
 

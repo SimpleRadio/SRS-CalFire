@@ -55,16 +55,13 @@
                     <HorizontalStackLayout HorizontalOptions="Fill" VerticalOptions="Start">
                         <Label>Intercom</Label>
                         <Slider Margin="0,0,0,20" Maximum="100" Minimum="0" IsEnabled="{Binding VolumeEnabled}"
-                                Value="{Binding Volume}" Style="{StaticResource VolumeSlider}" WidthRequest="200">
-                        </Slider>
+                                Value="{Binding Volume}" Style="{StaticResource VolumeSlider}" WidthRequest="200" />
                     </HorizontalStackLayout>
                     <HorizontalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
                         <Button Text="Hot Mic ON" FontFamily="RobotoMono" FontSize="12" BackgroundColor="#919191"
-                                TextColor="White">
-                        </Button>
+                                TextColor="White" />
                         <Button Text="Select Intercom" FontFamily="RobotoMono" FontSize="12" BackgroundColor="#919191"
-                                TextColor="White">
-                        </Button>
+                                TextColor="White" />
                     </HorizontalStackLayout>
                     <Button Text="TRANSMIT" FontFamily="RobotoMono" FontSize="30" BackgroundColor="#919191"
                             TextColor="White" Pressed="Transmit_OnPressed" Released="Transmit_OnReleased" />

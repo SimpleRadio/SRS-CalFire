@@ -1,21 +1,21 @@
 using System.Collections.ObjectModel;
-using System.Drawing;
 using System.Globalization;
 using System.Windows.Input;
-using Android.OS;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Models.RadioChannels;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Singleton;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Utility;
 using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Models;
-using Color = Microsoft.Maui.Graphics.Color;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile;
 
-public class RadioViewModel: PropertyChangedBase
+public class RadioViewModel : PropertyChangedBase
 {
     private const double MHz = 1000000;
+    private static readonly Color RadioActiveTransmit = Color.Parse("#96FF6D");
+
+    private static readonly Color RadioTextGreen = Color.Parse("#00FF00");
     private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
 
     public RadioViewModel(int radioId)
@@ -133,13 +133,13 @@ public class RadioViewModel: PropertyChangedBase
 
             if (SelectedPresetChannel?.Channel > 0)
                 text = $"{SelectedPresetChannel.Channel}-{SelectedPresetChannel.Text}";
-            
+
             if (Radio.SecFreq > 100) text += " +G";
 
             return text;
         }
     }
-    private static readonly Color RadioActiveTransmit = Color.Parse("#96FF6D");
+
     public Color RadioActiveFill
     {
         get
@@ -155,7 +155,7 @@ public class RadioViewModel: PropertyChangedBase
             return Colors.Green;
         }
     }
-    
+
     public Color BackgroundActiveFill
     {
         get
@@ -172,19 +172,18 @@ public class RadioViewModel: PropertyChangedBase
         }
     }
 
-    private static readonly Color RadioTextGreen = Color.Parse("#00FF00");
     public Color FrequencyTextColour
     {
         get
         {
-            if (Radio == null || !IsAvailable) return(Colors.Red);
+            if (Radio == null || !IsAvailable) return Colors.Red;
 
             try
             {
                 var receivingState = ClientStateSingleton.Instance.RadioReceivingState[RadioId];
 
                 if (receivingState.IsReceiving && receivingState.IsSecondary)
-                    return  Colors.Red;
+                    return Colors.Red;
                 if (receivingState.IsReceiving)
                     return Colors.White;
                 return RadioTextGreen;
@@ -281,7 +280,7 @@ public class RadioViewModel: PropertyChangedBase
          * PRESETS
          */
     public ICommand ReloadCommand { get; set; }
-    
+
 
     public ObservableCollection<PresetChannel> Channels => Radio.PresetChannels;
 
@@ -295,7 +294,7 @@ public class RadioViewModel: PropertyChangedBase
         }
         get => Radio.CurrentChannel;
     }
-    
+
     public void RefreshView()
     {
         NotifyPropertyChanged(nameof(BackgroundActiveFill));
