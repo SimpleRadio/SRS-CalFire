@@ -40,13 +40,21 @@
                 <Button Grid.Row="2" Grid.Column="4"  Text="-0.001" Style="{StaticResource RadioFrequencyButton}"  Command="{Binding DOWN0001}" />
                 
                 <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" x:Name="Frequency" FontFamily="RobotoMono" HorizontalTextAlignment="Center" HorizontalOptions="Fill" VerticalOptions="Start"
-                       FontSize="30" BackgroundColor="Black" TextColor="{Binding FrequencyTextColour}" Text="{Binding Frequency}"></Label>
-                 <Ellipse x:Name="RadioActive" Grid.Row="1" Grid.Column="4"
-                                                                    WidthRequest="30"
-                                                                    HeightRequest="30"
-                                                                    Margin="2"
+                       FontSize="30" BackgroundColor="Black" TextColor="{Binding FrequencyTextColour}" Text="{Binding Frequency}"
+                MaxLines="1" LineBreakMode="TailTruncation"
+                       Padding="0,0,10,0"
+                >
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding ToggleGuard}" NumberOfTapsRequired="2" />
+                    <TapGestureRecognizer Command="{Binding RadioSelect}" NumberOfTapsRequired="1" />
+                </Label.GestureRecognizers>
+                </Label>
+                <Ellipse x:Name="RadioActive" Grid.Row="1" Grid.Column="4"
+                         WidthRequest="30"
+                         HeightRequest="30"
+                         Margin="2"
                                                                     
-                                                                    Fill="{Binding RadioActiveFill}" />
+                         Fill="{Binding RadioActiveFill}" />
             </Grid>
             
             
@@ -56,7 +64,7 @@
             <Label TextColor="White">Volume</Label>
             <Slider Margin="0,0,0,20" Maximum="100" Minimum="0" IsEnabled="{Binding VolumeEnabled}" Value="{Binding Volume}" Style="{StaticResource VolumeSlider}"  ></Slider>
             
-            <Button Text="TRANSMIT" FontFamily="RobotoMono" FontSize="30" BackgroundColor="#919191" TextColor="White" Pressed="Button_OnPressed" Released="Button_OnReleased"  ></Button>
+            <Button Text="TRANSMIT" FontFamily="RobotoMono" FontSize="30" BackgroundColor="#919191" TextColor="White" Pressed="Button_OnPressed" Released="Button_OnReleased"  />
             
         </VerticalStackLayout>
     </ScrollView>

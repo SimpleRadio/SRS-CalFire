@@ -38,16 +38,24 @@ public partial class AircraftRadioPage : ContentPage
 
     private void OnUpdateTimerOnTick(object s, EventArgs e)
     {
-        ((RadioViewModel)Radio1.BindingContext).RefreshView();
-        ((RadioViewModel)Radio2.BindingContext).RefreshView();
-        ((RadioViewModel)Radio3.BindingContext).RefreshView();
-        ((RadioViewModel)Radio4.BindingContext).RefreshView();
-        ((RadioViewModel)Radio5.BindingContext).RefreshView();
-        ((RadioViewModel)Radio6.BindingContext).RefreshView();
-        ((RadioViewModel)Radio7.BindingContext).RefreshView();
-        ((RadioViewModel)Radio8.BindingContext).RefreshView();
-        ((RadioViewModel)Radio9.BindingContext).RefreshView();
-        ((RadioViewModel)Radio10.BindingContext).RefreshView();
+        try
+        {
+            ((RadioViewModel)Radio1.BindingContext).RefreshView();
+            ((RadioViewModel)Radio2.BindingContext).RefreshView();
+            ((RadioViewModel)Radio3.BindingContext).RefreshView();
+            ((RadioViewModel)Radio4.BindingContext).RefreshView();
+            ((RadioViewModel)Radio5.BindingContext).RefreshView();
+            ((RadioViewModel)Radio6.BindingContext).RefreshView();
+            ((RadioViewModel)Radio7.BindingContext).RefreshView();
+            ((RadioViewModel)Radio8.BindingContext).RefreshView();
+            ((RadioViewModel)Radio9.BindingContext).RefreshView();
+            ((RadioViewModel)Radio10.BindingContext).RefreshView();
+        }
+        catch (NullReferenceException ex)
+        {
+            //ignore
+        }
+       
     }
 
     protected override void OnAppearing()
@@ -60,5 +68,17 @@ public partial class AircraftRadioPage : ContentPage
     {
         base.OnDisappearing();
         _updateTimer.Stop();
+    }
+
+    private void Transmit_OnReleased(object sender, EventArgs e)
+    {
+        if (_srsAudioManager != null)
+            _srsAudioManager.PTTPressed = false;
+    }
+
+    private void Transmit_OnPressed(object sender, EventArgs e)
+    {
+        if (_srsAudioManager != null)
+            _srsAudioManager.PTTPressed = true;
     }
 }

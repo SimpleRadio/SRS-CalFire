@@ -3,7 +3,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.AircraftRadio.AircraftRadioView">
-      <VerticalStackLayout VerticalOptions="Start" Padding="20" Spacing="10">
+      <VerticalStackLayout VerticalOptions="Start" Padding="5" Spacing="10">
             <Grid ColumnSpacing="10" RowSpacing="10" Margin="2">
                 <Grid.RowDefinitions>
                     <RowDefinition />
@@ -31,18 +31,20 @@
                 <Button Grid.Row="2" Grid.Column="4" ToolTipProperties.Text="-0.001" Style="{StaticResource RadioFrequencyButtonAircraft}"  Command="{Binding DOWN0001}" />
                 
                 <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" x:Name="Frequency" FontFamily="RobotoMono" HorizontalTextAlignment="Center" HorizontalOptions="Fill" VerticalOptions="Start"
-                       FontSize="12" BackgroundColor="Black" TextColor="{Binding FrequencyTextColour}" Text="{Binding Frequency}"></Label>
-                 <Ellipse x:Name="RadioActive" Grid.Row="1" Grid.Column="4"
-                                                                    WidthRequest="9"
-                                                                    HeightRequest="9"
-                                                                    Margin="2"
-                                                                    
-                                                                    Fill="{Binding RadioActiveFill}" />
+                       FontSize="14" BackgroundColor="{Binding BackgroundActiveFill}" TextColor="{Binding FrequencyTextColour}" Text="{Binding Frequency}"
+                       MaxLines="1" LineBreakMode="TailTruncation"
+                       Padding="0,0,0,0"
+                       >
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ToggleGuard}" NumberOfTapsRequired="2" />
+                        <TapGestureRecognizer Command="{Binding RadioSelect}" NumberOfTapsRequired="1" />
+                    </Label.GestureRecognizers>
+                </Label>
             </Grid>
           
             <Picker x:Name="ChannelPicker" Title="Select Channel" ItemsSource="{Binding Channels}" SelectedItem="{Binding Mode=TwoWay, Path=SelectedPresetChannel}" />
            
-            <Slider Margin="0,0,0,0" Maximum="100" Minimum="0" IsEnabled="{Binding VolumeEnabled}" Value="{Binding Volume}" Style="{StaticResource VolumeSlider}"  ></Slider>
+            <Slider Margin="0,0,0,10" Maximum="100" Minimum="0" IsEnabled="{Binding VolumeEnabled}" Value="{Binding Volume}" Style="{StaticResource VolumeSlider}"></Slider>
             
         </VerticalStackLayout>
 </ContentView>

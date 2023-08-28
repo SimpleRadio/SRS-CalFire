@@ -6,23 +6,72 @@
              xmlns:orientation="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Utility.OrientationHelper"
              x:Class="Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.AircraftRadio.AircraftRadioPage">
     <ContentPage.Content>
-        <!-- https://www.cayas.de/de/blog/responsive-layouts-for-dotnet-maui -->
-        <Grid ColumnDefinitions="{orientation:OnOrientation Default='*,*,*', Landscape='*,*,*,*,*', TypeConverter={x:Type ColumnDefinitionCollectionTypeConverter}}"
-        RowDefinitions="{orientation:OnOrientation Default='*,*,*,*', Landscape='*,*,*', TypeConverter={x:Type RowDefinitionCollectionTypeConverter}}">
-            
-            <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=0, Landscape=0}" Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=0}" x:Name="Radio1"/>
-            <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=0, Landscape=0}" Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=1}" x:Name="Radio2"/>
-            <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=0, Landscape=0}" Grid.Column="{orientation:OnOrientation Portrait=2, Landscape=2}" x:Name="Radio3"/>
-            <!-- <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Default=0, Landscape=2}" Grid.Column="3"/> -->
-            <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=1, Landscape=0}" Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=3}"  x:Name="Radio4"/>
-            <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=1, Landscape=0}" Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=4}"  x:Name="Radio5"/>
-            <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=1, Landscape=1}" Grid.Column="{orientation:OnOrientation Portrait=2, Landscape=0}"  x:Name="Radio6"/>
-            <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=2, Landscape=1}" Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=1}"  x:Name="Radio7"/>
-            <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=2, Landscape=1}" Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=2}"  x:Name="Radio8"/>
-            <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=2, Landscape=1}" Grid.Column="{orientation:OnOrientation Portrait=2, Landscape=3}"  x:Name="Radio9"/>
-            <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=3, Landscape=1}" Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=4}"  x:Name="Radio10"/>
-            
-        </Grid>
-        
+
+        <ScrollView Orientation="Vertical">
+
+            <!-- https://www.cayas.de/de/blog/responsive-layouts-for-dotnet-maui -->
+            <Grid
+                ColumnDefinitions="{orientation:OnOrientation Default='*,*', Landscape='*,*,*,*', TypeConverter={x:Type ColumnDefinitionCollectionTypeConverter}}"
+                RowDefinitions="{orientation:OnOrientation Default='*,*,*,*,*,*', Landscape='*,*,*,*', TypeConverter={x:Type RowDefinitionCollectionTypeConverter}}">
+
+                <!-- <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Default=0, Landscape=2}" Grid.Column="3"/> -->
+
+                <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=0, Landscape=0}"
+                                                 Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=0}"
+                                                 x:Name="Radio1" />
+                <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=0, Landscape=0}"
+                                                 Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=1}"
+                                                 x:Name="Radio2" />
+                <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=1, Landscape=0}"
+                                                 Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=2}"
+                                                 x:Name="Radio3" />
+                <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=1, Landscape=0}"
+                                                 Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=3}"
+                                                 x:Name="Radio4" />
+                <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=2, Landscape=1}"
+                                                 Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=0}"
+                                                 x:Name="Radio5" />
+                <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=2, Landscape=1}"
+                                                 Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=1}"
+                                                 x:Name="Radio6" />
+                <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=3, Landscape=1}"
+                                                 Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=2}"
+                                                 x:Name="Radio7" />
+                <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=3, Landscape=1}"
+                                                 Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=3}"
+                                                 x:Name="Radio8" />
+                <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=4, Landscape=2}"
+                                                 Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=0}"
+                                                 x:Name="Radio9" />
+                <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=4, Landscape=2}"
+                                                 Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=1}"
+                                                 x:Name="Radio10" />
+
+                <VerticalStackLayout Grid.Row="{orientation:OnOrientation Portrait=5, Landscape=3}"
+                                     Grid.Column="0"
+                                     Grid.ColumnSpan="{orientation:OnOrientation Portrait=2, Landscape=4}"
+                                     HorizontalOptions="Center" VerticalOptions="Start"
+                                     Padding="10" Spacing="10">
+                    <HorizontalStackLayout HorizontalOptions="Fill" VerticalOptions="Start">
+                        <Label>Intercom</Label>
+                        <Slider Margin="0,0,0,20" Maximum="100" Minimum="0" IsEnabled="{Binding VolumeEnabled}"
+                                Value="{Binding Volume}" Style="{StaticResource VolumeSlider}" WidthRequest="200">
+                        </Slider>
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
+                        <Button Text="Hot Mic ON" FontFamily="RobotoMono" FontSize="12" BackgroundColor="#919191"
+                                TextColor="White">
+                        </Button>
+                        <Button Text="Select Intercom" FontFamily="RobotoMono" FontSize="12" BackgroundColor="#919191"
+                                TextColor="White">
+                        </Button>
+                    </HorizontalStackLayout>
+                    <Button Text="TRANSMIT" FontFamily="RobotoMono" FontSize="30" BackgroundColor="#919191"
+                            TextColor="White" Pressed="Transmit_OnPressed" Released="Transmit_OnReleased" />
+                </VerticalStackLayout>
+
+            </Grid>
+        </ScrollView>
+
     </ContentPage.Content>
 </ContentPage>

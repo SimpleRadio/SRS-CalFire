@@ -7,7 +7,8 @@ using PropertyChangedBase = Ciribob.SRS.Common.Helpers.PropertyChangedBase;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Singleton;
 
-public class ClientStateSingleton : PropertyChangedBase, IHandle<TCPClientStatusMessage>, IHandle<PresetChannelsUpdateMessage>
+public class ClientStateSingleton : PropertyChangedBase, IHandle<TCPClientStatusMessage>,
+    IHandle<PresetChannelsUpdateMessage>
 {
     private static volatile ClientStateSingleton _instance;
     private static readonly object _lock = new();
@@ -46,6 +47,14 @@ public class ClientStateSingleton : PropertyChangedBase, IHandle<TCPClientStatus
         }
     }
 
+    public Task HandleAsync(PresetChannelsUpdateMessage message, CancellationToken cancellationToken)
+    {
+        foreach (var radio in PlayerUnitState.Radios)
+            radio.ReloadChannels(message.PresetChannels.GetRadioPresets(radio.Name));
+
+        return Task.CompletedTask;
+    }
+
     public Task HandleAsync(TCPClientStatusMessage message, CancellationToken cancellationToken)
     {
         if (message.Connected)
@@ -55,16 +64,6 @@ public class ClientStateSingleton : PropertyChangedBase, IHandle<TCPClientStatus
 
         //TODO
         // PlayerUnitState.Reset();
-        return Task.CompletedTask;
-    }
-
-    public Task HandleAsync(PresetChannelsUpdateMessage message, CancellationToken cancellationToken)
-    {
-        foreach (var radio in PlayerUnitState.Radios)
-        {
-            radio.ReloadChannels(message.PresetChannels.GetRadioPresets(radio.Name));
-        }
-
         return Task.CompletedTask;
     }
 }

@@ -2,12 +2,19 @@ using System.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Utility.OrientationHelper;
+
 //SOURCE https://www.cayas.de/de/blog/responsive-layouts-for-dotnet-maui
 public class OnOrientationSource : INotifyPropertyChanged
 {
     private object _defaultValue;
-    private object _portraitValue;
     private object _landscapeValue;
+    private object _portraitValue;
+
+    public OnOrientationSource()
+    {
+        WeakReferenceMessenger.Default.Register<OnOrientationSource, OnOrientationExtension.OrientationChangedMessage>(
+            this, OnOrientationChanged);
+    }
 
     public object DefaultValue
     {
@@ -46,15 +53,10 @@ public class OnOrientationSource : INotifyPropertyChanged
         _ => DefaultValue
     };
 
-    public OnOrientationSource()
-    {
-        WeakReferenceMessenger.Default.Register<OnOrientationSource,OnOrientationExtension.OrientationChangedMessage>(this, OnOrientationChanged);
-    }
+    public event PropertyChangedEventHandler PropertyChanged;
 
     private void OnOrientationChanged(OnOrientationSource r, OnOrientationExtension.OrientationChangedMessage m)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Value)));
     }
-
-    public event PropertyChangedEventHandler PropertyChanged;
 }

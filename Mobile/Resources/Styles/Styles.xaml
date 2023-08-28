@@ -93,8 +93,8 @@
         <Setter Property="FontSize" Value="0" />
         <Setter Property="CornerRadius" Value="0" />
         <Setter Property="Padding" Value="0" />
-        <Setter Property="WidthRequest" Value="10" />
-        <Setter Property="HeightRequest" Value="10" />
+        <Setter Property="WidthRequest" Value="30" />
+        <Setter Property="HeightRequest" Value="20" />
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
                 <VisualStateGroup x:Name="CommonStates">
@@ -292,7 +292,7 @@
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
                 <VisualStateGroup x:Name="CommonStates">
-                    <VisualState x:Name="Normal" >
+                    <VisualState x:Name="Normal">
                         <VisualState.Setters>
                             <Setter Property="TextColor"
                                     Value="{AppThemeBinding Default={StaticResource White}}" />
@@ -300,7 +300,7 @@
                                     Value="{AppThemeBinding Default={StaticResource White}}" />
                         </VisualState.Setters>
                     </VisualState>
-                    
+
                     <VisualState x:Name="Disabled">
                         <VisualState.Setters>
                             <Setter Property="TextColor"
@@ -443,7 +443,7 @@
             </VisualStateGroupList>
         </Setter>
     </Style>
-    
+
     <Style TargetType="Slider" x:Key="VolumeSlider">
         <Setter Property="MinimumTrackColor"
                 Value="{AppThemeBinding Default={StaticResource Yellow300Accent}}" />

@@ -36,7 +36,7 @@
                 Text="Handheld Radio"
                 Clicked="Navigate_Clicked"
                 HorizontalOptions="Center" />
-            
+
             <Button
                 x:Name="AircraftRadio"
                 Text="Aircraft Radio"

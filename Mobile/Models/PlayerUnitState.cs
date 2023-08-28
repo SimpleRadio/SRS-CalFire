@@ -104,7 +104,7 @@ public class PlayerUnitState : PropertyChangedBase
 
     public short SelectedRadio { get; set; }
 
-    public bool IntercomHotMic { get; set; } = false;
+    public bool IntercomHotMic { get; set; }
 
     public ObservableCollection<Radio> Radios { get; private set; } = new();
 

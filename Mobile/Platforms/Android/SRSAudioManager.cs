@@ -30,6 +30,14 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
     public static readonly int MIC_SEGMENT_FRAMES_BYTES =
         Constants.MIC_SAMPLE_RATE / 1000 * MIC_INPUT_AUDIO_LENGTH_MS * 2; //2 because its bytes not shorts
 
+    private readonly ClientEffectsPipeline _clientEffectsPipeline;
+
+    private readonly ConcurrentDictionary<string, ClientAudioProvider> _clientsBufferedAudio = new();
+
+    private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
+
+    private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
+
     private readonly Queue<byte> _micInputQueue = new(MIC_SEGMENT_FRAMES_BYTES * 3);
 
     private readonly CancellationTokenSource _stopFlag = new();
@@ -41,8 +49,12 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
     private readonly object lockob = new();
     private AudioTrack _audioPlayer;
     private AudioRecord _audioRecorder;
+    private UDPClientAudioProcessor _clientAudioProcessor;
     private OpusDecoder _decoder;
     private OpusEncoder _encoder;
+    private SRSMixingSampleProvider _finalMixdown;
+
+    private List<RadioMixingProvider> _radioMixingProvider;
 
     private float _speakerBoost = 1.0f;
 
@@ -51,58 +63,28 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
     private bool stop;
 
     private UDPVoiceHandler udpVoiceHandler;
-    private UDPClientAudioProcessor _clientAudioProcessor;
-    
-    private readonly ConcurrentDictionary<string, ClientAudioProvider> _clientsBufferedAudio = new();
-
-    private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
-
-    private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
-    
-    private readonly ClientEffectsPipeline _clientEffectsPipeline;
-    
-    private List<RadioMixingProvider> _radioMixingProvider;
-    private SRSMixingSampleProvider _finalMixdown;
-
-
-    public bool PTTPressed { get; set; }
 
     public SRSAudioManager()
     {
         _clientEffectsPipeline = new ClientEffectsPipeline();
     }
-    
-    private void InitMixers()
-    {
-        _finalMixdown =
-            new SRSMixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 2));
-        _finalMixdown.ReadFully = true;
 
-        _radioMixingProvider = new List<RadioMixingProvider>();
-        for (var i = 0; i < _clientStateSingleton.PlayerUnitState.Radios.Count; i++)
-        {
-            var mix = new RadioMixingProvider(WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 2), i);
-            _radioMixingProvider.Add(mix);
-            _finalMixdown.AddMixerInput(mix);
-        }
-    }
-    
-    public Task HandleAsync(SRClientUpdateMessage message, CancellationToken cancellationToken)
-    {
-        if (!message.Connected) RemoveClientBuffer(message.SrClient);
 
-        return Task.CompletedTask;
-    }
+    public bool PTTPressed { get; set; }
 
 
     public Task HandleAsync(PTTState message, CancellationToken cancellationToken)
     {
         PTTPressed = message.PTTPressed;
 
-        if (_clientAudioProcessor != null)
-        {
-            _clientAudioProcessor.PTT = PTTPressed;
-        }
+        if (_clientAudioProcessor != null) _clientAudioProcessor.PTT = PTTPressed;
+
+        return Task.CompletedTask;
+    }
+
+    public Task HandleAsync(SRClientUpdateMessage message, CancellationToken cancellationToken)
+    {
+        if (!message.Connected) RemoveClientBuffer(message.SrClient);
 
         return Task.CompletedTask;
     }
@@ -117,6 +99,21 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
         return Task.CompletedTask;
     }
 
+    private void InitMixers()
+    {
+        _finalMixdown =
+            new SRSMixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 2));
+        _finalMixdown.ReadFully = true;
+
+        _radioMixingProvider = new List<RadioMixingProvider>();
+        for (var i = 0; i < _clientStateSingleton.PlayerUnitState.Radios.Count; i++)
+        {
+            var mix = new RadioMixingProvider(WaveFormat.CreateIeeeFloatWaveFormat(Constants.OUTPUT_SAMPLE_RATE, 2), i);
+            _radioMixingProvider.Add(mix);
+            _finalMixdown.AddMixerInput(mix);
+        }
+    }
+
     public void StartPreview(IPEndPoint ipEndpoint)
     {
         endPoint = ipEndpoint;
@@ -124,7 +121,7 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
         lock (lockob)
         {
             InitMixers();
-            
+
             EventBus.Instance.SubscribeOnUIThread(this);
             //opus
             _encoder = OpusEncoder.Create(Constants.MIC_SAMPLE_RATE, 1,
@@ -136,7 +133,8 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
 
             //Connect to TCP and UDP
 
-            var srsClientSyncHandler = new TCPClientHandler(Guid, Singleton.ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase);
+            var srsClientSyncHandler =
+                new TCPClientHandler(Guid, ClientStateSingleton.Instance.PlayerUnitState.PlayerUnitStateBase);
 
             srsClientSyncHandler.TryConnect(endPoint);
         }
@@ -166,7 +164,7 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
 
                 _audioPlayer = null;
                 _audioRecorder = null;
-                
+
                 _clientAudioProcessor?.Stop();
                 _clientAudioProcessor = null;
             }
@@ -179,7 +177,7 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
             Logger.Info($"Connecting UDP VoIP {endPoint}");
             udpVoiceHandler = new UDPVoiceHandler(Guid, endPoint);
             udpVoiceHandler.Connect();
-            
+
             _clientAudioProcessor = new UDPClientAudioProcessor(udpVoiceHandler, this, Guid);
             _clientAudioProcessor.Start();
 
@@ -201,33 +199,36 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
                 .SetChannelMask(ChannelOut.Stereo)
                 .Build())
             .SetBufferSizeInBytes(AudioTrack.GetMinBufferSize(Constants.OUTPUT_SAMPLE_RATE, ChannelOut.Stereo,
-                Encoding.PcmFloat)*16) // Added artibrary * 10 ?
+                Encoding.PcmFloat) * 16) // Added artibrary * 10 ?
             .SetTransferMode(AudioTrackMode.Stream)
             .Build();
 
         _audioPlayer.Play();
 
-        float[] buffer =
-            new float[((Constants.OUTPUT_SAMPLE_RATE / 1000) * Constants.OUTPUT_AUDIO_LENGTH_MS * 2 * 16 )];
-            
-  
-        Stopwatch stopwatch = new Stopwatch();
+        var buffer =
+            new float[Constants.OUTPUT_SAMPLE_RATE / 1000 * Constants.OUTPUT_AUDIO_LENGTH_MS * 2 * 16];
+
+
+        var stopwatch = new Stopwatch();
         stopwatch.Start();
-       
-        while (!stop && _audioPlayer!=null)
+
+        while (!stop && _audioPlayer != null)
             try
             {
-                long floatsRequired = stopwatch.ElapsedMilliseconds * (Constants.OUTPUT_SAMPLE_RATE/1000) * 2; //Stereo samples * milliseconds
+                var floatsRequired =
+                    stopwatch.ElapsedMilliseconds * (Constants.OUTPUT_SAMPLE_RATE / 1000) *
+                    2; //Stereo samples * milliseconds
                 stopwatch.Restart();
 
                 if (floatsRequired > 0 && floatsRequired < buffer.Length)
                 {
-                    int read = _finalMixdown.Read(buffer, 0,
-                        (int)floatsRequired); 
+                    var read = _finalMixdown.Read(buffer, 0,
+                        (int)floatsRequired);
                     _audioPlayer?.Write(buffer, 0, read, WriteMode.Blocking);
                     Array.Clear(buffer);
-             //       Logger.Info($"floats required {read} floats {read/2/(Constants.OUTPUT_SAMPLE_RATE/1000)}ms");
+                    //       Logger.Info($"floats required {read} floats {read/2/(Constants.OUTPUT_SAMPLE_RATE/1000)}ms");
                 }
+
                 Thread.Sleep(1);
             }
             catch (Exception ex)
@@ -280,7 +281,7 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
             //Read the input
             var read = _audioRecorder.Read(recorderBuffer, 0, MIC_SEGMENT_FRAMES_BYTES, 0);
 
-            if (read == MIC_SEGMENT_FRAMES_BYTES) 
+            if (read == MIC_SEGMENT_FRAMES_BYTES)
             {
                 var encodedBytes = _encoder.Encode(recorderBuffer, MIC_SEGMENT_FRAMES_BYTES, out var encodedLength);
 
@@ -291,18 +292,18 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
                 _clientAudioProcessor.PTT = PTTPressed;
                 _clientAudioProcessor?.Send(toSend, encodedLength, true);
 
-               //  var udpVoicePacket = new UDPVoicePacket
-               //  {
-               //      AudioPart1Bytes = toSend,
-               //      AudioPart1Length = (ushort)encodedLength,
-               //      Frequencies = frequencies,
-               //      UnitId = 100000,
-               //      Encryptions = encryptionBytes,
-               //      Modulations = modulationBytes
-               //  };
-               //
-               // udpVoiceHandler.Send(udpVoicePacket);
-              }
+                //  var udpVoicePacket = new UDPVoicePacket
+                //  {
+                //      AudioPart1Bytes = toSend,
+                //      AudioPart1Length = (ushort)encodedLength,
+                //      Frequencies = frequencies,
+                //      UnitId = 100000,
+                //      Encryptions = encryptionBytes,
+                //      Modulations = modulationBytes
+                //  };
+                //
+                // udpVoiceHandler.Send(udpVoicePacket);
+            }
         }
     }
 
@@ -317,11 +318,12 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
     {
         _radioMixingProvider[sendingOn]?.PlaySoundEffectEndTransmit(radioVolume, radioModulation);
     }
+
     public void PlaySoundEffectStartTransmit(int sendingOn, bool encrypted, float volume, Modulation modulation)
     {
         _radioMixingProvider[sendingOn]?.PlaySoundEffectStartTransmit(encrypted, volume, modulation);
     }
-    
+
     public void AddClientAudio(ClientAudio audio)
     {
         //sort out effects!
@@ -360,7 +362,7 @@ public class SRSAudioManager : IHandle<TCPClientStatusMessage>, IHandle<PTTState
         {
             Logger.Error(ex, "Error removing client input");
         }
-        
+
         //TODO for later
         //MAKE SURE TO INIT THE MIXERS - CLEAR WHEN APPROPRIATE
         //ALSO INIT THE _clientsBufferedAudio and also CLEAR AS APPROPRIATE

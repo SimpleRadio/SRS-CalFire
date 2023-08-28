@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CommunityToolkit.Maui;
+using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Extensions.Logging;
-using CommunityToolkit.Maui;
+using LogLevel = NLog.LogLevel;
+
 namespace Mobile;
 
 public static class MauiProgram
@@ -19,14 +21,14 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 fonts.AddFont("RobotoMono-VariableFont.ttf", "RobotoMono");
             });
-        
+
         // Add NLog for Logging
         builder.Logging.ClearProviders();
         builder.Logging.AddNLog();
-        
+
 #if DEBUG
-        var logger = NLog.LogManager.Setup().RegisterMauiLog()
-            .LoadConfiguration(c => c.ForLogger(NLog.LogLevel.Debug).WriteToMauiLog())
+        var logger = LogManager.Setup().RegisterMauiLog()
+            .LoadConfiguration(c => c.ForLogger(LogLevel.Debug).WriteToMauiLog())
             .GetCurrentClassLogger();
 #else
         var logger = NLog.LogManager.Setup().RegisterMauiLog()

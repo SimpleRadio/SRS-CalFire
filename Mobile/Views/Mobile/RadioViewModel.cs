@@ -112,13 +112,6 @@ public class RadioViewModel: PropertyChangedBase
             NotifyPropertyChanged(nameof(Radio));
             NotifyPropertyChanged(nameof(Channels));
         }, () => IsAvailable);
-
-        DropDownClosedCommand = new Command(() =>
-        {
-            //   SelectedPresetChannel = SelectedPresetChannel;
-            // NotifyPropertyChanged(nameof(Radio));
-            // NotifyPropertyChanged(nameof(Channels));
-        }, () => IsAvailable);
     }
 
     public string Name => Radio.Name;
@@ -139,7 +132,7 @@ public class RadioViewModel: PropertyChangedBase
 
 
             if (SelectedPresetChannel?.Channel > 0)
-                text = $"{SelectedPresetChannel.Channel} - {SelectedPresetChannel.Text}";
+                text = $"{SelectedPresetChannel.Channel}-{SelectedPresetChannel.Text}";
             
             if (Radio.SecFreq > 100) text += " +G";
 
@@ -160,6 +153,22 @@ public class RadioViewModel: PropertyChangedBase
                 ClientStateSingleton.Instance.RadioSendingState.SendingOn == RadioId)
                 return RadioActiveTransmit;
             return Colors.Green;
+        }
+    }
+    
+    public Color BackgroundActiveFill
+    {
+        get
+        {
+            if (Radio == null || !IsAvailable) return Colors.Black;
+
+            if (ClientStateSingleton.Instance.PlayerUnitState.SelectedRadio != RadioId)
+                return Colors.Black;
+
+            if (ClientStateSingleton.Instance.RadioSendingState.IsSending &&
+                ClientStateSingleton.Instance.RadioSendingState.SendingOn == RadioId)
+                return Colors.Magenta;
+            return Colors.DarkMagenta;
         }
     }
 
@@ -272,8 +281,7 @@ public class RadioViewModel: PropertyChangedBase
          * PRESETS
          */
     public ICommand ReloadCommand { get; set; }
-
-    public ICommand DropDownClosedCommand { get; set; }
+    
 
     public ObservableCollection<PresetChannel> Channels => Radio.PresetChannels;
 
@@ -290,6 +298,7 @@ public class RadioViewModel: PropertyChangedBase
     
     public void RefreshView()
     {
+        NotifyPropertyChanged(nameof(BackgroundActiveFill));
         NotifyPropertyChanged(nameof(RadioActiveFill));
         NotifyPropertyChanged(nameof(Frequency));
         NotifyPropertyChanged(nameof(FrequencyTextColour));

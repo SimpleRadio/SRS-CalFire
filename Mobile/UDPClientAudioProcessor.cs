@@ -17,15 +17,16 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+    private readonly SRSAudioManager _audioManager;
     private readonly ConnectedClientsSingleton _clients = ConnectedClientsSingleton.Instance;
     private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
     private readonly string _guid;
-    private readonly SRSAudioManager _audioManager;
     private readonly RadioReceivingState[] _radioReceivingState;
     private readonly SyncedServerSettings _serverSettings = SyncedServerSettings.Instance;
     private readonly CancellationTokenSource _stopFlag = new();
     private readonly UDPVoiceHandler _udpClient;
     private readonly object lockObj = new();
+    private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
     private long _firstPTTPress; // to delay start PTT time
     private long _lastPTTPress; // to handle dodgy PTT - release time
 
@@ -34,13 +35,8 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
 
     private volatile bool _ptt;
     private bool _stop;
-    private ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
-    public bool PTT
-    {
-        set { _ptt = value; }
-    }
 
-    public UDPClientAudioProcessor(UDPVoiceHandler udpClient, SRSAudioManager audioManager,string guid)
+    public UDPClientAudioProcessor(UDPVoiceHandler udpClient, SRSAudioManager audioManager, string guid)
     {
         _udpClient = udpClient;
         _guid = guid;
@@ -49,10 +45,22 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
         _radioReceivingState = ClientStateSingleton.Instance.RadioReceivingState;
     }
 
+    public bool PTT
+    {
+        set => _ptt = value;
+    }
+
     public void Dispose()
     {
         _ptt = false;
         _stopFlag?.Dispose();
+    }
+
+    public Task HandleAsync(PTTState message, CancellationToken cancellationToken)
+    {
+        _ptt = message.PTTPressed;
+
+        return Task.CompletedTask;
     }
 
     public void Start()
@@ -61,7 +69,6 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
         _packetNumber = 1;
         var decoderThread = new Thread(UdpAudioDecode);
         decoderThread.Start();
-
     }
 
 
@@ -76,7 +83,7 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
 
         return null;
     }
-    
+
 
     private List<int> CurrentlyBlockedRadios()
     {
@@ -263,7 +270,7 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
                         Modulations = modulations.ToArray(),
                         PacketNumber = _packetNumber++
                     };
-                    
+
                     _udpClient.Send(udpVoicePacket);
 
                     var currentlySelectedRadio = _clientStateSingleton.PlayerUnitState.Radios[sendingOn];
@@ -405,7 +412,6 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
                                 radioReceivingPriorities.Sort(SortRadioReceivingPriorities);
 
                                 if (radioReceivingPriorities.Count > 0)
-                                {
                                     //ALL GOOD!
                                     //create marker for bytes
                                     for (var i = 0; i < radioReceivingPriorities.Count; i++)
@@ -465,7 +471,6 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
                                         //this is a nice optimisation to save duplicated audio on servers without that setting 
                                         if (i == 0) _audioManager.AddClientAudio(audio);
                                     }
-                                }
                             }
                         }
                     }
@@ -606,14 +611,8 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
             _clientStateSingleton.RadioSendingState.IsSending = false;
         }
     }
-
-    public Task HandleAsync(PTTState message, CancellationToken cancellationToken)
-    {
-        _ptt = message.PTTPressed;
-
-        return Task.CompletedTask;
-    }
 }
+
 public class PTTState
 {
     public bool PTTPressed { get; set; }

@@ -91,7 +91,7 @@ public class Radio : PropertyChangedBase
                 {
                     Channel = channelCount,
                     Value = (Double)freq,
-                    Text = presetChannel.ChannelName
+                    Text = $@"{presetChannel.ChannelName}"
                 });
                 Logger.Info($"Added {presetChannel.ChannelName} for radio {Name} with frequency {freq}");
                 channelCount++;

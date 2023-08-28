@@ -1,8 +1,7 @@
 ﻿using System.Net;
+using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
-using System.IO;
-using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Singleton;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.AircraftRadio;
@@ -17,21 +16,21 @@ public partial class MainPage : ContentPage
     public MainPage()
     {
         InitializeComponent();
-        
+
         var status = CheckAndRequestMicrophonePermission();
 
         /*
          * SET STATICS on singletons BEFORE load to set up the platform specific bits
          */
-        
+
         //https://learn.microsoft.com/en-us/dotnet/maui/platform-integration/storage/file-system-helpers?tabs=windows
         //Set path to use writeable app data directory
-        GlobalSettingsStore.Path = FileSystem.Current.AppDataDirectory+Path.DirectorySeparatorChar;
-        
+        GlobalSettingsStore.Path = FileSystem.Current.AppDataDirectory + Path.DirectorySeparatorChar;
+
         //Load from APK itself (magic loader using streaming memory)
         CachedAudioEffectProvider.CachedEffectsLoader = delegate(string name)
         {
-            using var stream =  FileSystem.OpenAppPackageFileAsync(name);
+            using var stream = FileSystem.OpenAppPackageFileAsync(name);
             var memStream = new MemoryStream();
             stream.Result.CopyTo(memStream);
             memStream.Position = 0;
@@ -39,10 +38,10 @@ public partial class MainPage : ContentPage
 
             return memStream;
         };
-        
+
         /*
-        *
-        */
+         *
+         */
     }
 
     public async Task<PermissionStatus> CheckAndRequestMicrophonePermission()
@@ -66,7 +65,7 @@ public partial class MainPage : ContentPage
 
         return status;
     }
-    
+
     private void OnStopClicked(object sender, EventArgs e)
     {
         _srsAudioManager?.StopEncoding();
@@ -86,11 +85,11 @@ public partial class MainPage : ContentPage
             DisplayAlert("Error", "Invalid IP and port", "OK");
         }
     }
+
     private void Navigate_Clicked(object sender, EventArgs e)
     {
         ClientStateSingleton.Instance.PlayerUnitState.LoadHandHeldRadio();
         Navigation.PushAsync(new HandheldRadioPage(_srsAudioManager));
-
     }
 
     private void AircraftRadio_OnClicked(object sender, EventArgs e)
