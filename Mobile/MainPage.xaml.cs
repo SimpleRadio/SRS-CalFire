@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using CommunityToolkit.Maui.Alerts;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
@@ -6,6 +7,7 @@ using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Singleton;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.AircraftRadio;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.Settings;
+using CommunityToolkit.Maui.Core;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile;
 
@@ -87,20 +89,45 @@ public partial class MainPage : ContentPage
         }
     }
 
+    private bool _isTransitioning = false;
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+
+        _isTransitioning = false;
+
+    }
+
     private void Navigate_Clicked(object sender, EventArgs e)
     {
-        ClientStateSingleton.Instance.PlayerUnitState.LoadHandHeldRadio();
-        Navigation.PushAsync(new HandheldRadioPage(_srsAudioManager));
+        if (!_isTransitioning)
+        {
+            _isTransitioning = true;
+            ClientStateSingleton.Instance.PlayerUnitState.LoadHandHeldRadio();
+            Toast.Make("Loading Handheld Radio", ToastDuration.Short, 14).Show();
+            Navigation.PushAsync(new HandheldRadioPage(_srsAudioManager), true);
+        }
+     
     }
 
     private void AircraftRadio_OnClicked(object sender, EventArgs e)
     {
-        ClientStateSingleton.Instance.PlayerUnitState.LoadMultiRadio();
-        Navigation.PushAsync(new AircraftRadioPage(_srsAudioManager));
+        if (!_isTransitioning)
+        {
+            _isTransitioning = true;
+            ClientStateSingleton.Instance.PlayerUnitState.LoadMultiRadio();
+            Toast.Make("Loading Aircraft Radio", ToastDuration.Short, 14).Show();
+            Navigation.PushAsync(new AircraftRadioPage(_srsAudioManager),true);
+        }
     }
 
     private void Settings_OnClicked(object sender, EventArgs e)
     {
-        Navigation.PushAsync(new ClientSettingsPage());
+        if (!_isTransitioning)
+        {
+            _isTransitioning = true;
+            Toast.Make("Loading Settings", ToastDuration.Short, 14).Show();
+            Navigation.PushAsync(new ClientSettingsPage(), true);
+        }
     }
 }

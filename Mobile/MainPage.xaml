@@ -33,7 +33,7 @@
             
             <Button
                 x:Name="Settings"
-                Text="Handheld Radio"
+                Text="Settings"
                 Clicked="Settings_OnClicked"
                 HorizontalOptions="Center" />
 

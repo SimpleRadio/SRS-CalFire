@@ -122,34 +122,7 @@ public class ClientSettingsViewModel : PropertyChangedBase
             NotifyPropertyChanged();
         }
     }
-
-    public List<CachedAudioEffect> RadioTransmissionStart =>
-        CachedAudioEffectProvider.Instance.RadioTransmissionStart;
-
-    public CachedAudioEffect SelectedRadioTransmissionStartEffect
-    {
-        set
-        {
-            GlobalSettingsStore.Instance.ProfileSettingsStore.SetClientSettingString(
-                ProfileSettingsKeys.RadioTransmissionStartSelection, value.FileName);
-            NotifyPropertyChanged();
-        }
-        get => CachedAudioEffectProvider.Instance.SelectedRadioTransmissionStartEffect;
-    }
-
-    public List<CachedAudioEffect> RadioTransmissionEnd => CachedAudioEffectProvider.Instance.RadioTransmissionEnd;
-
-    public CachedAudioEffect SelectedRadioTransmissionEndEffect
-    {
-        set
-        {
-            GlobalSettingsStore.Instance.ProfileSettingsStore.SetClientSettingString(
-                ProfileSettingsKeys.RadioTransmissionEndSelection, value.FileName);
-            NotifyPropertyChanged();
-        }
-        get => CachedAudioEffectProvider.Instance.SelectedRadioTransmissionEndEffect;
-    }
-
+    
     public bool RadioSoundEffectsToggle
     {
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
@@ -457,44 +430,5 @@ public class ClientSettingsViewModel : PropertyChangedBase
             if (value != null) ClientStateSingleton.Instance.PlayerUnitState.UnitId = value;
         }
         get => ClientStateSingleton.Instance.PlayerUnitState.UnitId;
-    }
-
-    private void ReloadSettings()
-    {
-        NotifyPropertyChanged(nameof(MicAGC));
-        NotifyPropertyChanged(nameof(MicDenoise));
-        NotifyPropertyChanged(nameof(PlayerName));
-        NotifyPropertyChanged(nameof(PlayerID));
-        NotifyPropertyChanged(nameof(AutoSelectChannel));
-        NotifyPropertyChanged(nameof(PTTReleaseDelay));
-        NotifyPropertyChanged(nameof(PTTStartDelay));
-        NotifyPropertyChanged(nameof(RadioRxStartToggle));
-        NotifyPropertyChanged(nameof(RadioRxEndToggle));
-        NotifyPropertyChanged(nameof(RadioTxStartToggle));
-        NotifyPropertyChanged(nameof(RadioTxEndToggle));
-        NotifyPropertyChanged(nameof(SelectedRadioTransmissionStartEffect));
-        NotifyPropertyChanged(nameof(SelectedRadioTransmissionEndEffect));
-        NotifyPropertyChanged(nameof(RadioSoundEffectsToggle));
-        NotifyPropertyChanged(nameof(RadioEffectsClippingToggle));
-        NotifyPropertyChanged(nameof(FMRadioToneToggle));
-        NotifyPropertyChanged(nameof(FMRadioToneVolume));
-        NotifyPropertyChanged(nameof(BackgroundRadioNoiseToggle));
-        NotifyPropertyChanged(nameof(UHFEffectVolume));
-        NotifyPropertyChanged(nameof(VHFEffectVolume));
-        NotifyPropertyChanged(nameof(HFEffectVolume));
-        NotifyPropertyChanged(nameof(FMEffectVolume));
-        NotifyPropertyChanged(nameof(RadioChannel1));
-        NotifyPropertyChanged(nameof(RadioChannel2));
-        NotifyPropertyChanged(nameof(RadioChannel3));
-        NotifyPropertyChanged(nameof(RadioChannel4));
-        NotifyPropertyChanged(nameof(RadioChannel5));
-        NotifyPropertyChanged(nameof(RadioChannel6));
-        NotifyPropertyChanged(nameof(RadioChannel7));
-        NotifyPropertyChanged(nameof(RadioChannel8));
-        NotifyPropertyChanged(nameof(RadioChannel9));
-        NotifyPropertyChanged(nameof(RadioChannel10));
-        NotifyPropertyChanged(nameof(Intercom));
-
-        //TODO send message to tell input to reload!
     }
 }
