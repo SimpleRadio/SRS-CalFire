@@ -30,6 +30,12 @@
                 Text="Stop"
                 Clicked="OnStopClicked"
                 HorizontalOptions="Center" />
+            
+            <Button
+                x:Name="Settings"
+                Text="Handheld Radio"
+                Clicked="Settings_OnClicked"
+                HorizontalOptions="Center" />
 
             <Button
                 x:Name="HandheldRadio"

@@ -12,13 +12,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Models;
 
 public class PlayerUnitState : PropertyChangedBase
 {
-    //HOTAS or IN COCKPIT controls
-    public enum RadioSwitchControls
-    {
-        HOTAS = 0,
-        IN_COCKPIT = 1
-    }
-
     public enum SimultaneousTransmissionControl
     {
         ENABLED_INTERNAL_SRS_CONTROLS = 1
@@ -36,8 +29,6 @@ public class PlayerUnitState : PropertyChangedBase
     private uint _unitId;
 
     private string _unitType = "";
-
-    public RadioSwitchControls control = RadioSwitchControls.HOTAS;
 
 
     public bool

@@ -99,9 +99,7 @@ public static class RadioHelper
         var radio = GetRadio(radioId);
 
         if (radio != null)
-            if (radio.Modulation != Modulation.DISABLED
-                && ClientStateSingleton.Instance.PlayerUnitState.control ==
-                PlayerUnitState.RadioSwitchControls.HOTAS)
+            if (radio.Modulation != Modulation.DISABLED)
             {
                 ClientStateSingleton.Instance.PlayerUnitState.SelectedRadio = (short)radioId;
                 return true;
@@ -126,8 +124,7 @@ public static class RadioHelper
     {
         var dcsPlayerRadioInfo = ClientStateSingleton.Instance.PlayerUnitState;
 
-        if (dcsPlayerRadioInfo != null &&
-            dcsPlayerRadioInfo.control == PlayerUnitState.RadioSwitchControls.HOTAS)
+        if (dcsPlayerRadioInfo != null)
         {
             if (dcsPlayerRadioInfo.SelectedRadio < 0
                 || dcsPlayerRadioInfo.SelectedRadio > dcsPlayerRadioInfo.Radios.Count
@@ -156,8 +153,7 @@ public static class RadioHelper
     {
         var dcsPlayerRadioInfo = ClientStateSingleton.Instance.PlayerUnitState;
 
-        if (dcsPlayerRadioInfo != null &&
-            dcsPlayerRadioInfo.control == PlayerUnitState.RadioSwitchControls.HOTAS)
+        if (dcsPlayerRadioInfo != null)
         {
             if (dcsPlayerRadioInfo.SelectedRadio < 0
                 || dcsPlayerRadioInfo.SelectedRadio > dcsPlayerRadioInfo.Radios.Count)
@@ -196,9 +192,7 @@ public static class RadioHelper
 
         if (currentRadio != null)
             if (currentRadio.Modulation != Modulation.DISABLED &&
-                currentRadio.Modulation != Modulation.INTERCOM
-                && ClientStateSingleton.Instance.PlayerUnitState.control ==
-                PlayerUnitState.RadioSwitchControls.HOTAS)
+                currentRadio.Modulation != Modulation.INTERCOM)
             {
                 var currentRadioPresetChannels = currentRadio.PresetChannels;
                 var currentChannel = currentRadio.CurrentChannel;
@@ -220,9 +214,7 @@ public static class RadioHelper
 
         if (currentRadio != null)
             if (currentRadio.Modulation != Modulation.DISABLED &&
-                currentRadio.Modulation != Modulation.INTERCOM
-                && ClientStateSingleton.Instance.PlayerUnitState.control ==
-                PlayerUnitState.RadioSwitchControls.HOTAS)
+                currentRadio.Modulation != Modulation.INTERCOM)
             {
                 var currentRadioPresetChannels = currentRadio.PresetChannels;
                 var currentChannel = currentRadio.CurrentChannel;

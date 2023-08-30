@@ -5,6 +5,7 @@ using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Singleton;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.AircraftRadio;
+using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.Settings;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile;
 
@@ -96,5 +97,10 @@ public partial class MainPage : ContentPage
     {
         ClientStateSingleton.Instance.PlayerUnitState.LoadMultiRadio();
         Navigation.PushAsync(new AircraftRadioPage(_srsAudioManager));
+    }
+
+    private void Settings_OnClicked(object sender, EventArgs e)
+    {
+        Navigation.PushAsync(new ClientSettingsPage());
     }
 }
