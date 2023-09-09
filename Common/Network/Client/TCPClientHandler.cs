@@ -37,6 +37,20 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
 
     private UDPVoiceHandler _udpVoiceHandler;
 
+    private bool _connected = false;
+
+    public bool TCPConnected
+    {
+        get
+        {
+            if (_tcpClient!=null)
+            {
+                return _tcpClient.Connected;
+            }
+            return false;
+        }
+    }
+
     public TCPClientHandler(string guid, PlayerUnitStateBase playerUnitState)
     {
         _clients.Clear();
@@ -341,7 +355,6 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                 if (!_stop) Logger.Error(ex, "Client exception reading - Disconnecting ");
             }
         }
-
 
         //clear the clients list
         _clients.Clear();

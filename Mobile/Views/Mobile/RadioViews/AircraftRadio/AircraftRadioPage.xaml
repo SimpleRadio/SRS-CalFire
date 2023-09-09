@@ -4,8 +4,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:aircraftRadio="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.AircraftRadio"
              xmlns:orientation="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Utility.OrientationHelper"
+             xmlns:statusBar="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.StatusBar"
              x:Class="Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.AircraftRadio.AircraftRadioPage">
+    <Shell.TitleView>
+        <statusBar:StatusView />
+    </Shell.TitleView>
     <ContentPage.Content>
+        
 
         <ScrollView Orientation="Vertical">
 

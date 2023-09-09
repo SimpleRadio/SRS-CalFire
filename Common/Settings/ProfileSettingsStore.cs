@@ -63,7 +63,8 @@ public enum ProfileSettingsKeys
     AircraftNoiseVolume,
     IntercomTransmissionStartSelection,
     IntercomTransmissionEndSelection,
-    AMCollisionVolume
+    AMCollisionVolume,
+    VolumeUpAsPTT
 }
 
 public class ProfileSettingsStore
@@ -114,7 +115,8 @@ public class ProfileSettingsStore
             { ProfileSettingsKeys.FMNoiseVolume.ToString(), "0.4" },
 
             { ProfileSettingsKeys.GroundNoiseVolume.ToString(), "0.5" },
-            { ProfileSettingsKeys.AircraftNoiseVolume.ToString(), "0.5" }
+            { ProfileSettingsKeys.AircraftNoiseVolume.ToString(), "0.5" },
+            { ProfileSettingsKeys.VolumeUpAsPTT.ToString(), "true" }
         };
 
     private readonly GlobalSettingsStore _globalSettings;

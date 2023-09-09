@@ -1,15 +1,15 @@
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
+using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Utility;
+using Ciribob.SRS.Common.Network.Singletons;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.AircraftRadio;
 
 public partial class AircraftRadioPage : ContentPage
 {
-    private readonly SRSAudioManager _srsAudioManager;
     private readonly IDispatcherTimer _updateTimer;
 
-    public AircraftRadioPage(SRSAudioManager srsAudioManager)
+    public AircraftRadioPage()
     {
-        _srsAudioManager = srsAudioManager;
         InitializeComponent();
 
         BindingContext = new AircraftRadioPageViewModel();
@@ -70,13 +70,11 @@ public partial class AircraftRadioPage : ContentPage
 
     private void Transmit_OnReleased(object sender, EventArgs e)
     {
-        if (_srsAudioManager != null)
-            _srsAudioManager.PTTPressed = false;
+        EventBus.Instance.PublishOnBackgroundThreadAsync(new PTTState { PTTPressed = false });
     }
 
     private void Transmit_OnPressed(object sender, EventArgs e)
     {
-        if (_srsAudioManager != null)
-            _srsAudioManager.PTTPressed = true;
+        EventBus.Instance.PublishOnBackgroundThreadAsync(new PTTState { PTTPressed = true });
     }
 }

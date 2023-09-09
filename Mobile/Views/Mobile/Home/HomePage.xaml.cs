@@ -11,12 +11,11 @@ using CommunityToolkit.Maui.Core;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile;
 
-public partial class MainPage : ContentPage
+public partial class HomePage : ContentPage
 {
-    private SRSAudioManager _srsAudioManager;
     private int count = 0;
 
-    public MainPage()
+    public HomePage()
     {
         InitializeComponent();
 
@@ -71,17 +70,21 @@ public partial class MainPage : ContentPage
 
     private void OnStopClicked(object sender, EventArgs e)
     {
-        _srsAudioManager?.StopEncoding();
+        SRSConnectionManager.Instance.StopEncoding();
     }
 
     private void OnStartClicked(object sender, EventArgs e)
     {
-        _srsAudioManager?.StopEncoding();
+        //SRSConnectionManager.Instance.StopEncoding();
+#if ANDROID
+            Android.Content.Intent intent = new Android.Content.Intent(Android.App.Application.Context,typeof(AudioForegroundService));
+            Android.App.Application.Context.StartForegroundService(intent);
+#endif
 
         if (IPEndPoint.TryParse(Address.Text, out var result))
         {
-            _srsAudioManager = new SRSAudioManager();
-            _srsAudioManager.StartPreview(result);
+            
+            SRSConnectionManager.Instance.StartAndConnect(result);
         }
         else
         {
@@ -105,7 +108,7 @@ public partial class MainPage : ContentPage
             _isTransitioning = true;
             ClientStateSingleton.Instance.PlayerUnitState.LoadHandHeldRadio();
             Toast.Make("Loading Handheld Radio", ToastDuration.Short, 14).Show();
-            Navigation.PushAsync(new HandheldRadioPage(_srsAudioManager), true);
+            Navigation.PushAsync(new HandheldRadioPage(), true);
         }
      
     }
@@ -117,7 +120,7 @@ public partial class MainPage : ContentPage
             _isTransitioning = true;
             ClientStateSingleton.Instance.PlayerUnitState.LoadMultiRadio();
             Toast.Make("Loading Aircraft Radio", ToastDuration.Short, 14).Show();
-            Navigation.PushAsync(new AircraftRadioPage(_srsAudioManager),true);
+            Navigation.PushAsync(new AircraftRadioPage(),true);
         }
     }
 

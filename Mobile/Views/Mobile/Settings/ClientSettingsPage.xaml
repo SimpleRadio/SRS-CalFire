@@ -4,7 +4,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:settings="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.Settings"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:statusBar="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.StatusBar"
              x:Class="Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.Settings.ClientSettingsPage">
+    <Shell.TitleView>
+        <statusBar:StatusView />
+    </Shell.TitleView>
     <ContentPage.BindingContext>
         <settings:ClientSettingsViewModel />
     </ContentPage.BindingContext>
@@ -17,23 +21,10 @@
         </Style>
     </ContentPage.Resources>
     <ScrollView Orientation="Vertical" Padding="10">
-        <VerticalStackLayout Spacing="50">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition />
-                    <RowDefinition />
-                    <RowDefinition />
-                    <RowDefinition />
-
-                </Grid.RowDefinitions>
-
-                <VerticalStackLayout Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" >
+        <VerticalStackLayout Spacing="20">
+            <VerticalStackLayout >
                     <Label FontSize="30">Global Settings</Label>
-                    <Grid Margin="0">
+                    <Grid Margin="0" RowSpacing="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition />
                             <ColumnDefinition />
@@ -98,7 +89,7 @@
                                     Flags="ValidateOnValueChanged"
                                     MinimumValue="1.0"
                                     MaximumValue="100.0"
-                                    MaximumDecimalPlaces="2" />
+                                    MaximumDecimalPlaces="3"/>
                             </Entry.Behaviors>
                         </Entry>
                     </Grid>
@@ -106,16 +97,15 @@
                 </VerticalStackLayout>
 
                 <VerticalStackLayout
-                    Grid.Row="1"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="2">
+                    >
                     <Label FontSize="30">Integration Settings</Label>
-                    <Grid>
+                    <Grid RowSpacing="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*" />
                             <ColumnDefinition Width="2*" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
+                            <RowDefinition />
                             <RowDefinition />
                             <RowDefinition />
                             <RowDefinition />
@@ -179,17 +169,25 @@
 
                         </VerticalStackLayout>
 
+                        <Label Grid.Row="2"
+                               Grid.Column="0"
+                               HorizontalTextAlignment="Start"
+                               VerticalTextAlignment="Center"
+                               Text="Volume Up as PTT" />
+                        
+                        <Switch
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            IsToggled="{Binding VolumeUpAsPTTToggle, Mode=TwoWay}" />
                     </Grid>
                 </VerticalStackLayout>
 
                 <VerticalStackLayout
-                    Grid.Row="2"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="2">
+                    >
 
                     <Label FontSize="30">Radio Effect Settings</Label>
 
-                    <Grid>
+                    <Grid RowSpacing="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition  />
                             <ColumnDefinition  />
@@ -295,9 +293,6 @@
                                 VerticalOptions="Center"
                                 IsToggled="{Binding FMRadioToneToggle, Mode=TwoWay}" />
 
-            
-
-
                         <Label Grid.Row="7"
                                Grid.Column="0"
                                HorizontalTextAlignment="Start"
@@ -378,12 +373,10 @@
                     </Grid>
                 </VerticalStackLayout>
 
-                <VerticalStackLayout
-                    Grid.Row="3"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="2">
+                <VerticalStackLayout>
+                  
                     <Label FontSize="30">Audio Balance Settings</Label>
-                    <Grid>
+                    <Grid RowSpacing="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*" />
                             <ColumnDefinition Width="2*" />
@@ -511,7 +504,6 @@
                                                        Volume="{Binding Intercom, Mode=TwoWay}" />
                     </Grid>
                 </VerticalStackLayout>
-            </Grid>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

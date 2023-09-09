@@ -2,8 +2,12 @@
 
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Ciribob.FS3D.SimpleRadio.Standalone.Mobile.MainPage">
+             xmlns:statusBar="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.StatusBar"
+             x:Class="Ciribob.FS3D.SimpleRadio.Standalone.Mobile.HomePage">
 
+    <Shell.TitleView>
+       <statusBar:StatusView />
+    </Shell.TitleView>
     <ScrollView>
         <VerticalStackLayout
             Spacing="25"
@@ -15,7 +19,7 @@
                 FontSize="32"
                 ClearButtonVisibility="WhileEditing"
                 Text="192.168.0.67:5002"
-                Placeholder="127.0.0.1:5002"
+                Placeholder="192.168.0.67:5002"
                 IsSpellCheckEnabled="False"
                 IsTextPredictionEnabled="False" />
 

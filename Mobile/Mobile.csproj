@@ -23,7 +23,7 @@
 		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
 
 
-        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">30.0</SupportedOSPlatformVersion>
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">31.0</SupportedOSPlatformVersion>
 
     </PropertyGroup>
 
@@ -235,12 +235,16 @@
       <Compile Update="Platforms\Android\Singleton\ClientStateSingleton.cs">
         <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
       </Compile>
-      <Compile Update="UDPClientAudioProcessor.cs">
-        <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
-      </Compile>
       <Compile Update="Views\Mobile\HandheldRadio\HandheldRadioPage.xaml.cs">
         <DependentUpon>MainRadioPage.xaml</DependentUpon>
         <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\Mobile\Home\HomePage.xaml.cs">
+        <DependentUpon>MainPage.xaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Utility\UDPClientAudioProcessor.cs">
+        <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
       </Compile>
     </ItemGroup>
 
@@ -262,6 +266,20 @@
           <SubType>Designer</SubType>
           <Generator>MSBuild:Compile</Generator>
       </MauiXaml>
+      <MauiXaml Update="Views\Mobile\RadioViews\HandheldRadio\HandheldRadioPage.xaml">
+        <Generator>MSBuild:Compile</Generator>
+      </MauiXaml>
+      <MauiXaml Update="Views\Mobile\Home\HomePage.xaml">
+        <SubType>Designer</SubType>
+      </MauiXaml>
+    </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="Views\Mobile\RadioViews\AircraftRadio\AircraftRadioPage.xaml" />
+      <AdditionalFiles Include="Views\Mobile\RadioViews\AircraftRadio\AircraftRadioView.xaml" />
+      <AdditionalFiles Include="Views\Mobile\RadioViews\HandheldRadio\HandheldRadioPage.xaml">
+        <Generator>MSBuild:Compile</Generator>
+      </AdditionalFiles>
     </ItemGroup>
     
 </Project>

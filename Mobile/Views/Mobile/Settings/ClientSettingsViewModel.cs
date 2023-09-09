@@ -431,4 +431,17 @@ public class ClientSettingsViewModel : PropertyChangedBase
         }
         get => ClientStateSingleton.Instance.PlayerUnitState.UnitId;
     }
+    
+    
+    public bool VolumeUpAsPTTToggle
+    {
+        get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys
+            .VolumeUpAsPTT);
+        set
+        {
+            _globalSettings.ProfileSettingsStore.SetClientSettingBool(
+                ProfileSettingsKeys.VolumeUpAsPTT, value);
+            NotifyPropertyChanged();
+        }
+    }
 }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.StatusBar"
+             x:Class="Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.StatusBar.StatusView"
+             >
+    <ContentView.BindingContext>
+        <vm:StatusViewModel />
+    </ContentView.BindingContext>
+    <HorizontalStackLayout VerticalOptions="Center" HorizontalOptions="Start" Spacing="10">
+        <Label TextColor="{Binding TCPTextColour}" Text="{Binding TCPText}"/>
+        <Label TextColor="{Binding VOIPTextColour}" Text="{Binding VOIPText}"/>
+    </HorizontalStackLayout>
+    
+</ContentView>

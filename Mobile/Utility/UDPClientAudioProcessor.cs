@@ -5,6 +5,7 @@ using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Input;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Models;
+using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Singleton;
 using Ciribob.SRS.Common.Network.Client;
 using Ciribob.SRS.Common.Network.Models;
@@ -12,12 +13,12 @@ using Ciribob.SRS.Common.Network.Singletons;
 using NLog;
 using LogManager = NLog.LogManager;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Utility;
 
 public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    private readonly SRSAudioManager _audioManager;
+    private readonly SRSConnectionManager _connectionManager;
     private readonly ConnectedClientsSingleton _clients = ConnectedClientsSingleton.Instance;
     private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
     private readonly string _guid;
@@ -36,20 +37,17 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
     private volatile bool _ptt;
     private bool _stop;
 
-    public UDPClientAudioProcessor(UDPVoiceHandler udpClient, SRSAudioManager audioManager, string guid)
+    public UDPClientAudioProcessor(UDPVoiceHandler udpClient, SRSConnectionManager connectionManager, string guid)
     {
         _udpClient = udpClient;
         _guid = guid;
-        _audioManager = audioManager;
+        _connectionManager = connectionManager;
 
         _radioReceivingState = ClientStateSingleton.Instance.RadioReceivingState;
+        
+        EventBus.Instance.SubscribeOnBackgroundThread(this);
     }
-
-    public bool PTT
-    {
-        set => _ptt = value;
-    }
-
+    
     public void Dispose()
     {
         _ptt = false;
@@ -219,7 +217,7 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
         return transmittingRadios;
     }
 
-    public ClientAudio Send(byte[] bytes, int len, bool voice)
+    public ClientAudio Send(byte[] bytes, bool voice)
     {
         // List of radios the transmission is sent to (can me multiple if simultaneous transmission is enabled)
         List<Radio> transmittingRadios;
@@ -279,7 +277,7 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
                     if (currentlySelectedRadio != null &&
                         (!_clientStateSingleton.RadioSendingState.IsSending ||
                          _clientStateSingleton.RadioSendingState.SendingOn != sendingOn))
-                        _audioManager.PlaySoundEffectStartTransmit(sendingOn,
+                        _connectionManager.PlaySoundEffectStartTransmit(sendingOn,
                             currentlySelectedRadio.Encrypted && currentlySelectedRadio.EncKey > 0,
                             currentlySelectedRadio.Volume, currentlySelectedRadio.Modulation);
 
@@ -323,7 +321,7 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
                     var radio = _clientStateSingleton.PlayerUnitState.Radios[
                         _clientStateSingleton.RadioSendingState.SendingOn];
 
-                    _audioManager.PlaySoundEffectEndTransmit(_clientStateSingleton.RadioSendingState.SendingOn,
+                    _connectionManager.PlaySoundEffectEndTransmit(_clientStateSingleton.RadioSendingState.SendingOn,
                         radio.Volume, radio.Modulation);
                 }
             }
@@ -469,7 +467,7 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
 
                                         //we now WANT to duplicate through multiple pipelines ONLY if AM blocking is on
                                         //this is a nice optimisation to save duplicated audio on servers without that setting 
-                                        if (i == 0) _audioManager.AddClientAudio(audio);
+                                        if (i == 0) _connectionManager.AddClientAudio(audio);
                                     }
                             }
                         }
@@ -485,123 +483,7 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
             Logger.Info("Stopped DeJitter Buffer");
         }
     }
-
-    private void PTTHandler(List<InputBindState> pressed)
-    {
-        var radios = _clientStateSingleton.PlayerUnitState;
-
-        var radioSwitchPtt =
-            _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioSwitchIsPTT);
-        var radioSwitchPttWhenValid =
-            _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys
-                .RadioSwitchIsPTTOnlyWhenValid);
-
-        //store the current PTT state and radios
-        var currentRadioId = radios.SelectedRadio;
-        var currentPtt = _ptt;
-
-        var ptt = false;
-        foreach (var inputBindState in pressed)
-            if (inputBindState.IsActive)
-            {
-                //radio switch?
-                if ((int)inputBindState.MainDevice.InputBind >= (int)InputBinding.Intercom &&
-                    (int)inputBindState.MainDevice.InputBind <= (int)InputBinding.Switch10)
-                {
-                    //gives you radio id if you minus 100
-                    var radioId = (int)inputBindState.MainDevice.InputBind - 100;
-
-                    if (radioId < _clientStateSingleton.PlayerUnitState.Radios.Count)
-                    {
-                        var clientRadio = _clientStateSingleton.PlayerUnitState.Radios[radioId];
-
-                        // if (RadioHelper.SelectRadio(radioId))
-                        // {
-                        //     //turn on PTT
-                        //     if (radioSwitchPttWhenValid || radioSwitchPtt)
-                        //     {
-                        //         _lastPTTPress = DateTime.Now.Ticks;
-                        //         ptt = true;
-                        //         //Store last release time
-                        //     }
-                        // }
-                        // else
-                        // {
-                        //     //turn on PTT even if not valid radio switch
-                        //     if (radioSwitchPtt)
-                        //     {
-                        //         _lastPTTPress = DateTime.Now.Ticks;
-                        //         ptt = true;
-                        //     }
-                        // }
-                    }
-                }
-                else if (inputBindState.MainDevice.InputBind == InputBinding.Ptt)
-                {
-                    _lastPTTPress = DateTime.Now.Ticks;
-                    ptt = true;
-                }
-            }
-
-        /**
-     * Handle DELAYING PTT START
-     */
-
-        if (!ptt)
-            //reset
-            _firstPTTPress = -1;
-
-        if (_firstPTTPress == -1 && ptt) _firstPTTPress = DateTime.Now.Ticks;
-
-        if (ptt)
-        {
-            //should inhibit for a bit
-            var startDiff = new TimeSpan(DateTime.Now.Ticks - _firstPTTPress);
-
-            var startInhibit = _globalSettings.ProfileSettingsStore
-                .GetClientSettingFloat(ProfileSettingsKeys.PTTStartDelay);
-
-            if (startDiff.TotalMilliseconds < startInhibit)
-            {
-                _ptt = false;
-                _lastPTTPress = -1;
-                return;
-            }
-        }
-
-        /**
-         * End Handle DELAYING PTT START
-         */
-
-
-        /**
-         * Start Handle PTT HOLD after release
-         */
-
-        //if length is zero - no keybinds or no PTT pressed set to false
-        var diff = new TimeSpan(DateTime.Now.Ticks - _lastPTTPress);
-
-        //Release the PTT ONLY if X ms have passed and we didnt switch radios to handle
-        //shitty buttons
-        var releaseTime = _globalSettings.ProfileSettingsStore
-            .GetClientSettingFloat(ProfileSettingsKeys.PTTReleaseDelay);
-
-        if (!ptt
-            && releaseTime > 0
-            && diff.TotalMilliseconds <= releaseTime
-            && currentRadioId == radios.SelectedRadio)
-            ptt = true;
-
-        /**
-         * End Handle PTT HOLD after release
-         */
-
-        _ptt = ptt;
-
-        //TEMP TODO
-        //_ptt = true;
-    }
-
+    
     public void Stop()
     {
         lock (lockObj)
@@ -610,6 +492,11 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
             _stopFlag.Cancel();
             _clientStateSingleton.RadioSendingState.IsSending = false;
         }
+    }
+
+    ~UDPClientAudioProcessor()
+    {
+        EventBus.Instance.Unsubcribe(this);
     }
 }
 

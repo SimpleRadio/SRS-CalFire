@@ -1,15 +1,15 @@
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
+using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Utility;
+using Ciribob.SRS.Common.Network.Singletons;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile;
 
 public partial class HandheldRadioPage : ContentPage
 {
     private readonly IDispatcherTimer _updateTimer;
-    private readonly SRSAudioManager _srsAudioManager;
 
-    public HandheldRadioPage(SRSAudioManager srsAudioManager)
+    public HandheldRadioPage()
     {
-        _srsAudioManager = srsAudioManager;
         InitializeComponent();
         DeviceDisplay.Current.KeepScreenOn = true;
 
@@ -22,14 +22,12 @@ public partial class HandheldRadioPage : ContentPage
 
     private void Button_OnPressed(object sender, EventArgs e)
     {
-        if (_srsAudioManager != null)
-            _srsAudioManager.PTTPressed = true;
+        EventBus.Instance.PublishOnBackgroundThreadAsync(new PTTState { PTTPressed = true });
     }
 
     private void Button_OnReleased(object sender, EventArgs e)
     {
-        if (_srsAudioManager != null)
-            _srsAudioManager.PTTPressed = false;
+        EventBus.Instance.PublishOnBackgroundThreadAsync(new PTTState { PTTPressed = false });
     }
 
     protected override void OnAppearing()

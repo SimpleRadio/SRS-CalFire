@@ -6,6 +6,7 @@ using LogLevel = NLog.LogLevel;
 
 namespace Mobile;
 
+
 public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
