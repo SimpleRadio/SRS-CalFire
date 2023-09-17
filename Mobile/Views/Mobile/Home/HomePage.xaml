@@ -12,8 +12,8 @@
         <VerticalStackLayout
             Spacing="25"
             Padding="30,0"
-            VerticalOptions="Center">
-
+            VerticalOptions="Start">
+            <Label FontSize="30">Server Address</Label>
             <Entry
                 x:Name="Address"
                 FontSize="32"
@@ -24,31 +24,20 @@
                 IsTextPredictionEnabled="False" />
 
             <Button
-                x:Name="Connect"
-                Text="Start"
+                FontFamily="RobotoMono" FontSize="30" BackgroundColor="#919191" TextColor="White"
+                Text="Connect"
                 Clicked="OnStartClicked"
                 HorizontalOptions="Center" />
 
             <Button
-                x:Name="Disconnect"
-                Text="Stop"
-                Clicked="OnStopClicked"
-                HorizontalOptions="Center" />
-            
-            <Button
-                x:Name="Settings"
-                Text="Settings"
-                Clicked="Settings_OnClicked"
-                HorizontalOptions="Center" />
-
-            <Button
-                x:Name="HandheldRadio"
+                FontFamily="RobotoMono" FontSize="30" BackgroundColor="#919191" TextColor="White"
+               
                 Text="Handheld Radio"
                 Clicked="Navigate_Clicked"
                 HorizontalOptions="Center" />
 
             <Button
-                x:Name="AircraftRadio"
+                FontFamily="RobotoMono" FontSize="30" BackgroundColor="#919191" TextColor="White"
                 Text="Aircraft Radio"
                 Clicked="AircraftRadio_OnClicked"
                 HorizontalOptions="Center" />

@@ -91,7 +91,8 @@ internal class AudioForegroundService : Service, IHandle<TCPClientStatusMessage>
 
     public Task HandleAsync(TCPClientStatusMessage message, CancellationToken cancellationToken)
     {
-        
+        //todo
+        //UpdateNotification()
 
         if (!message.Connected)
         {
@@ -104,7 +105,8 @@ internal class AudioForegroundService : Service, IHandle<TCPClientStatusMessage>
 
     public Task HandleAsync(VOIPStatusMessage message, CancellationToken cancellationToken)
     {
-       UpdateNotification();
+        //TODO
+         // UpdateNotification();
        return Task.CompletedTask;
     }
 }

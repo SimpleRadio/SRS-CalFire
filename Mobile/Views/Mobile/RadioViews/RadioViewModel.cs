@@ -140,22 +140,6 @@ public class RadioViewModel : PropertyChangedBase
         }
     }
 
-    public Color RadioActiveFill
-    {
-        get
-        {
-            if (Radio == null || !IsAvailable) return Colors.Red;
-
-            if (ClientStateSingleton.Instance.PlayerUnitState.SelectedRadio != RadioId)
-                return Colors.Orange;
-
-            if (ClientStateSingleton.Instance.RadioSendingState.IsSending &&
-                ClientStateSingleton.Instance.RadioSendingState.SendingOn == RadioId)
-                return RadioActiveTransmit;
-            return Colors.Green;
-        }
-    }
-
     public Color BackgroundActiveFill
     {
         get
@@ -298,7 +282,6 @@ public class RadioViewModel : PropertyChangedBase
     public void RefreshView()
     {
         NotifyPropertyChanged(nameof(BackgroundActiveFill));
-        NotifyPropertyChanged(nameof(RadioActiveFill));
         NotifyPropertyChanged(nameof(Frequency));
         NotifyPropertyChanged(nameof(FrequencyTextColour));
         NotifyPropertyChanged(nameof(Volume));

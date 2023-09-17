@@ -24,27 +24,7 @@ public class ClientSettingsViewModel : PropertyChangedBase
     /**
          * Global Settings
          */
-
     
-    public bool MicAGC
-    {
-        get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.AGC);
-        set
-        {
-            _globalSettings.SetClientSetting(GlobalSettingsKeys.AGC, value);
-            NotifyPropertyChanged();
-        }
-    }
-
-    public bool MicDenoise
-    {
-        get => _globalSettings.GetClientSettingBool(GlobalSettingsKeys.Denoise);
-        set
-        {
-            _globalSettings.SetClientSetting(GlobalSettingsKeys.Denoise, value);
-            NotifyPropertyChanged();
-        }
-    }
 
     
     public bool AutoSelectChannel

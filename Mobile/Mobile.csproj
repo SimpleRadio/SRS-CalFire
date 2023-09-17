@@ -36,6 +36,8 @@
         <ApplicationTitle>FS3D Mobile</ApplicationTitle>
         <ApplicationId>Ciribob.FS3D.SimpleRadio.Standalone.Mobile</ApplicationId>
         <AndroidPackageFormat>apk</AndroidPackageFormat>
+        <RunAOTCompilation>true</RunAOTCompilation>
+        <EnableLLVM>true</EnableLLVM>
     </PropertyGroup>
 
     <ItemGroup>

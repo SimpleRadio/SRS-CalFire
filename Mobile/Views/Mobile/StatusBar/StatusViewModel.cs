@@ -1,8 +1,11 @@
 using Caliburn.Micro;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Singleton;
+using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.Settings;
 using Ciribob.SRS.Common.Network.Models.EventMessages;
 using Ciribob.SRS.Common.Network.Singletons;
+using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core;
 using PropertyChangedBase = Ciribob.SRS.Common.Helpers.PropertyChangedBase;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.StatusBar;
@@ -57,6 +60,11 @@ public class StatusViewModel: PropertyChangedBase, IHandle<VOIPStatusMessage>, I
     {
         EventBus.Instance.SubscribeOnUIThread(this);
     }
+
+    public Command SettingsButton = new Command(() =>
+    {
+        
+    });
 
     ~StatusViewModel()
     {

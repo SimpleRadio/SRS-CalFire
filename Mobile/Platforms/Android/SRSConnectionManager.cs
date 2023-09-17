@@ -21,6 +21,7 @@ using NAudio.Wave.SampleProviders;
 using NLog;
 using Application = Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Opus.Application;
 using LogManager = NLog.LogManager;
+using Process = Android.OS.Process;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 
@@ -41,11 +42,8 @@ public class SRSConnectionManager : IHandle<TCPClientStatusMessage>, IHandle<SRC
     private readonly string Guid = ShortGuid.NewGuid();
 
     private readonly object lockob = new();
-    private AudioTrack _audioPlayer;
-    private AudioRecord _audioRecorder;
+    
     private UDPClientAudioProcessor _clientAudioProcessor;
-    private OpusDecoder _decoder;
-    private OpusEncoder _encoder;
     private SRSMixingSampleProvider _finalMixdown;
 
     private List<RadioMixingProvider> _radioMixingProvider;
@@ -149,13 +147,6 @@ public class SRSConnectionManager : IHandle<TCPClientStatusMessage>, IHandle<SRC
             InitMixers();
 
             EventBus.Instance.SubscribeOnUIThread(this);
-            //opus
-            _encoder = OpusEncoder.Create(Constants.MIC_SAMPLE_RATE, 1,
-                Application.Voip);
-            _encoder.ForwardErrorCorrection = false;
-            _decoder = OpusDecoder.Create(Constants.OUTPUT_SAMPLE_RATE, 1);
-            _decoder.ForwardErrorCorrection = false;
-            _decoder.MaxDataBytes = Constants.OUTPUT_SAMPLE_RATE * 4;
 
             //Connect to TCP and UDP
 
@@ -169,31 +160,21 @@ public class SRSConnectionManager : IHandle<TCPClientStatusMessage>, IHandle<SRC
 
     public void StopEncoding()
     {
-        if (!stop)
-            lock (lockob)
+        lock (lockob)
+        {
+            if (udpVoiceHandler != null)
             {
                 EventBus.Instance.Unsubcribe(this);
                 stop = true;
                 _stopFlag.Cancel();
 
-                _audioPlayer?.Stop();
-                _audioRecorder?.Stop();
-
-                _audioPlayer?.Release();
-                _audioRecorder?.Release();
-
-                _encoder?.Dispose();
-                _encoder = null;
-
-                _decoder?.Dispose();
-                _decoder = null;
-
-                _audioPlayer = null;
-                _audioRecorder = null;
-
                 _clientAudioProcessor?.Stop();
                 _clientAudioProcessor = null;
+            
+                udpVoiceHandler?.RequestStop();
+                udpVoiceHandler = null;
             }
+        }
     }
 
     private void ReadyToSend()
@@ -240,10 +221,11 @@ public class SRSConnectionManager : IHandle<TCPClientStatusMessage>, IHandle<SRC
     }
     private void ReceiveAudio()
     {
+       
         SpeakerPhoneEnable();
         SetAudioFocus();
         
-        _audioPlayer = new AudioTrack.Builder()
+        var _audioPlayer = new AudioTrack.Builder()
             .SetAudioAttributes(new AudioAttributes.Builder()
                 .SetUsage(AudioUsageKind.Media)
                 .SetContentType(AudioContentType.Music)
@@ -264,33 +246,49 @@ public class SRSConnectionManager : IHandle<TCPClientStatusMessage>, IHandle<SRC
         var buffer =
             new float[Constants.OUTPUT_SAMPLE_RATE / 1000 * Constants.OUTPUT_AUDIO_LENGTH_MS * 2 * 16];
 
-
+        Process.SetThreadPriority(global::Android.OS.ThreadPriority.Audio);
+       // Thread.CurrentThread.Priority = ThreadPriority.Highest;
         var stopwatch = new Stopwatch();
         stopwatch.Start();
 
-        while (!stop && _audioPlayer != null)
+        long lastRead = 0;
+
+        while (!stop)
             try
             {
+                var current = stopwatch.ElapsedMilliseconds;
+                
                 var floatsRequired =
-                    stopwatch.ElapsedMilliseconds * (Constants.OUTPUT_SAMPLE_RATE / 1000) *
+                    (current - lastRead) * (Constants.OUTPUT_SAMPLE_RATE / 1000) *
                     2; //Stereo samples * milliseconds
-                stopwatch.Restart();
+
+                lastRead = current;
+                
 
                 if (floatsRequired > 0 && floatsRequired < buffer.Length)
                 {
                     var read = _finalMixdown.Read(buffer, 0,
                         (int)floatsRequired);
-                    _audioPlayer?.Write(buffer, 0, read, WriteMode.NonBlocking);
+                    _audioPlayer?.Write(buffer, 0, read, WriteMode.Blocking);
                     Array.Clear(buffer);
-                    //       Logger.Info($"floats required {read} floats {read/2/(Constants.OUTPUT_SAMPLE_RATE/1000)}ms");
+
+                    // Logger.Info(
+                    //     $"floats required {floatsRequired} -  {read} floats {read / 2 / (Constants.OUTPUT_SAMPLE_RATE / 1000)}ms");
                 }
 
-                Thread.Sleep(10);
+
+                Thread.Yield();
             }
             catch (Exception ex)
             {
-                return;
+                Logger.Error(ex,"Error in Audio Thread!");
+                break;
             }
+        
+        
+        _audioPlayer.Stop();
+        _audioPlayer.Release();
+        
     }
 
     private void SetAudioFocus()
@@ -310,9 +308,12 @@ public class SRSConnectionManager : IHandle<TCPClientStatusMessage>, IHandle<SRC
     private void SendAudio()
     {
         //Start
+        var opusEncoder = OpusEncoder.Create(Constants.MIC_SAMPLE_RATE, 1,
+            Application.Voip);
+        opusEncoder.ForwardErrorCorrection = false;
 
         var audioBuffer = new byte[100000];
-        _audioRecorder = new AudioRecord(
+        var _audioRecorder = new AudioRecord(
             // Hardware source of recording.
             AudioSource.Default,
             // Frequency
@@ -348,7 +349,7 @@ public class SRSConnectionManager : IHandle<TCPClientStatusMessage>, IHandle<SRC
 
             if (read == MIC_SEGMENT_FRAMES_BYTES)
             {
-                var encodedBytes = _encoder.Encode(recorderBuffer, MIC_SEGMENT_FRAMES_BYTES, out var encodedLength);
+                var encodedBytes = opusEncoder.Encode(recorderBuffer, MIC_SEGMENT_FRAMES_BYTES, out var encodedLength);
 
                 var toSend = new byte[encodedLength];
 
@@ -357,6 +358,12 @@ public class SRSConnectionManager : IHandle<TCPClientStatusMessage>, IHandle<SRC
                 _clientAudioProcessor?.Send(toSend, true);
             }
         }
+        
+        _audioRecorder.Stop();
+        _audioRecorder.Release();
+        
+        opusEncoder?.Dispose();
+        opusEncoder = null;
     }
 
     private void Disconnected()

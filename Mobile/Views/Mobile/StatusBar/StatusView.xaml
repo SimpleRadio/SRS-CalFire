@@ -8,9 +8,21 @@
     <ContentView.BindingContext>
         <vm:StatusViewModel />
     </ContentView.BindingContext>
-    <HorizontalStackLayout VerticalOptions="Center" HorizontalOptions="Start" Spacing="10">
-        <Label TextColor="{Binding TCPTextColour}" Text="{Binding TCPText}"/>
-        <Label TextColor="{Binding VOIPTextColour}" Text="{Binding VOIPText}"/>
-    </HorizontalStackLayout>
+    <Grid VerticalOptions="Center" HorizontalOptions="Fill" >
+        <Grid.RowDefinitions>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+        
+        <VerticalStackLayout Grid.Column="0" Grid.Row="0" VerticalOptions="Center" HorizontalOptions="Start">
+            <Label HorizontalOptions="Start" TextColor="{Binding TCPTextColour}" VerticalTextAlignment="Center" Text="{Binding TCPText}"/>
+            <Label HorizontalOptions="Start" VerticalOptions="Center" VerticalTextAlignment="Center"  TextColor="{Binding VOIPTextColour}" Text="{Binding VOIPText}"/>
+        </VerticalStackLayout>
+        
+        <ImageButton Margin="10" Grid.Column="1" Grid.Row="0" WidthRequest="30" HeightRequest="30" Source="settingsicon.png" Clicked="Button_OnClicked" HorizontalOptions="End"></ImageButton>
+    </Grid>
     
 </ContentView>
