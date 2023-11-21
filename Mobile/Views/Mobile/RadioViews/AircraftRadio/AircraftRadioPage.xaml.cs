@@ -10,22 +10,10 @@ public partial class AircraftRadioPage : ContentPage
 
     public AircraftRadioPage()
     {
+        BindingContext = new AircraftRadioPageViewModel();
         InitializeComponent();
 
-        BindingContext = new AircraftRadioPageViewModel();
-
         DeviceDisplay.Current.KeepScreenOn = true;
-
-        Radio1.BindingContext = new RadioViewModel(1);
-        Radio2.BindingContext = new RadioViewModel(2);
-        Radio3.BindingContext = new RadioViewModel(3);
-        Radio4.BindingContext = new RadioViewModel(4);
-        Radio5.BindingContext = new RadioViewModel(5);
-        Radio6.BindingContext = new RadioViewModel(6);
-        Radio7.BindingContext = new RadioViewModel(7);
-        Radio8.BindingContext = new RadioViewModel(8);
-        Radio9.BindingContext = new RadioViewModel(9);
-        Radio10.BindingContext = new RadioViewModel(10);
 
         _updateTimer = Application.Current.Dispatcher.CreateTimer();
         _updateTimer.Interval = TimeSpan.FromMilliseconds(100);
@@ -50,7 +38,7 @@ public partial class AircraftRadioPage : ContentPage
 
             ((AircraftRadioPageViewModel)BindingContext).RefreshView();
         }
-        catch (NullReferenceException ex)
+        catch (Exception ex)
         {
             //ignore
         }
@@ -59,13 +47,13 @@ public partial class AircraftRadioPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        _updateTimer.Start();
+        _updateTimer?.Start();
     }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        _updateTimer.Stop();
+        _updateTimer?.Stop();
     }
 
     private void Transmit_OnReleased(object sender, EventArgs e)

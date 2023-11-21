@@ -5,6 +5,7 @@
              xmlns:aircraftRadio="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.AircraftRadio"
              xmlns:orientation="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Utility.OrientationHelper"
              xmlns:statusBar="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.StatusBar"
+             xmlns:mobile="clr-namespace:Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile"
              x:Class="Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.AircraftRadio.AircraftRadioPage">
     <Shell.TitleView>
         <statusBar:StatusView />
@@ -18,39 +19,116 @@
             <Grid
                 ColumnDefinitions="{orientation:OnOrientation Default='*,*', Landscape='*,*,*,*', TypeConverter={x:Type ColumnDefinitionCollectionTypeConverter}}"
                 RowDefinitions="{orientation:OnOrientation Default='*,*,*,*,*,*', Landscape='*,*,*,*', TypeConverter={x:Type RowDefinitionCollectionTypeConverter}}">
-
-                <!-- <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Default=0, Landscape=2}" Grid.Column="3"/> -->
-
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=0, Landscape=0}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=0}"
-                                                 x:Name="Radio1" />
+                                                 x:Name="Radio1" >
+                    <ContentView.BindingContext>
+                        <mobile:RadioViewModel>
+                            <x:Arguments>
+                                <x:Int32>1</x:Int32>
+                            </x:Arguments>
+                        </mobile:RadioViewModel>
+                    </ContentView.BindingContext>
+                </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=0, Landscape=0}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=1}"
-                                                 x:Name="Radio2" />
+                                                 x:Name="Radio2" >
+                    <ContentView.BindingContext>
+                        <mobile:RadioViewModel>
+                            <x:Arguments>
+                                <x:Int32>2</x:Int32>
+                            </x:Arguments>
+                        </mobile:RadioViewModel>
+                    </ContentView.BindingContext>
+                </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=1, Landscape=0}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=2}"
-                                                 x:Name="Radio3" />
+                                                 x:Name="Radio3" >
+                    <ContentView.BindingContext>
+                        <mobile:RadioViewModel>
+                            <x:Arguments>
+                                <x:Int32>3</x:Int32>
+                            </x:Arguments>
+                        </mobile:RadioViewModel>
+                    </ContentView.BindingContext>
+                </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=1, Landscape=0}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=3}"
-                                                 x:Name="Radio4" />
+                                                 x:Name="Radio4" >
+                    <ContentView.BindingContext>
+                        <mobile:RadioViewModel>
+                            <x:Arguments>
+                                <x:Int32>4</x:Int32>
+                            </x:Arguments>
+                        </mobile:RadioViewModel>
+                    </ContentView.BindingContext>
+                </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=2, Landscape=1}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=0}"
-                                                 x:Name="Radio5" />
+                                                 x:Name="Radio5" >
+                    <ContentView.BindingContext>
+                        <mobile:RadioViewModel>
+                            <x:Arguments>
+                                <x:Int32>5</x:Int32>
+                            </x:Arguments>
+                        </mobile:RadioViewModel>
+                    </ContentView.BindingContext>
+                </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=2, Landscape=1}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=1}"
-                                                 x:Name="Radio6" />
+                                                 x:Name="Radio6" >
+                    <ContentView.BindingContext>
+                        <mobile:RadioViewModel>
+                            <x:Arguments>
+                                <x:Int32>6</x:Int32>
+                            </x:Arguments>
+                        </mobile:RadioViewModel>
+                    </ContentView.BindingContext>
+                </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=3, Landscape=1}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=2}"
-                                                 x:Name="Radio7" />
+                                                 x:Name="Radio7" >
+                    <ContentView.BindingContext>
+                        <mobile:RadioViewModel>
+                            <x:Arguments>
+                                <x:Int32>7</x:Int32>
+                            </x:Arguments>
+                        </mobile:RadioViewModel>
+                    </ContentView.BindingContext>
+                </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=3, Landscape=1}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=3}"
-                                                 x:Name="Radio8" />
+                                                 x:Name="Radio8" >
+                    <ContentView.BindingContext>
+                        <mobile:RadioViewModel>
+                            <x:Arguments>
+                                <x:Int32>8</x:Int32>
+                            </x:Arguments>
+                        </mobile:RadioViewModel>
+                    </ContentView.BindingContext>
+                </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=4, Landscape=2}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=0}"
-                                                 x:Name="Radio9" />
+                                                 x:Name="Radio9" >
+                    <ContentView.BindingContext>
+                        <mobile:RadioViewModel>
+                            <x:Arguments>
+                                <x:Int32>9</x:Int32>
+                            </x:Arguments>
+                        </mobile:RadioViewModel>
+                    </ContentView.BindingContext>
+                </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=4, Landscape=2}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=1}"
-                                                 x:Name="Radio10" />
+                                                 x:Name="Radio10" >
+                    <ContentView.BindingContext>
+                        <mobile:RadioViewModel>
+                            <x:Arguments>
+                                <x:Int32>10</x:Int32>
+                            </x:Arguments>
+                        </mobile:RadioViewModel>
+                    </ContentView.BindingContext>
+                </aircraftRadio:AircraftRadioView>
 
                 <VerticalStackLayout Grid.Row="{orientation:OnOrientation Portrait=5, Landscape=3}"
                                      Grid.Column="0"
