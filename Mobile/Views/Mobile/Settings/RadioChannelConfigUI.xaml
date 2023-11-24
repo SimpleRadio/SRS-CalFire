@@ -4,13 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Name="RadioChannelConfig">
     <VerticalStackLayout Margin="3">
-        
+
         <!--  Value="{Binding ElementName=RadioChannelConfig, Path=VolumeValue, Mode=TwoWay}" -->
         <Slider
-                Maximum="1.0"
-                Minimum="-1.0"
-                Value="{Binding Source={x:Reference RadioChannelConfig}, Path=Volume}"
-                />
+            Maximum="1.0"
+            Minimum="-1.0"
+            Value="{Binding Source={x:Reference RadioChannelConfig}, Path=Volume}" />
 
         <Grid>
             <Grid.ColumnDefinitions>

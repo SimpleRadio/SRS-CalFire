@@ -6,10 +6,10 @@
              x:Class="Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.HandheldRadioPage"
              Title="Handheld Radio"
              BackgroundColor="#444">
-        <Shell.TitleView>
-                <statusBar:StatusView />
-        </Shell.TitleView>
-        <ScrollView Orientation="Vertical">
+    <Shell.TitleView>
+        <statusBar:StatusView />
+    </Shell.TitleView>
+    <ScrollView Orientation="Vertical">
         <VerticalStackLayout VerticalOptions="Start" Padding="20" Spacing="10">
             <Grid ColumnSpacing="10" RowSpacing="10" Margin="2">
                 <Grid.RowDefinitions>
@@ -49,7 +49,7 @@
 
                 <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" x:Name="Frequency" FontFamily="RobotoMono"
                        HorizontalTextAlignment="Center" HorizontalOptions="Fill" VerticalOptions="Start"
-                       FontSize="30" BackgroundColor="{Binding BackgroundActiveFill}" 
+                       FontSize="30" BackgroundColor="{Binding BackgroundActiveFill}"
                        TextColor="{Binding FrequencyTextColour}"
                        Text="{Binding Frequency}"
                        MaxLines="1" LineBreakMode="TailTruncation"

@@ -3,37 +3,68 @@ using Android.Content;
 using Android.OS;
 using AndroidX.Core.App;
 using Caliburn.Micro;
-using Ciribob.FS3D.SimpleRadio.Standalone.Server.Network.Models;
 using Ciribob.SRS.Common.Network.Models.EventMessages;
 using Ciribob.SRS.Common.Network.Singletons;
+using Application = Android.App.Application;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 
 /// <summary>
-/// Just by having this service active it keeps our app running and the audio playing correctly
+///     Just by having this service active it keeps our app running and the audio playing correctly
 /// </summary>
 [Service]
-internal class AudioForegroundService : Service, IHandle<TCPClientStatusMessage>, IHandle<VOIPStatusMessage>
+internal class AudioForegroundService : Service, IHandle<TCPClientStatusMessage>
 {
-    private string NOTIFICATION_CHANNEL_ID = "1801";
-    private int NOTIFICATION_ID = 1;
-    private string NOTIFICATION_CHANNEL_NAME = "fs3d";
+    private PowerManager.WakeLock _wakeLock;
+    private readonly string NOTIFICATION_CHANNEL_ID = "1801";
+    private readonly string NOTIFICATION_CHANNEL_NAME = "fs3d";
+    private readonly int NOTIFICATION_ID = 1;
+
+    public Task HandleAsync(TCPClientStatusMessage message, CancellationToken cancellationToken)
+    {
+        //todo
+        //UpdateNotification()
+
+        if (!message.Connected)
+        {
+            ReturnWakeLock();
+            //terminate
+            StopSelf();
+        }
+
+        return Task.CompletedTask;
+    }
 
     private void StartForegroundService()
     {
-        var notifcationManager = GetSystemService(Context.NotificationService) as NotificationManager;
+        var notifcationManager = GetSystemService(NotificationService) as NotificationManager;
 
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
-        {
-            createNotificationChannel(notifcationManager);
-        }
-        
-        StartForeground(NOTIFICATION_ID,  GenerateNotification());
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.O) createNotificationChannel(notifcationManager);
+
+        StartForeground(NOTIFICATION_ID, GenerateNotification());
         EventBus.Instance.SubscribeOnUIThread(this);
+
+        GetWakeLock();
     }
-    
-    
-    private Notification  GenerateNotification()
+
+    private void GetWakeLock()
+    {
+        _wakeLock?.Release();
+
+        var wakeFlags = WakeLockFlags.Partial;
+
+        var pm =
+            (PowerManager)Application.Context.GetSystemService(PowerService);
+        _wakeLock = pm.NewWakeLock(wakeFlags, typeof(AudioForegroundService).FullName);
+        _wakeLock?.Acquire();
+    }
+
+    private void ReturnWakeLock()
+    {
+        _wakeLock?.Release();
+    }
+
+    private Notification GenerateNotification()
     {
         var intent = new Intent(Platform.AppContext, typeof(MainActivity));
         var pendingIntentFlags = Build.VERSION.SdkInt >= BuildVersionCodes.S
@@ -48,7 +79,7 @@ internal class AudioForegroundService : Service, IHandle<TCPClientStatusMessage>
         notification.SetOngoing(true);
         notification.SetSmallIcon(Resource.Mipmap.appicon);
         notification.SetContentTitle("FS3D");
-        notification.SetContentText($"FS3D is running.");
+        notification.SetContentText("FS3D is running");
         notification.SetContentIntent(pendingIntent);
         return notification.Build();
     }
@@ -64,17 +95,15 @@ internal class AudioForegroundService : Service, IHandle<TCPClientStatusMessage>
     {
         return null;
     }
-    
-    //TODO check this works
-    private void UpdateNotification() {
-        String text = "Some text that will update the notification";
 
-        Notification notification = GenerateNotification();
-
-        var notifcationManager = GetSystemService(Context.NotificationService) as NotificationManager;
-        notifcationManager.Notify(NOTIFICATION_ID, notification);
-    }
-
+    // private void UpdateNotification() {
+    //     String text = "Some text that will update the notification";
+    //
+    //     Notification notification = GenerateNotification();
+    //
+    //     var notifcationManager = GetSystemService(Context.NotificationService) as NotificationManager;
+    //     notifcationManager.Notify(NOTIFICATION_ID, notification);
+    // }
 
     public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
     {
@@ -84,29 +113,7 @@ internal class AudioForegroundService : Service, IHandle<TCPClientStatusMessage>
 
     public override void OnDestroy()
     {
-        base.OnDestroy();
-        
         EventBus.Instance.Unsubcribe(this);
-    }
-
-    public Task HandleAsync(TCPClientStatusMessage message, CancellationToken cancellationToken)
-    {
-        //todo
-        //UpdateNotification()
-
-        if (!message.Connected)
-        {
-            //terminate
-            StopSelf();
-        }
-        
-        return Task.CompletedTask;
-    }
-
-    public Task HandleAsync(VOIPStatusMessage message, CancellationToken cancellationToken)
-    {
-        //TODO
-         // UpdateNotification();
-       return Task.CompletedTask;
+        base.OnDestroy();
     }
 }

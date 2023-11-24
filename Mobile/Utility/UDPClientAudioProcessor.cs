@@ -1,8 +1,6 @@
 ﻿using Caliburn.Micro;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Network.Client;
-using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings;
-using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Input;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
@@ -18,8 +16,9 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Utility;
 public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    private readonly SRSConnectionManager _connectionManager;
     private readonly ConnectedClientsSingleton _clients = ConnectedClientsSingleton.Instance;
+    private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
+    private readonly SRSConnectionManager _connectionManager;
     private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
     private readonly string _guid;
     private readonly RadioReceivingState[] _radioReceivingState;
@@ -27,7 +26,6 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
     private readonly CancellationTokenSource _stopFlag = new();
     private readonly UDPVoiceHandler _udpClient;
     private readonly object lockObj = new();
-    private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
     private long _firstPTTPress; // to delay start PTT time
     private long _lastPTTPress; // to handle dodgy PTT - release time
 
@@ -44,10 +42,10 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
         _connectionManager = connectionManager;
 
         _radioReceivingState = ClientStateSingleton.Instance.RadioReceivingState;
-        
+
         EventBus.Instance.SubscribeOnBackgroundThread(this);
     }
-    
+
     public void Dispose()
     {
         _ptt = false;
@@ -483,7 +481,7 @@ public class UDPClientAudioProcessor : IDisposable, IHandle<PTTState>
             Logger.Info("Stopped DeJitter Buffer");
         }
     }
-    
+
     public void Stop()
     {
         lock (lockObj)

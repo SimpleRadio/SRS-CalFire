@@ -1,26 +1,22 @@
-﻿
-
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.Settings;
+﻿namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.Settings;
 
 /// <summary>
 ///     Interaction logic for RadioChannelConfigUI.xaml
 /// </summary>
 public partial class RadioChannelConfigUi : ContentView
 {
-
-    public double Volume
-    {
-        get => (double)GetValue(VolumeProperty);
-        set => SetValue(VolumeProperty,(Double) value);
-    }
-    
-    
     public static readonly BindableProperty VolumeProperty =
         BindableProperty.Create(nameof(Volume), typeof(double), typeof(Slider));
 
     public RadioChannelConfigUi()
     {
         InitializeComponent();
+    }
+
+    public double Volume
+    {
+        get => (double)GetValue(VolumeProperty);
+        set => SetValue(VolumeProperty, value);
     }
     //
     // public static float GetCornerRadius(Button element)

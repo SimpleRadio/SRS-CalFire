@@ -6,7 +6,7 @@
              x:Class="Ciribob.FS3D.SimpleRadio.Standalone.Mobile.HomePage">
 
     <Shell.TitleView>
-       <statusBar:StatusView />
+        <statusBar:StatusView />
     </Shell.TitleView>
     <ScrollView>
         <VerticalStackLayout
@@ -24,6 +24,7 @@
                 IsTextPredictionEnabled="False" />
 
             <Button
+                x:Name="ConnectDisconnect"
                 FontFamily="RobotoMono" FontSize="30" BackgroundColor="#919191" TextColor="White"
                 Text="Connect"
                 Clicked="OnStartClicked"
@@ -31,7 +32,7 @@
 
             <Button
                 FontFamily="RobotoMono" FontSize="30" BackgroundColor="#919191" TextColor="White"
-               
+
                 Text="Handheld Radio"
                 Clicked="Navigate_Clicked"
                 HorizontalOptions="Center" />

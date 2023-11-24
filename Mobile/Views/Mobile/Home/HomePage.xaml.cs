@@ -1,19 +1,22 @@
 ﻿using System.Net;
-using CommunityToolkit.Maui.Alerts;
+using Caliburn.Micro;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Singleton;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.AircraftRadio;
-using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.Settings;
-using CommunityToolkit.Maui.Core;
+using Ciribob.SRS.Common.Network.Client;
+using Ciribob.SRS.Common.Network.Models.EventMessages;
+using Ciribob.SRS.Common.Network.Singletons;
+using CommunityToolkit.Maui.Alerts;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile;
 
-public partial class HomePage : ContentPage
+public partial class HomePage : ContentPage, IHandle<TCPClientStatusMessage>
 {
-    private int count = 0;
+    private bool _isTransitioning;
+    private bool connected;
 
     public HomePage()
     {
@@ -44,6 +47,29 @@ public partial class HomePage : ContentPage
         /*
          *
          */
+        EventBus.Instance.SubscribeOnUIThread(this);
+    }
+
+    public Task HandleAsync(TCPClientStatusMessage message, CancellationToken cancellationToken)
+    {
+        MainThread.BeginInvokeOnMainThread(() => { 
+            if (message.Connected)
+            {
+                connected = true;
+                ConnectDisconnect.Text = "Disconnect";
+            }
+            else
+            {
+                connected = false;
+                ConnectDisconnect.Text = "Connect";
+            }
+
+            ConnectDisconnect.IsEnabled = true;
+            
+        });
+        
+
+        return Task.CompletedTask;
     }
 
     public async Task<PermissionStatus> CheckAndRequestMicrophonePermission()
@@ -68,37 +94,37 @@ public partial class HomePage : ContentPage
         return status;
     }
 
-    private void OnStopClicked(object sender, EventArgs e)
-    {
-        SRSConnectionManager.Instance.StopEncoding();
-    }
-
     private void OnStartClicked(object sender, EventArgs e)
     {
         //SRSConnectionManager.Instance.StopEncoding();
-#if ANDROID
-            Android.Content.Intent intent = new Android.Content.Intent(Android.App.Application.Context,typeof(AudioForegroundService));
-            Android.App.Application.Context.StartForegroundService(intent);
-#endif
 
-        if (IPEndPoint.TryParse(Address.Text, out var result))
+        if (connected)
         {
-            
-            SRSConnectionManager.Instance.StartAndConnect(result);
+            EventBus.Instance.PublishOnBackgroundThreadAsync(new DisconnectRequestMessage());
+            ConnectDisconnect.IsEnabled = false;
+            ConnectDisconnect.Text = "Disconnecting...";
         }
         else
         {
-            DisplayAlert("Error", "Invalid IP and port", "OK");
+            if (IPEndPoint.TryParse(Address.Text, out var result))
+            {
+                ConnectDisconnect.IsEnabled = false;
+                ConnectDisconnect.Text = "Connecting...";
+
+                SRSConnectionManager.Instance.StartAndConnect(result);
+            }
+            else
+            {
+                DisplayAlert("Error", "Invalid IP and port", "OK");
+            }
         }
     }
 
-    private bool _isTransitioning = false;
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
 
         _isTransitioning = false;
-
     }
 
     private void Navigate_Clicked(object sender, EventArgs e)
@@ -107,10 +133,9 @@ public partial class HomePage : ContentPage
         {
             _isTransitioning = true;
             ClientStateSingleton.Instance.PlayerUnitState.LoadHandHeldRadio();
-            Toast.Make("Loading Handheld Radio", ToastDuration.Short, 14).Show();
+            Toast.Make("Loading Handheld Radio").Show();
             Navigation.PushAsync(new HandheldRadioPage(), true);
         }
-     
     }
 
     private void AircraftRadio_OnClicked(object sender, EventArgs e)
@@ -119,8 +144,8 @@ public partial class HomePage : ContentPage
         {
             _isTransitioning = true;
             ClientStateSingleton.Instance.PlayerUnitState.LoadMultiRadio();
-            Toast.Make("Loading Aircraft Radio", ToastDuration.Short, 14).Show();
-            Navigation.PushAsync(new AircraftRadioPage(),true);
+            Toast.Make("Loading Aircraft Radio").Show();
+            Navigation.PushAsync(new AircraftRadioPage(), true);
         }
     }
 }

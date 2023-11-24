@@ -6,7 +6,7 @@
     <VerticalStackLayout
         Margin="10">
 
-        
+
         <!-- <Slider x:Name="EffectVolume" -->
         <!--         TickPlacement="BottomRight" -->
         <!--         SmallChange="5" -->
@@ -19,9 +19,9 @@
         <!--         Value="{Binding ElementName=EffectsVolumeControl, Path=VolumeValue, Mode=TwoWay}" -->
         <!--         Minimum="0" /> -->
         <Slider
-                Maximum="200"
-                Value="{Binding Source={x:Reference BackgroundEffectVolume}, Path=Volume, Mode=TwoWay}"
-                Minimum="0" />
+            Maximum="200"
+            Value="{Binding Source={x:Reference BackgroundEffectVolume}, Path=Volume, Mode=TwoWay}"
+            Minimum="0" />
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />

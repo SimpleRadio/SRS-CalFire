@@ -1,4 +1,3 @@
-using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Utility;
 using Ciribob.SRS.Common.Network.Singletons;
 

@@ -1,127 +1,116 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Android.Net.Wifi.P2p;
-using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Models;
+﻿using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Singleton;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Utility;
 using Ciribob.SRS.Common.Helpers;
 using Ciribob.SRS.Common.Network.Models;
 
-namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.AircraftRadio
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile.AircraftRadio;
+
+public class AircraftRadioPageViewModel : PropertyChangedBase
 {
-    public class AircraftRadioPageViewModel : PropertyChangedBase
+    private static readonly Color RadioActiveTransmit = Color.Parse("#96FF6D");
+    private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
+
+    public AircraftRadioPageViewModel()
     {
-        private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
-
-        public AircraftRadioPageViewModel()
+        RadioSelect = new Command(() => { RadioHelper.SelectRadio(0); }, () => IsAvailable);
+        HotIntercomMicToggle = new Command(() =>
         {
-            RadioSelect = new Command(() =>
-            {
-                RadioHelper.SelectRadio(0);
-            }, () => IsAvailable);
-            HotIntercomMicToggle = new Command(() =>
-            {
-                ClientStateSingleton.Instance.PlayerUnitState.IntercomHotMic = !ClientStateSingleton.Instance.PlayerUnitState.IntercomHotMic;
-                NotifyPropertyChanged(nameof(HotIntercomTextColour));
-            }, () => IsAvailable);
+            ClientStateSingleton.Instance.PlayerUnitState.IntercomHotMic =
+                !ClientStateSingleton.Instance.PlayerUnitState.IntercomHotMic;
+            NotifyPropertyChanged(nameof(HotIntercomTextColour));
+        }, () => IsAvailable);
+    }
+
+    public bool IsAvailable
+    {
+        get
+        {
+            var radio = Radio;
+
+            if (radio == null) return false;
+
+            return radio.Modulation != Modulation.DISABLED;
         }
+    }
 
-        public bool IsAvailable
+    public Radio Radio => ClientStateSingleton.Instance.PlayerUnitState.Radios[0];
+
+    public Command RadioSelect { get; set; }
+
+    public Color RadioActiveFill
+    {
+        get
         {
-            get
-            {
-                var radio = Radio;
+            if (Radio == null || !IsAvailable) return Colors.Red;
 
-                if (radio == null) return false;
+            if (ClientStateSingleton.Instance.PlayerUnitState.SelectedRadio != 0)
+                return Colors.Orange;
 
-                return radio.Modulation != Modulation.DISABLED;
-            }
+            if (ClientStateSingleton.Instance.RadioSendingState.IsSending &&
+                ClientStateSingleton.Instance.RadioSendingState.SendingOn == 0)
+                return RadioActiveTransmit;
+            return Colors.Green;
         }
+    }
 
-        public Radio Radio => ClientStateSingleton.Instance.PlayerUnitState.Radios[0];
-
-        public Command RadioSelect { get; set; }
-
-        private static readonly Color RadioActiveTransmit = Color.Parse("#96FF6D");
-
-        public Color RadioActiveFill
+    public bool VolumeEnabled
+    {
+        get
         {
-            get
-            {
-                if (Radio == null || !IsAvailable) return Colors.Red;
-
-                if (ClientStateSingleton.Instance.PlayerUnitState.SelectedRadio != 0)
-                    return Colors.Orange;
-
-                if (ClientStateSingleton.Instance.RadioSendingState.IsSending &&
-                    ClientStateSingleton.Instance.RadioSendingState.SendingOn == 0)
-                    return RadioActiveTransmit;
-                return Colors.Green;
-            }
-        }
-
-        public bool VolumeEnabled
-        {
-            get
-            {
-                if (IsAvailable)
-                {
-                    var currentRadio = Radio;
-
-                    if (currentRadio != null && currentRadio.Config.VolumeControl == RadioConfig.VolumeMode.OVERLAY)
-                        return true;
-                }
-
-                return false;
-            }
-        }
-
-        public float Volume
-        {
-            get
+            if (IsAvailable)
             {
                 var currentRadio = Radio;
 
-                if (currentRadio != null) return currentRadio.Volume * 100.0f;
-
-                return 0f;
+                if (currentRadio != null && currentRadio.Config.VolumeControl == RadioConfig.VolumeMode.OVERLAY)
+                    return true;
             }
-            set
-            {
-                var currentRadio = Radio;
 
-                if (currentRadio != null)
-                {
-                    var clientRadio = _clientStateSingleton.PlayerUnitState.Radios[0];
-
-                    clientRadio.Volume = value / 100.0f;
-                }
-            }
+            return false;
         }
+    }
 
-        public Command HotIntercomMicToggle { get; set; }
-        
-
-        public Color HotIntercomTextColour
+    public float Volume
+    {
+        get
         {
-            get
+            var currentRadio = Radio;
+
+            if (currentRadio != null) return currentRadio.Volume * 100.0f;
+
+            return 0f;
+        }
+        set
+        {
+            var currentRadio = Radio;
+
+            if (currentRadio != null)
             {
-                if (Radio == null || !IsAvailable) return Colors.Red;
+                var clientRadio = _clientStateSingleton.PlayerUnitState.Radios[0];
 
-                if (ClientStateSingleton.Instance.PlayerUnitState.IntercomHotMic)
-                    return RadioActiveTransmit;
-
-                return Colors.Red;
+                clientRadio.Volume = value / 100.0f;
             }
         }
+    }
 
-        public void RefreshView()
+    public Command HotIntercomMicToggle { get; set; }
+
+
+    public Color HotIntercomTextColour
+    {
+        get
         {
-            NotifyPropertyChanged(nameof(RadioActiveFill));
-        }
+            if (Radio == null || !IsAvailable) return Colors.Red;
 
+            if (ClientStateSingleton.Instance.PlayerUnitState.IntercomHotMic)
+                return RadioActiveTransmit;
+
+            return Colors.Red;
+        }
+    }
+
+    public void RefreshView()
+    {
+        NotifyPropertyChanged(nameof(RadioActiveFill));
     }
 }

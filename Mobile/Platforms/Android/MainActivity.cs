@@ -8,7 +8,6 @@ using Ciribob.SRS.Common.Network.Singletons;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 
-
 [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true,
     ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode |
                            ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density,
@@ -17,7 +16,6 @@ public class MainActivity : MauiAppCompatActivity
 {
     public override bool OnKeyDown(Keycode keyCode, KeyEvent e)
     {
-      
         switch (keyCode)
         {
             case Keycode.VolumeUp:
@@ -27,7 +25,7 @@ public class MainActivity : MauiAppCompatActivity
                     EventBus.Instance.PublishOnBackgroundThreadAsync(new PTTState { PTTPressed = true });
                     return true;
                 }
-              
+
                 break;
         }
 
@@ -46,6 +44,7 @@ public class MainActivity : MauiAppCompatActivity
                     EventBus.Instance.PublishOnBackgroundThreadAsync(new PTTState { PTTPressed = false });
                     return true;
                 }
+
                 break;
         }
 

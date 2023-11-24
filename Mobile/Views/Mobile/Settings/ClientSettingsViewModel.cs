@@ -1,7 +1,5 @@
 ﻿using System.Globalization;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
-using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Models;
-using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Singleton;
 using Ciribob.SRS.Common.Helpers;
@@ -16,19 +14,12 @@ public class ClientSettingsViewModel : PropertyChangedBase
 
     public bool Loaded { get; set; } = false;
 
-    public ClientSettingsViewModel()
-    {
-  
-        
-    }
-    
 
     /**
          * Global Settings
          */
-    
 
-    
+
     public bool AutoSelectChannel
     {
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(
@@ -118,7 +109,7 @@ public class ClientSettingsViewModel : PropertyChangedBase
             NotifyPropertyChanged();
         }
     }
-    
+
     public bool RadioSoundEffectsToggle
     {
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
@@ -452,7 +443,7 @@ public class ClientSettingsViewModel : PropertyChangedBase
             NotifyPropertyChanged();
         }
     }
-    
+
 
     public string PlayerName
     {
@@ -475,8 +466,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         }
         get => ClientStateSingleton.Instance.PlayerUnitState.UnitId;
     }
-    
-    
+
+
     public bool VolumeUpAsPTTToggle
     {
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys

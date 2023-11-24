@@ -6,7 +6,6 @@ using LogLevel = NLog.LogLevel;
 
 namespace Mobile;
 
-
 public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
@@ -29,7 +28,7 @@ public static class MauiProgram
 
 #if DEBUG
         var logger = LogManager.Setup().RegisterMauiLog()
-            .LoadConfiguration(c => c.ForLogger(LogLevel.Debug).WriteToMauiLog())
+            .LoadConfiguration(c => c.ForLogger(LogLevel.Debug).WriteToConsole())
             .GetCurrentClassLogger();
 #else
         var logger = NLog.LogManager.Setup().RegisterMauiLog()

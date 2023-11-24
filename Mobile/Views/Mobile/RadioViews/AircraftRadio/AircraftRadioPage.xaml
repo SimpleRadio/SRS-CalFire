@@ -11,7 +11,7 @@
         <statusBar:StatusView />
     </Shell.TitleView>
     <ContentPage.Content>
-        
+
 
         <ScrollView Orientation="Vertical">
 
@@ -21,7 +21,7 @@
                 RowDefinitions="{orientation:OnOrientation Default='*,*,*,*,*,*', Landscape='*,*,*,*', TypeConverter={x:Type RowDefinitionCollectionTypeConverter}}">
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=0, Landscape=0}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=0}"
-                                                 x:Name="Radio1" >
+                                                 x:Name="Radio1">
                     <ContentView.BindingContext>
                         <mobile:RadioViewModel>
                             <x:Arguments>
@@ -32,7 +32,7 @@
                 </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=0, Landscape=0}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=1}"
-                                                 x:Name="Radio2" >
+                                                 x:Name="Radio2">
                     <ContentView.BindingContext>
                         <mobile:RadioViewModel>
                             <x:Arguments>
@@ -43,7 +43,7 @@
                 </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=1, Landscape=0}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=2}"
-                                                 x:Name="Radio3" >
+                                                 x:Name="Radio3">
                     <ContentView.BindingContext>
                         <mobile:RadioViewModel>
                             <x:Arguments>
@@ -54,7 +54,7 @@
                 </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=1, Landscape=0}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=3}"
-                                                 x:Name="Radio4" >
+                                                 x:Name="Radio4">
                     <ContentView.BindingContext>
                         <mobile:RadioViewModel>
                             <x:Arguments>
@@ -65,7 +65,7 @@
                 </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=2, Landscape=1}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=0}"
-                                                 x:Name="Radio5" >
+                                                 x:Name="Radio5">
                     <ContentView.BindingContext>
                         <mobile:RadioViewModel>
                             <x:Arguments>
@@ -76,7 +76,7 @@
                 </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=2, Landscape=1}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=1}"
-                                                 x:Name="Radio6" >
+                                                 x:Name="Radio6">
                     <ContentView.BindingContext>
                         <mobile:RadioViewModel>
                             <x:Arguments>
@@ -87,7 +87,7 @@
                 </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=3, Landscape=1}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=2}"
-                                                 x:Name="Radio7" >
+                                                 x:Name="Radio7">
                     <ContentView.BindingContext>
                         <mobile:RadioViewModel>
                             <x:Arguments>
@@ -98,7 +98,7 @@
                 </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=3, Landscape=1}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=3}"
-                                                 x:Name="Radio8" >
+                                                 x:Name="Radio8">
                     <ContentView.BindingContext>
                         <mobile:RadioViewModel>
                             <x:Arguments>
@@ -109,7 +109,7 @@
                 </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=4, Landscape=2}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=0, Landscape=0}"
-                                                 x:Name="Radio9" >
+                                                 x:Name="Radio9">
                     <ContentView.BindingContext>
                         <mobile:RadioViewModel>
                             <x:Arguments>
@@ -120,7 +120,7 @@
                 </aircraftRadio:AircraftRadioView>
                 <aircraftRadio:AircraftRadioView Grid.Row="{orientation:OnOrientation Portrait=4, Landscape=2}"
                                                  Grid.Column="{orientation:OnOrientation Portrait=1, Landscape=1}"
-                                                 x:Name="Radio10" >
+                                                 x:Name="Radio10">
                     <ContentView.BindingContext>
                         <mobile:RadioViewModel>
                             <x:Arguments>
@@ -136,13 +136,13 @@
                                      HorizontalOptions="Center" VerticalOptions="Start"
                                      Padding="10" Spacing="10">
                     <HorizontalStackLayout HorizontalOptions="Fill" VerticalOptions="Center" Spacing="5">
-                        <Ellipse 
+                        <Ellipse
                             WidthRequest="15"
                             HeightRequest="15"
                             Fill="{Binding RadioActiveFill}"
-                            VerticalOptions="Start"/>
-                        <Label Padding="0" >Intercom</Label>
-                  
+                            VerticalOptions="Start" />
+                        <Label Padding="0">Intercom</Label>
+
                         <Slider Margin="0,0,0,20" Maximum="100" Minimum="0" IsEnabled="{Binding VolumeEnabled}"
                                 Value="{Binding Volume}" Style="{StaticResource VolumeSlider}" WidthRequest="200" />
                     </HorizontalStackLayout>
@@ -150,7 +150,8 @@
                         <Button Text="Select Intercom" FontFamily="RobotoMono" FontSize="12" BackgroundColor="#919191"
                                 TextColor="White" Command="{Binding RadioSelect}" />
                         <Button Text="Hot Mic" FontFamily="RobotoMono" FontSize="12" BackgroundColor="#919191"
-                                TextColor="{Binding HotIntercomTextColour}" Command="{Binding Path=HotIntercomMicToggle, Mode=TwoWay}" />
+                                TextColor="{Binding HotIntercomTextColour}"
+                                Command="{Binding Path=HotIntercomMicToggle, Mode=TwoWay}" />
                     </HorizontalStackLayout>
                     <Button Text="TRANSMIT" FontFamily="RobotoMono" FontSize="30" BackgroundColor="#919191"
                             TextColor="White" Pressed="Transmit_OnPressed" Released="Transmit_OnReleased" />
