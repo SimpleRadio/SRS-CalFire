@@ -123,14 +123,4 @@ public partial class HomePage : ContentPage
             Navigation.PushAsync(new AircraftRadioPage(),true);
         }
     }
-
-    private void Settings_OnClicked(object sender, EventArgs e)
-    {
-        if (!_isTransitioning)
-        {
-            _isTransitioning = true;
-            Toast.Make("Loading Settings", ToastDuration.Short, 14).Show();
-            Navigation.PushAsync(new ClientSettingsPage(), true);
-        }
-    }
 }

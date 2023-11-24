@@ -249,7 +249,7 @@ public class ServerSync : TcpServer, IHandle<ServerSettingsChangedMessage>
                     Client = new SRClientBase
                     {
                         ClientGuid = client.ClientGuid,
-                        UnitState = client.UnitState
+                        UnitState = client.UnitState.DeepClone()
                     }
                 };
                 //remove radios

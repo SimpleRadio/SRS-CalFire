@@ -9,6 +9,9 @@ public partial class ClientSettingsPage : ContentPage
     {
         InitializeComponent();
 
-        BindingContext = new ClientSettingsViewModel();
+        //Checkbox toggles and others write their value when its set from a binding
+        //which is silly.
+        //this stops the set being fired until after its bound
+        ((ClientSettingsViewModel)BindingContext).Loaded = true;
     }
 }

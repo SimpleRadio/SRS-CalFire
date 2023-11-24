@@ -48,7 +48,7 @@ internal class AudioForegroundService : Service, IHandle<TCPClientStatusMessage>
         notification.SetOngoing(true);
         notification.SetSmallIcon(Resource.Mipmap.appicon);
         notification.SetContentTitle("FS3D");
-        notification.SetContentText($"FS3D is running. {status.TCPConnected} {status.UDPConnected} ");
+        notification.SetContentText($"FS3D is running.");
         notification.SetContentIntent(pendingIntent);
         return notification.Build();
     }

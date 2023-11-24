@@ -14,6 +14,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
     private readonly GlobalSettingsStore _globalSettings = GlobalSettingsStore.Instance;
     private readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+    public bool Loaded { get; set; } = false;
+
     public ClientSettingsViewModel()
     {
   
@@ -33,6 +35,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
             ProfileSettingsKeys.AutoSelectPresetChannel);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.AutoSelectPresetChannel,
                 value);
             NotifyPropertyChanged();
@@ -44,6 +48,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.PTTReleaseDelay);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.PTTReleaseDelay, value);
             NotifyPropertyChanged();
         }
@@ -54,6 +60,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.PTTStartDelay);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.PTTStartDelay, value);
             NotifyPropertyChanged();
         }
@@ -64,6 +72,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_Start);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_Start,
                 value);
             NotifyPropertyChanged();
@@ -75,6 +85,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_End);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_End,
                 value);
             NotifyPropertyChanged();
@@ -86,6 +98,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_Start);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioTxEffects_Start,
                 value);
             NotifyPropertyChanged();
@@ -97,6 +111,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_End);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioRxEffects_End,
                 value);
             NotifyPropertyChanged();
@@ -108,6 +124,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEffects);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioEffects, value);
             NotifyPropertyChanged();
         }
@@ -118,6 +136,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.RadioEffectsClipping,
                 value);
             NotifyPropertyChanged();
@@ -129,6 +149,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingBool(ProfileSettingsKeys.NATOTone);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingBool(ProfileSettingsKeys.NATOTone, value);
             NotifyPropertyChanged();
         }
@@ -142,6 +164,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
                 CultureInfo.InvariantCulture) * 100;
         set
         {
+            if (!Loaded)
+                return;
             var orig = double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.NATOToneVolume.ToString()],
                 CultureInfo.InvariantCulture);
@@ -159,6 +183,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
             .RadioBackgroundNoiseEffect);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingBool(
                 ProfileSettingsKeys.RadioBackgroundNoiseEffect, value);
             NotifyPropertyChanged();
@@ -173,6 +199,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
                 CultureInfo.InvariantCulture) * 100;
         set
         {
+            if (!Loaded)
+                return;
             var orig = double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.UHFNoiseVolume.ToString()],
                 CultureInfo.InvariantCulture);
@@ -192,6 +220,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
                 CultureInfo.InvariantCulture) * 100;
         set
         {
+            if (!Loaded)
+                return;
             var orig = double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.VHFNoiseVolume.ToString()],
                 CultureInfo.InvariantCulture);
@@ -211,6 +241,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
                 CultureInfo.InvariantCulture) * 100;
         set
         {
+            if (!Loaded)
+                return;
             var orig = double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.HFNoiseVolume.ToString()],
                 CultureInfo.InvariantCulture);
@@ -230,6 +262,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
                 CultureInfo.InvariantCulture) * 100;
         set
         {
+            if (!Loaded)
+                return;
             var orig = double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.FMNoiseVolume.ToString()],
                 CultureInfo.InvariantCulture);
@@ -249,6 +283,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
                 CultureInfo.InvariantCulture) * 100;
         set
         {
+            if (!Loaded)
+                return;
             var orig = double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.GroundNoiseVolume.ToString()],
                 CultureInfo.InvariantCulture);
@@ -268,6 +304,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
                 CultureInfo.InvariantCulture) * 100;
         set
         {
+            if (!Loaded)
+                return;
             var orig = double.Parse(
                 ProfileSettingsStore.DefaultSettingsProfileSettings[ProfileSettingsKeys.AircraftNoiseVolume.ToString()],
                 CultureInfo.InvariantCulture);
@@ -288,6 +326,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.Radio1Channel);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.Radio1Channel, value);
             NotifyPropertyChanged();
         }
@@ -298,6 +338,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.Radio2Channel);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.Radio2Channel, value);
             NotifyPropertyChanged();
         }
@@ -308,6 +350,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.Radio3Channel);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.Radio3Channel, value);
             NotifyPropertyChanged();
         }
@@ -318,6 +362,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.Radio4Channel);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.Radio4Channel, value);
             NotifyPropertyChanged();
         }
@@ -328,6 +374,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.Radio5Channel);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.Radio5Channel, value);
             NotifyPropertyChanged();
         }
@@ -338,6 +386,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.Radio6Channel);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.Radio6Channel, value);
             NotifyPropertyChanged();
         }
@@ -348,6 +398,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.Radio7Channel);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.Radio7Channel, value);
             NotifyPropertyChanged();
         }
@@ -358,6 +410,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.Radio8Channel);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.Radio8Channel, value);
             NotifyPropertyChanged();
         }
@@ -368,6 +422,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.Radio9Channel);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.Radio9Channel, value);
             NotifyPropertyChanged();
         }
@@ -378,6 +434,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.Radio10Channel);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.Radio10Channel, value);
             NotifyPropertyChanged();
         }
@@ -388,6 +446,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
         get => _globalSettings.ProfileSettingsStore.GetClientSettingFloat(ProfileSettingsKeys.IntercomChannel);
         set
         {
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingFloat(ProfileSettingsKeys.IntercomChannel, value);
             NotifyPropertyChanged();
         }
@@ -398,6 +458,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
     {
         set
         {
+            if (!Loaded)
+                return;
             if (value != null) ClientStateSingleton.Instance.PlayerUnitState.Name = value;
         }
         get => ClientStateSingleton.Instance.PlayerUnitState.Name;
@@ -407,6 +469,8 @@ public class ClientSettingsViewModel : PropertyChangedBase
     {
         set
         {
+            if (!Loaded)
+                return;
             if (value != null) ClientStateSingleton.Instance.PlayerUnitState.UnitId = value;
         }
         get => ClientStateSingleton.Instance.PlayerUnitState.UnitId;
@@ -419,6 +483,9 @@ public class ClientSettingsViewModel : PropertyChangedBase
             .VolumeUpAsPTT);
         set
         {
+            // https://stackoverflow.com/questions/45821453/how-can-i-stop-a-toggled-event-on-a-switch-from-being-fired-as-a-page-is-loaded
+            if (!Loaded)
+                return;
             _globalSettings.ProfileSettingsStore.SetClientSettingBool(
                 ProfileSettingsKeys.VolumeUpAsPTT, value);
             NotifyPropertyChanged();
