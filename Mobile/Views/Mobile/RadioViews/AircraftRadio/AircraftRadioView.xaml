@@ -47,8 +47,8 @@
                    MaxLines="1" LineBreakMode="TailTruncation"
                    Padding="0,0,0,0">
                 <Label.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding ToggleGuard}" NumberOfTapsRequired="2" />
-                    <TapGestureRecognizer Command="{Binding RadioSelect}" NumberOfTapsRequired="1" />
+                    <TapGestureRecognizer Command="{Binding RadioSelect}" NumberOfTapsRequired="2" />
+                    <SwipeGestureRecognizer Direction="Left,Right" Command="{Binding ToggleGuard}"/>
                 </Label.GestureRecognizers>
             </Label>
         </Grid>
