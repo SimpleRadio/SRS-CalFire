@@ -13,8 +13,6 @@ namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile;
 public class RadioViewModel : PropertyChangedBase
 {
     private const double MHz = 1000000;
-    private static readonly Color RadioActiveTransmit = Color.Parse("#96FF6D");
-
     private static readonly Color RadioTextGreen = Color.Parse("#00FF00");
     private readonly ClientStateSingleton _clientStateSingleton = ClientStateSingleton.Instance;
 
@@ -96,6 +94,7 @@ public class RadioViewModel : PropertyChangedBase
             RadioHelper.SelectRadio(RadioId);
             NotifyPropertyChanged(nameof(SelectedPresetChannel));
             NotifyPropertyChanged(nameof(Frequency));
+            NotifyPropertyChanged(nameof(BackgroundActiveFill));
         }, () => IsAvailable);
 
         ToggleGuard = new Command(() =>

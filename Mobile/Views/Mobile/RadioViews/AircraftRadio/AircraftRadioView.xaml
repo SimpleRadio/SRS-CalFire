@@ -42,13 +42,13 @@
 
             <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" x:Name="Frequency" FontFamily="RobotoMono"
                    HorizontalTextAlignment="Center" HorizontalOptions="Fill" VerticalOptions="Start"
-                   FontSize="14" BackgroundColor="{Binding BackgroundActiveFill}"
+                   FontSize="14" Background="{Binding BackgroundActiveFill}"
                    TextColor="{Binding FrequencyTextColour}" Text="{Binding Frequency}"
                    MaxLines="1" LineBreakMode="TailTruncation"
                    Padding="0,0,0,0">
                 <Label.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding RadioSelect}" NumberOfTapsRequired="2" />
-                    <SwipeGestureRecognizer Direction="Left,Right" Command="{Binding ToggleGuard}"/>
+                    <TapGestureRecognizer Command="{Binding RadioSelect}" NumberOfTapsRequired="1" />
+                    <TapGestureRecognizer Command="{Binding ToggleGuard}" NumberOfTapsRequired="2"/>
                 </Label.GestureRecognizers>
             </Label>
         </Grid>

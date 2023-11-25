@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Sockets;
 using Caliburn.Micro;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
@@ -96,8 +97,6 @@ public partial class HomePage : ContentPage, IHandle<TCPClientStatusMessage>
 
     private void OnStartClicked(object sender, EventArgs e)
     {
-        //SRSConnectionManager.Instance.StopEncoding();
-
         if (connected)
         {
             EventBus.Instance.PublishOnBackgroundThreadAsync(new DisconnectRequestMessage());
@@ -106,18 +105,67 @@ public partial class HomePage : ContentPage, IHandle<TCPClientStatusMessage>
         }
         else
         {
-            if (IPEndPoint.TryParse(Address.Text, out var result))
+
+            var ipEndPoint = GetConnectionIP(Address.Text);
+            
+            if (ipEndPoint != null)
             {
                 ConnectDisconnect.IsEnabled = false;
                 ConnectDisconnect.Text = "Connecting...";
 
-                SRSConnectionManager.Instance.StartAndConnect(result);
+                SRSConnectionManager.Instance.StartAndConnect(ipEndPoint);
             }
             else
             {
-                DisplayAlert("Error", "Invalid IP and port", "OK");
+                DisplayAlert("Error", "Host or Invalid IP and port", "OK");
             }
         }
+    }
+    
+    private int GetPortFromString(string input)
+    {
+        var addr = input.Trim();
+
+        if (addr.Contains(":"))
+        {
+            int port;
+            if (int.TryParse(addr.Split(':')[1], out port)) return port;
+
+            throw new ArgumentException("specified port is  invalid");
+        }
+
+        return 5002;
+    }
+
+    private IPEndPoint GetConnectionIP(string input)
+    {
+        var addr = input.Trim().ToLowerInvariant();
+        //strip port
+        if (addr.Contains(':'))
+        {
+            addr = addr.Split(':')[0];
+        }
+        //process hostname
+        var resolvedAddresses = Dns.GetHostAddresses(addr);
+        var ip = resolvedAddresses.FirstOrDefault(xa =>
+            xa.AddressFamily ==
+            AddressFamily
+                .InterNetwork); // Ensure we get an IPv4 address in case the host resolves to both IPv6 and IPv4
+
+        if (ip != null)
+        {
+            try
+            {
+                int port = GetPortFromString(input);
+
+                return new(ip, port);
+            }
+            catch (ArgumentException ex)
+            {
+                return null;
+            }
+        }
+        return null;
     }
 
     protected override void OnDisappearing()
