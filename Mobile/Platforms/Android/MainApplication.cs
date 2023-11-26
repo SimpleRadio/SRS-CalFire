@@ -1,7 +1,6 @@
 ﻿using Android.App;
 using Android.Runtime;
 using Java.Lang;
-using Mobile;
 
 namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 

@@ -4,7 +4,7 @@ using NLog;
 using NLog.Extensions.Logging;
 using LogLevel = NLog.LogLevel;
 
-namespace Mobile;
+namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile;
 
 public static class MauiProgram
 {

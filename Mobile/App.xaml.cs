@@ -1,6 +1,4 @@
-﻿using Ciribob.FS3D.SimpleRadio.Standalone.Mobile;
-
-namespace Mobile;
+﻿namespace Ciribob.FS3D.SimpleRadio.Standalone.Mobile;
 
 public partial class App : Application
 {
