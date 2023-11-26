@@ -18,8 +18,8 @@
                 x:Name="Address"
                 FontSize="32"
                 ClearButtonVisibility="WhileEditing"
-                Text="192.168.0.67:5002"
-                Placeholder="192.168.0.67:5002"
+                Text=""
+                Placeholder="fs3dserver.io:5002"
                 IsSpellCheckEnabled="False"
                 IsTextPredictionEnabled="False" />
 

@@ -49,6 +49,8 @@ public partial class HomePage : ContentPage, IHandle<TCPClientStatusMessage>
          *
          */
         EventBus.Instance.SubscribeOnUIThread(this);
+
+        Address.Text = GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.LastServer).RawValue;
     }
 
     public Task HandleAsync(TCPClientStatusMessage message, CancellationToken cancellationToken)
@@ -105,6 +107,7 @@ public partial class HomePage : ContentPage, IHandle<TCPClientStatusMessage>
         }
         else
         {
+            GlobalSettingsStore.Instance.SetClientSetting(GlobalSettingsKeys.LastServer,Address.Text.Trim());
 
             var ipEndPoint = GetConnectionIP(Address.Text);
             
