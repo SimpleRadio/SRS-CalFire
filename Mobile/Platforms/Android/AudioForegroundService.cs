@@ -39,7 +39,7 @@ internal class AudioForegroundService : Service, IHandle<TCPClientStatusMessage>
     {
         var notifcationManager = GetSystemService(NotificationService) as NotificationManager;
 
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.O) createNotificationChannel(notifcationManager);
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.O) CreateNotificationChannel(notifcationManager);
 
         StartForeground(NOTIFICATION_ID, GenerateNotification());
         EventBus.Instance.SubscribeOnUIThread(this);
@@ -84,7 +84,7 @@ internal class AudioForegroundService : Service, IHandle<TCPClientStatusMessage>
         return notification.Build();
     }
 
-    private void createNotificationChannel(NotificationManager notificationMnaManager)
+    private void CreateNotificationChannel(NotificationManager notificationMnaManager)
     {
         var channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, NOTIFICATION_CHANNEL_NAME,
             NotificationImportance.Low);
