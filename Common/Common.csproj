@@ -13,8 +13,8 @@
         <LangVersion>11</LangVersion>
         <Nullable>disable</Nullable>
         <Company>Ciribob/SRS</Company>
-        <AssemblyVersion>1.0.0.4</AssemblyVersion>
-        <FileVersion>1.0.0.4</FileVersion>
+        <AssemblyVersion>1.0.0.5</AssemblyVersion>
+        <FileVersion>1.0.0.5</FileVersion>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
         <OutputPath>bin\x64\Debug\</OutputPath>

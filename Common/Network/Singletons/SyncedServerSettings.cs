@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Network.Models;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
 using Ciribob.SRS.Common.Network.Models.EventMessages;
 using NLog;
@@ -15,6 +16,8 @@ public class SyncedServerSettings
 
     private readonly ConcurrentDictionary<string, string> _settings;
     private readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+    public PresetChannels PresetChannels { get; private set; } = new PresetChannels();
 
     public SyncedServerSettings()
     {
@@ -50,6 +53,12 @@ public class SyncedServerSettings
         return Convert.ToBoolean(GetSetting(key));
     }
 
+    public void SetPresetChannels(PresetChannels presetChannels)
+    {
+        PresetChannels = presetChannels;
+
+        EventBus.Instance.PublishOnBackgroundThreadAsync(new PresetChannelsUpdateMessage(presetChannels));
+    }
     public void Decode(Dictionary<string, string> encoded)
     {
         foreach (var kvp in encoded) _settings.AddOrUpdate(kvp.Key, kvp.Value, (key, oldVal) => kvp.Value);

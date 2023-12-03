@@ -18,11 +18,25 @@
         <ApplicationIdGuid>82700144-37b8-4746-b4f1-7fbf4450d489</ApplicationIdGuid>
 
         <!-- Versions -->
-        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+        <ApplicationDisplayVersion>1.0.0.5</ApplicationDisplayVersion>
+        <!-- Must be a number - bump by one each time -->
         <ApplicationVersion>1</ApplicationVersion>
+        <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
 
 
-        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">30.0</SupportedOSPlatformVersion>
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">31.0</SupportedOSPlatformVersion>
+
+
+        <Company>FS3D Mobile</Company>
+
+
+        <Product>FS3SD Mobile</Product>
+
+
+        <AssemblyVersion>1.0.0.5</AssemblyVersion>
+
+
+        <FileVersion>1.0.0.5</FileVersion>
 
     </PropertyGroup>
 
@@ -35,28 +49,46 @@
         <ApplicationTitle>FS3D Mobile</ApplicationTitle>
         <ApplicationId>Ciribob.FS3D.SimpleRadio.Standalone.Mobile</ApplicationId>
         <AndroidPackageFormat>apk</AndroidPackageFormat>
+        <RunAOTCompilation>true</RunAOTCompilation>
+        <EnableLLVM>true</EnableLLVM>
     </PropertyGroup>
 
     <ItemGroup>
         <!-- App Icon -->
-        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4"/>
+        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg"
+                  Color="#512BD4"/>
 
         <!-- Splash Screen -->
-        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128"/>
+        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="Black" BaseSize="128,128"/>
 
         <!-- Images -->
         <MauiImage Include="Resources\Images\*"/>
-        <MauiImage Update="Resources\Images\dotnet_bot.svg" BaseSize="168,208"/>
 
         <!-- Custom Fonts -->
         <MauiFont Include="Resources\Fonts\*"/>
 
         <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
         <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)"/>
+        <None Remove="Resources\Fonts\RobotoMono-VariableFont.ttf"/>
+        <MauiFont Include="Resources\Fonts\RobotoMono-VariableFont.ttf">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </MauiFont>
+        <None Remove="Resources\Raw\handheld-radio.json"/>
+        <MauiAsset Include="Resources\Raw\handheld-radio.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </MauiAsset>
+        <None Remove="Resources\Raw\multi-radio.json"/>
+        <MauiAsset Include="Resources\Raw\multi-radio.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </MauiAsset>
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="CommunityToolkit.Maui" Version="5.3.0"/>
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1"/>
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0"/>
+        <PackageReference Include="NLog.Extensions.Logging" Version="5.3.2"/>
+        <PackageReference Include="NLog.Targets.MauiLog" Version="5.2.0"/>
 
     </ItemGroup>
 
@@ -140,6 +172,129 @@
         <None Update="Resources\lib\x86_64\libspeexdsp.so">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <None Update="Resources\Raw\AIRCRAFT_NOISE.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\AM_COLLISION.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\beep-connected.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\beep-disconnected.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\FM_NOISE.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\GROUND_NOISE.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\HAVEQUICK_TONE.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\HF_NOISE.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\INTERCOM_TRANS_END.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\INTERCOM_TRANS_END_SILENT.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\INTERCOM_TRANS_START.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\INTERCOM_TRANS_START_SILENT.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\KY_58_RX.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\KY_58_TX.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\MIDS_TX.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\MIDS_TX_END.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\NATO_TONE.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\RADIO_TRANS_END.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\RADIO_TRANS_END_ALTERNATE.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\RADIO_TRANS_START.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\RADIO_TRANS_START_ALTERNATE.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\RADIO_TRANS_START_Apache.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\UHF_NOISE.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Raw\VHF_NOISE.wav">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Update="Platforms\Android\Singleton\ClientStateSingleton.cs">
+            <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
+        </Compile>
+        <Compile Update="Views\Mobile\HandheldRadio\HandheldRadioPage.xaml.cs">
+            <DependentUpon>MainRadioPage.xaml</DependentUpon>
+            <SubType>Code</SubType>
+        </Compile>
+        <Compile Update="Views\Mobile\Home\HomePage.xaml.cs">
+            <DependentUpon>MainPage.xaml</DependentUpon>
+            <SubType>Code</SubType>
+        </Compile>
+        <Compile Update="Utility\UDPClientAudioProcessor.cs">
+            <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
+        </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+        <MauiXaml Update="Views\Mobile\HandheldRadio\HandheldRadioPage.xaml">
+            <SubType>Designer</SubType>
+            <Generator>MSBuild:Compile</Generator>
+        </MauiXaml>
+
+        <MauiXaml Update="Views\Mobile\Settings\BackgroundEffectVolumeControl.xaml">
+            <SubType>Designer</SubType>
+            <Generator>MSBuild:Compile</Generator>
+        </MauiXaml>
+        <MauiXaml Update="Views\Mobile\Settings\ClientSettingsPage.xaml">
+            <SubType>Designer</SubType>
+            <Generator>MSBuild:Compile</Generator>
+        </MauiXaml>
+        <MauiXaml Update="Views\Mobile\Settings\RadioChannelConfigUI.xaml">
+            <SubType>Designer</SubType>
+            <Generator>MSBuild:Compile</Generator>
+        </MauiXaml>
+        <MauiXaml Update="Views\Mobile\RadioViews\HandheldRadio\HandheldRadioPage.xaml">
+            <Generator>MSBuild:Compile</Generator>
+        </MauiXaml>
+        <MauiXaml Update="Views\Mobile\Home\HomePage.xaml">
+            <SubType>Designer</SubType>
+        </MauiXaml>
+    </ItemGroup>
+
+    <ItemGroup>
+        <AdditionalFiles Include="Views\Mobile\RadioViews\AircraftRadio\AircraftRadioPage.xaml"/>
+        <AdditionalFiles Include="Views\Mobile\RadioViews\AircraftRadio\AircraftRadioView.xaml"/>
+        <AdditionalFiles Include="Views\Mobile\RadioViews\HandheldRadio\HandheldRadioPage.xaml">
+            <Generator>MSBuild:Compile</Generator>
+        </AdditionalFiles>
     </ItemGroup>
 
 </Project>

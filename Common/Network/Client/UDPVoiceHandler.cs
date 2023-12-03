@@ -31,6 +31,7 @@ public class UDPVoiceHandler
     private bool _started;
     private volatile bool _stop;
     private long _udpLastReceived;
+    private bool _ready;
 
     public UDPVoiceHandler(string guid, IPEndPoint endPoint)
     {
@@ -46,7 +47,15 @@ public class UDPVoiceHandler
     public BlockingCollection<byte[]> EncodedAudio { get; } = new();
 
 
-    public bool Ready { get; private set; }
+    public bool Ready
+    {
+        get => _ready;
+        private set
+        {
+            _ready = value;
+            EventBus.Instance.PublishOnUIThreadAsync(new VOIPStatusMessage(_ready));
+        }
+    }
 
     private void UpdateVOIPStatus(object sender, EventArgs e)
     {

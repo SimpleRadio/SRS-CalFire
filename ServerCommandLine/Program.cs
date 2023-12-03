@@ -108,7 +108,7 @@ internal class Program
             options.AircraftRadioEffectVolume);
         profileSettings.SetClientSettingFloat(ProfileSettingsKeys.GroundNoiseVolume, options.GroundRadioEffectVolume);
 
-        _serverState = new ServerState(_eventAggregator, options.SessionId);
+        _serverState = new ServerState(_eventAggregator, options.SessionId, options.PresetChannelsPath);
     }
 
     private void SetupLogging()
@@ -230,6 +230,12 @@ public class Options
             "Session ID",
         Required = true)]
     public string SessionId { get; set; }
+    
+    [Option("presetChannelsPath",
+        HelpText =
+            "Preset Channels Path - Must be a fully qualified path",
+        Default = "")]
+    public string PresetChannelsPath { get; set; }
 
     public override string ToString()
     {
@@ -246,6 +252,7 @@ public class Options
             $"{nameof(HFRadioEffectVolume)}: {HFRadioEffectVolume}, \n" +
             $"{nameof(FMRadioEffectVolume)}: {FMRadioEffectVolume}, \n" +
             $"{nameof(AircraftRadioEffectVolume)}: {AircraftRadioEffectVolume}, \n" +
-            $"{nameof(GroundRadioEffectVolume)}: {GroundRadioEffectVolume}";
+            $"{nameof(GroundRadioEffectVolume)}: {GroundRadioEffectVolume} \n"+
+            $"{nameof(PresetChannelsPath)}: {PresetChannelsPath}";
     }
 }

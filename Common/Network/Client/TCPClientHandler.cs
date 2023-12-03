@@ -35,7 +35,21 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
     private volatile bool _stop;
     private TcpClient _tcpClient;
 
-    private UDPVoiceHandler _udpVoiceHandler;
+ //   private UDPVoiceHandler _udpVoiceHandler;
+
+    private bool _connected = false;
+
+    public bool TCPConnected
+    {
+        get
+        {
+            if (_tcpClient!=null)
+            {
+                return _tcpClient.Connected;
+            }
+            return false;
+        }
+    }
 
     public TCPClientHandler(string guid, PlayerUnitStateBase playerUnitState)
     {
@@ -63,7 +77,6 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
 
     public void TryConnect(IPEndPoint endpoint)
     {
-        EventBus.Instance.SubscribeOnBackgroundThread(this);
         _serverEndpoint = endpoint;
 
         var tcpThread = new Thread(Connect);
@@ -96,9 +109,10 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                 else
                 {
                     Logger.Error($"Failed to connect to server @ {_serverEndpoint}");
-
                     // Signal disconnect including an error
                     connectionError = true;
+                    EventBus.Instance.PublishOnUIThreadAsync(new TCPClientStatusMessage(false, TCPClientStatusMessage.ErrorCode.TIMEOUT));
+
                 }
             }
             catch (Exception ex)
@@ -162,6 +176,7 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
 
     private void ClientSyncLoop(PlayerUnitStateBase initialState)
     {
+        EventBus.Instance.SubscribeOnBackgroundThread(this);
         //clear the clients list
         _clients.Clear();
         var decodeErrors = 0; //if the JSON is unreadable - new version likely
@@ -279,9 +294,14 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                                                 new SRClientUpdateMessage(client));
                                         }
 
+                                    //add presets
+                                    if (serverMessage.PresetChannels != null)
+                                    {
+                                        _serverSettings.SetPresetChannels(serverMessage.PresetChannels);
+                                    }
+                                    
                                     //add server settings
                                     _serverSettings.Decode(serverMessage.ServerSettings);
-
                                     break;
 
                                 case NetworkMessage.MessageType.SERVER_SETTINGS:
@@ -336,7 +356,6 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
                 if (!_stop) Logger.Error(ex, "Client exception reading - Disconnecting ");
             }
         }
-
 
         //clear the clients list
         _clients.Clear();
@@ -416,15 +435,15 @@ public class TCPClientHandler : IHandle<DisconnectRequestMessage>, IHandle<UnitU
         catch (Exception ex)
         {
         }
-
-        try
-        {
-            _udpVoiceHandler?.RequestStop(); // this'll stop the socket blocking
-            _udpVoiceHandler = null;
-        }
-        catch (Exception ex)
-        {
-        }
+        //
+        // try
+        // {
+        //     _udpVoiceHandler?.RequestStop(); // this'll stop the socket blocking
+        //     _udpVoiceHandler = null;
+        // }
+        // catch (Exception ex)
+        // {
+        // }
 
         Logger.Error("Disconnecting from server");
     }
