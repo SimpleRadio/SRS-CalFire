@@ -18,7 +18,7 @@
         <ApplicationIdGuid>82700144-37b8-4746-b4f1-7fbf4450d489</ApplicationIdGuid>
 
         <!-- Versions -->
-        <ApplicationDisplayVersion>1.0.0.4</ApplicationDisplayVersion>
+        <ApplicationDisplayVersion>1.0.0.5</ApplicationDisplayVersion>
         <!-- Must be a number - bump by one each time -->
         <ApplicationVersion>1</ApplicationVersion>
         <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
@@ -33,10 +33,10 @@
         <Product>FS3SD Mobile</Product>
 
 
-        <AssemblyVersion>1.0.0.4</AssemblyVersion>
+        <AssemblyVersion>1.0.0.5</AssemblyVersion>
 
 
-        <FileVersion>1.0.0.4</FileVersion>
+        <FileVersion>1.0.0.5</FileVersion>
 
     </PropertyGroup>
 

@@ -11,9 +11,9 @@
         <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
         <AssemblyName>SRS-Server-Commandline</AssemblyName>
         <RootNamespace>Ciribob.FS3D.SimpleRadio.Standalone.Server</RootNamespace>
-        <Version>1.0.0.4</Version>
-        <AssemblyVersion>1.0.0.4</AssemblyVersion>
-        <FileVersion>1.0.0.4</FileVersion>
+        <Version>1.0.0.5</Version>
+        <AssemblyVersion>1.0.0.5</AssemblyVersion>
+        <FileVersion>1.0.0.5</FileVersion>
         <LangVersion>11</LangVersion>
         <IsPackable>false</IsPackable>
         <Company>Ciribob/SRS</Company>

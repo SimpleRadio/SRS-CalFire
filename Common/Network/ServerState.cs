@@ -29,35 +29,42 @@ public class ServerState : IHandle<StartServerMessage>, IHandle<StopServerMessag
 
     private readonly IEventAggregator _eventAggregator;
     private readonly string _sessionId;
+    private readonly string _presetPath;
     private UDPVoiceRouter _serverListener;
     private ServerSync _serverSync;
     private volatile bool _stop = true;
     private PresetChannels _presetChannels = new();
 
-    public ServerState(IEventAggregator eventAggregator, string sessionId="")
+    public ServerState(IEventAggregator eventAggregator, string sessionId="", string presetPath = "")
     {
+        if (presetPath == "")
+        {
+            presetPath = GetCurrentDirectory() + Path.DirectorySeparatorChar + "presets.txt";
+            Logger.Warn($"No Preset Channels Path set - trying {presetPath}");
+        }
+        
         _eventAggregator = eventAggregator;
         _sessionId = sessionId;
+        _presetPath = presetPath;
         _eventAggregator.Subscribe(this);
-
-        //TODO move this out of here so it can be passed in instead
+        
         LoadPresets();
         StartServer();
     }
     
     private void LoadPresets()
     {
+        Logger.Info($"Loading Preset Channels from {_presetPath}");
         _presetChannels = new PresetChannels();
         try
         {
-            var lines = File.ReadAllLines(GetCurrentDirectory() + Path.DirectorySeparatorChar + "presets.txt");
-
+            var lines = File.ReadAllLines(_presetPath);
             _presetChannels = PresetChannels.AddRadioPresets(lines);
 
         }
         catch (Exception ex)
         {
-            Logger.Error("Error Loading Presets",ex);
+            Logger.Error(ex,"Error Loading Preset Channels");
         }
     }
 
