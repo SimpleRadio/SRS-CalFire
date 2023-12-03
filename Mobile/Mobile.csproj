@@ -18,12 +18,25 @@
         <ApplicationIdGuid>82700144-37b8-4746-b4f1-7fbf4450d489</ApplicationIdGuid>
 
         <!-- Versions -->
-        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+        <ApplicationDisplayVersion>1.0.0.4</ApplicationDisplayVersion>
+        <!-- Must be a number - bump by one each time -->
         <ApplicationVersion>1</ApplicationVersion>
         <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
 
 
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">31.0</SupportedOSPlatformVersion>
+
+
+        <Company>FS3D Mobile</Company>
+
+
+        <Product>FS3SD Mobile</Product>
+
+
+        <AssemblyVersion>1.0.0.4</AssemblyVersion>
+
+
+        <FileVersion>1.0.0.4</FileVersion>
 
     </PropertyGroup>
 

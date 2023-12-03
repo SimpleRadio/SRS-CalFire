@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using Caliburn.Micro;
 using Ciribob.FS3D.SimpleRadio.Standalone.Client.Settings;
 using Ciribob.FS3D.SimpleRadio.Standalone.Common.Audio.Providers;
+using Ciribob.FS3D.SimpleRadio.Standalone.Common.Settings.Setting;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Platforms.Android;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Singleton;
 using Ciribob.FS3D.SimpleRadio.Standalone.Mobile.Views.Mobile;
@@ -50,7 +51,9 @@ public partial class HomePage : ContentPage, IHandle<TCPClientStatusMessage>
          */
         EventBus.Instance.SubscribeOnUIThread(this);
 
-        Address.Text = GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.LastServer).RawValue;
+        Address.Text = GlobalSettingsStore.Instance.GetClientSetting(GlobalSettingsKeys.LastServer)?.RawValue;
+
+        Version.Text = $"Version: {UpdaterChecker.VERSION}";
     }
 
     public Task HandleAsync(TCPClientStatusMessage message, CancellationToken cancellationToken)

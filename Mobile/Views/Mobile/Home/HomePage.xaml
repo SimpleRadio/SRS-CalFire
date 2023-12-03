@@ -13,6 +13,7 @@
             Spacing="25"
             Padding="30,0"
             VerticalOptions="Start">
+            <Label x:Name="Version"></Label>
             <Label FontSize="30">Server Address</Label>
             <Entry
                 x:Name="Address"
